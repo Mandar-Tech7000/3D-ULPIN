@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "utilities",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "spatial_id": "MUM-METRO-L3-AQUA", "name": "Mumbai Metro Line 3 (Aqua Line Underground Tunnel)", "category": "metro_underground", "type": "Twin-Bore Underground Rapid Transit Tunnel", "depth_m": -22.5, "diameter_m": 6.5, "status": "Underground Rail Corridor (Cuffe Parade - Churchgate - BKC)" }, "geometry": { "type": "LineString", "coordinates": [ [ 72.822, 18.923 ], [ 72.8265, 18.932 ], [ 72.832, 18.942 ] ] } },
+{ "type": "Feature", "properties": { "spatial_id": "MUM-SWD-MAIN-01", "name": "MCGM High-Pressure Stormwater & Freshwater Outfall Trunk Line", "category": "pipeline_drain", "type": "Subterranean High-Capacity Municipal Trunk Conduit", "depth_m": -4.5, "diameter_m": 2.4, "status": "Active Subsurface Municipal Utility" }, "geometry": { "type": "LineString", "coordinates": [ [ 72.819, 18.922 ], [ 72.823, 18.935 ], [ 72.826, 18.944 ] ] } }
+]
+}
