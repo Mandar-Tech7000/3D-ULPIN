@@ -5,8 +5,7 @@ from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 import uvicorn
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -16,21 +15,11 @@ GOOGLE_3D_TILES_API_KEY = os.getenv("GOOGLE_3D_TILES_API_KEY", "").strip()
 from src.cadastre_service import generate_building_cadastre
 
 app = FastAPI(title="South Mumbai 3D Urban Architecture Twin - Vertical ULPIN Cadastre")
-app.add_middleware(GZipMiddleware, minimum_size=1000)
-
-@app.middleware("http")
-async def add_no_cache_headers(request, call_next):
-    response = await call_next(request)
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
 
 BUILDINGS_PATH = BASE_DIR / "data" / "processed" / "buildings.geojson"
-ARCH_BUILDINGS_PATH = BASE_DIR / "data" / "processed" / "buildings_3d_architectural.geojson"
 UTILITIES_PATH = BASE_DIR / "data" / "processed" / "utilities.geojson"
 
-if not BUILDINGS_PATH.exists() or not ARCH_BUILDINGS_PATH.exists() or not UTILITIES_PATH.exists():
+if not BUILDINGS_PATH.exists() or not UTILITIES_PATH.exists():
     from src.ingest_south_mumbai import build_south_mumbai_dataset
     build_south_mumbai_dataset()
 
@@ -50,18 +39,13 @@ load_buildings_index()
 
 @app.get("/api/buildings")
 def get_buildings():
-    return FileResponse(BUILDINGS_PATH, media_type="application/geo+json")
-
-@app.get("/api/buildings/architectural")
-def get_architectural_buildings():
-    if not ARCH_BUILDINGS_PATH.exists():
-        from src.ingest_south_mumbai import build_architectural_3d_buildings
-        build_architectural_3d_buildings()
-    return FileResponse(ARCH_BUILDINGS_PATH, media_type="application/geo+json")
+    with open(BUILDINGS_PATH, "r", encoding="utf-8") as f:
+        return JSONResponse(content=json.load(f))
 
 @app.get("/api/utilities")
 def get_utilities():
-    return FileResponse(UTILITIES_PATH, media_type="application/geo+json")
+    with open(UTILITIES_PATH, "r", encoding="utf-8") as f:
+        return JSONResponse(content=json.load(f))
 
 @app.get("/api/building/{spatial_id}/cadastre")
 def get_building_cadastre_endpoint(spatial_id: str):
@@ -163,8 +147,6 @@ def serve_dashboard():
             transform: translate(-50%, -120%); transition: opacity 0.15s;
         }
 
-
-
         #twin-workspace {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: radial-gradient(circle at 50% 30%, #0d172e 0%, #060913 100%);
@@ -192,51 +174,11 @@ def serve_dashboard():
         #react-root > * {
             pointer-events: auto;
         }
-
-        /* 3D Subterranean Interactive Inspection Popup */
-        .maplibregl-popup {
-            z-index: 80 !important;
-            pointer-events: auto !important;
-        }
-        .maplibregl-popup-content {
-            background: rgba(11, 19, 38, 0.98) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(0, 229, 255, 0.5) !important;
-            border-radius: 14px !important;
-            padding: 14px 16px !important;
-            color: #f8fafc !important;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 229, 255, 0.25) !important;
-            width: 320px !important;
-            max-width: 320px !important;
-            box-sizing: border-box !important;
-            overflow: hidden !important;
-        }
-        .maplibregl-popup-tip {
-            border-top-color: rgba(11, 19, 38, 0.98) !important;
-            border-bottom-color: rgba(11, 19, 38, 0.98) !important;
-        }
-        .maplibregl-popup-close-button {
-            color: #94a3b8 !important;
-            font-size: 18px !important;
-            line-height: 1 !important;
-            padding: 4px 8px !important;
-            right: 8px !important;
-            top: 8px !important;
-            border-radius: 6px !important;
-            cursor: pointer !important;
-            z-index: 10 !important;
-        }
-        .maplibregl-popup-close-button:hover {
-            color: #fff !important;
-            background: rgba(255, 255, 255, 0.15) !important;
-        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <div id="fallback-map"></div>
-
 
     <div id="twin-workspace">
         <div id="twin-canvas-container">
@@ -308,16 +250,13 @@ def serve_dashboard():
             initMaterials() {
                 return {
                     slabConcrete: new THREE.MeshStandardMaterial({
-                        color: 0xffffff, roughness: 0.65, metalness: 0.15
+                        color: 0x1f2937, roughness: 0.82, metalness: 0.18
                     }),
                     slabEdge: new THREE.MeshStandardMaterial({
-                        color: 0xffffff, roughness: 0.5, metalness: 0.2
-                    }),
-                    roofSlate: new THREE.MeshStandardMaterial({
-                        color: 0x7b92b1, roughness: 0.65, metalness: 0.25
+                        color: 0x374151, roughness: 0.7, metalness: 0.3
                     }),
                     exteriorStone: new THREE.MeshStandardMaterial({
-                        color: 0x161f2e, roughness: 0.75, metalness: 0.25
+                        color: 0x334155, roughness: 0.78, metalness: 0.15
                     }),
                     exteriorAccent: new THREE.MeshStandardMaterial({
                         color: 0x1e293b, roughness: 0.6, metalness: 0.35
@@ -517,26 +456,16 @@ def serve_dashboard():
                 this.buildingData = buildingFeature;
                 this.cadastreData = cadastre;
 
-                const p = (buildingFeature && buildingFeature.properties) ? buildingFeature.properties : {};
-                const geom = (buildingFeature && buildingFeature.geometry && buildingFeature.geometry.coordinates) 
-                    ? buildingFeature.geometry 
-                    : (cadastre && cadastre.geometry ? cadastre.geometry : null);
-
-                if (!geom) {
-                    console.error("loadBuilding: No valid geometry found for building", buildingFeature, cadastre);
-                    return;
-                }
+                const p = buildingFeature.properties;
+                const geom = buildingFeature.geometry;
 
                 let ring = [];
-                if (geom.type === 'Polygon' && geom.coordinates && geom.coordinates[0]) {
+                if (geom.type === 'Polygon') {
                     ring = geom.coordinates[0];
-                } else if (geom.type === 'MultiPolygon' && geom.coordinates && geom.coordinates[0] && geom.coordinates[0][0]) {
+                } else if (geom.type === 'MultiPolygon') {
                     ring = geom.coordinates[0][0];
                 }
-                if (!ring || ring.length < 3) {
-                    console.error("loadBuilding: Polygon ring has less than 3 points", ring);
-                    return;
-                }
+                if (!ring || ring.length < 3) return;
 
                 let avgLon = 0, avgLat = 0;
                 ring.forEach(pt => { avgLon += pt[0]; avgLat += pt[1]; });
@@ -805,7 +734,7 @@ def serve_dashboard():
                 const parapetH = 1.15;
                 const parapetGeom = new THREE.ExtrudeGeometry(centeredShape, { depth: parapetH, bevelEnabled: false });
                 parapetGeom.rotateX(-Math.PI / 2);
-                const parapetMesh = new THREE.Mesh(parapetGeom, this.materials.roofSlate);
+                const parapetMesh = new THREE.Mesh(parapetGeom, this.materials.slabEdge);
                 crownGroup.add(parapetMesh);
 
                 const coreW = Math.min(bboxSize.x * 0.32, 10);
@@ -1046,41 +975,17 @@ def serve_dashboard():
             const [searchQuery, setSearchQuery] = useState('');
             const [searchResults, setSearchResults] = useState([]);
             const [twinPreset, setTwinPreset] = useState('iso');
-            const [showStoreys, setShowStoreys] = useState(true);
-            const [isOrbiting, setIsOrbiting] = useState(false);
-            const [undergroundMode, setUndergroundMode] = useState(false);
-            const [utilitiesData, setUtilitiesData] = useState(null);
-            const [selectedUtility, setSelectedUtility] = useState(null);
-            const [activeUtilityCat, setActiveUtilityCat] = useState('all');
-            const [showLaterals, setShowLaterals] = useState(true);
-            const [showManholes, setShowManholes] = useState(true);
-            const [undergroundOrbitMode, setUndergroundOrbitMode] = useState(true);
-            const [currentBearing, setCurrentBearing] = useState(-24);
-            const [currentPitch, setCurrentPitch] = useState(58);
 
             const twinRef = useRef(null);
-            const undergroundModeRef = useRef(false);
-            const undergroundOrbitModeRef = useRef(true);
 
             useEffect(() => {
-                undergroundModeRef.current = undergroundMode;
-            }, [undergroundMode]);
-
-            useEffect(() => {
-                undergroundOrbitModeRef.current = undergroundOrbitMode;
-            }, [undergroundOrbitMode]);
-
-            useEffect(() => {
-                const ts = Date.now();
-                Promise.all([
-                    fetch(`/api/buildings?t=${ts}`).then(r => r.json()),
-                    fetch(`/api/buildings/architectural?t=${ts}`).then(r => r.json()),
-                    fetch(`/api/utilities?t=${ts}`).then(r => r.json())
-                ]).then(([bldData, archData, utilData]) => {
-                    setBuildingsData(bldData);
-                    setUtilitiesData(utilData);
-                    initMapLibre(bldData, archData, utilData);
-                }).catch(err => console.error("Buildings & 3D data fetch error:", err));
+                fetch('/api/buildings')
+                    .then(r => r.json())
+                    .then(data => {
+                        setBuildingsData(data);
+                        initMapLibre(data);
+                    })
+                    .catch(err => console.error("Buildings fetch error:", err));
             }, []);
 
             useEffect(() => {
@@ -1102,49 +1007,27 @@ def serve_dashboard():
 
             const handleOpenTwin = async (bldFeat) => {
                 setSelectedBuilding(bldFeat);
-                if (!bldFeat || !bldFeat.properties) {
-                    console.error("handleOpenTwin called with invalid building feature:", bldFeat);
-                    return;
-                }
-                const spId = bldFeat.properties.spatial_id;
-
-                // Look up master feature from buildingsData to guarantee full polygon coordinates
-                let master = null;
-                if (buildingsData && buildingsData.features) {
-                    master = buildingsData.features.find(b => b.properties && b.properties.spatial_id === spId);
-                }
-                if (!master) {
-                    master = bldFeat;
-                }
-
-                setSelectedBuilding(master);
                 setSelectedFloor(null);
                 setSelectedFlat(null);
                 setExplodeRatio(0);
                 setViewMode('twin');
 
-                const workspaceEl = document.getElementById('twin-workspace');
-                if (workspaceEl) workspaceEl.style.display = 'flex';
+                document.getElementById('twin-workspace').style.display = 'flex';
 
                 try {
                     const spId = bldFeat.properties.spatial_id;
                     const res = await fetch(`/api/building/${spId}/cadastre`);
-                    if (!res.ok) throw new Error(`Cadastre API returned status ${res.status}`);
                     const cad = await res.json();
                     setCadastre(cad);
 
-                    // Ensure renderer instance exists and loads the building
-                    if (!twinRef.current) {
-                        twinRef.current = new ArchitecturalDigitalTwinRenderer('twin-canvas-container');
-                    }
-                    setTimeout(() => {
-                        if (twinRef.current) {
+                    if (twinRef.current) {
+                        setTimeout(() => {
                             twinRef.current.onResize();
-                            twinRef.current.loadBuilding(master, cad);
-                        }
-                    }, 60);
+                            twinRef.current.loadBuilding(bldFeat, cad);
+                        }, 50);
+                    }
                 } catch (err) {
-                    console.error("Cadastre fetch failed for", spId, err);
+                    console.error("Cadastre fetch failed:", err);
                 }
             };
 
@@ -1184,249 +1067,6 @@ def serve_dashboard():
                 if (twinRef.current) twinRef.current.setCameraPreset(preset);
             };
 
-            const toggleStoreys = () => {
-                const next = !showStoreys;
-                setShowStoreys(next);
-                if (window.mapInstance) {
-                    const vis = next ? 'visible' : 'none';
-                    ['buildings-3d-slabs', 'buildings-3d-glass', 'buildings-3d-roofs'].forEach(id => {
-                        if (window.mapInstance.getLayer(id)) window.mapInstance.setLayoutProperty(id, 'visibility', vis);
-                    });
-                }
-            };
-
-            const toggleOrbit = () => {
-                if (isOrbiting) {
-                    setIsOrbiting(false);
-                    if (window.orbitRaf) cancelAnimationFrame(window.orbitRaf);
-                } else {
-                    setIsOrbiting(true);
-                    const rotate = () => {
-                        if (!window.mapInstance) return;
-                        const b = window.mapInstance.getBearing();
-                        window.mapInstance.setBearing((b + 0.12) % 360);
-                        window.orbitRaf = requestAnimationFrame(rotate);
-                    };
-                    window.orbitRaf = requestAnimationFrame(rotate);
-                }
-            };
-
-            const handleToggleUnderground = () => {
-                const nextMode = !undergroundMode;
-                setUndergroundMode(nextMode);
-                setSelectedUtility(null);
-                const m = window.mapInstance;
-                if (!m) return;
-
-                const satOpacity = nextMode ? 0.0 : 0.92; // 0.0 exposes dark GIS street bed
-                const bldOpacity = nextMode ? 0.88 : 1.0; // Crisp solid white/grey architectural massing matching reference BIM image
-                const utilVis = nextMode ? 'visible' : 'none';
-
-                // 1. Expose dark slate GIS ground & street bed
-                if (m.getLayer('satellite-base')) {
-                    m.setPaintProperty('satellite-base', 'raster-opacity', satOpacity);
-                }
-                const mapDiv = document.getElementById('map');
-                if (mapDiv) {
-                    mapDiv.style.backgroundColor = nextMode ? '#0b1120' : '#020816';
-                }
-
-                // 2. Translucent ghost architectural buildings in underground mode, solid in normal mode
-                if (m.getLayer('buildings-3d-base-rim')) {
-                    m.setPaintProperty('buildings-3d-base-rim', 'fill-extrusion-opacity', nextMode ? 0.08 : 1.0);
-                }
-                if (m.getLayer('buildings-3d-glass')) {
-                    m.setPaintProperty('buildings-3d-glass', 'fill-extrusion-opacity', nextMode ? 0.05 : 1.0);
-                }
-                if (m.getLayer('buildings-3d-slabs')) {
-                    m.setPaintProperty('buildings-3d-slabs', 'fill-extrusion-opacity', nextMode ? 0.12 : 1.0);
-                }
-                if (m.getLayer('buildings-3d-roofs')) {
-                    m.setPaintProperty('buildings-3d-roofs', 'fill-extrusion-opacity', nextMode ? 0.10 : 1.0);
-                }
-
-                // 3. Subsurface infrastructure layers (Crisp vector conduits, specular lines, junction nodes)
-                const allSubsurfaceLayers = [
-                    'utilities-click-hitbox',
-                    'utilities-trench-shadow',
-                    'utilities-pipe-casing',
-                    'utilities-trunks-core',
-                    'utilities-specular-ridge',
-                    'utilities-flow-pulse',
-                    'utilities-station-boxes',
-                    'utilities-station-boxes-outline',
-                    'utilities-coastal-inner',
-                    'utilities-coastal-lighting',
-                    'utilities-metro-rails',
-                    'utilities-pedestrian-stripes',
-                    'utilities-laterals',
-                    'utilities-manholes-base',
-                    'utilities-manholes'
-                ];
-                allSubsurfaceLayers.forEach(id => {
-                    if (m.getLayer(id)) {
-                        m.setLayoutProperty(id, 'visibility', utilVis);
-                    }
-                });
-                if (!nextMode && window.utilityPopup) {
-                    window.utilityPopup.remove();
-                }
-
-                // 4. Ground street parcel boundary lines (faint in underground mode)
-                if (m.getLayer('buildings-ground-line')) {
-                    m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.12 : 0.70);
-                    m.setPaintProperty('buildings-ground-line', 'line-color', nextMode ? '#334155' : [
-                        'case',
-                        ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], '#f59e0b',
-                        ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
-                        ['!=', ['get', 'name'], ''], '#38bdf8',
-                        '#64748b'
-                    ]);
-                }
-
-                // 5. Oblique architectural 3D perspective matching reference BIM digital twin
-                // 5. Oblique architectural 3D perspective with full 360-degree rotation freedom
-                if (nextMode) {
-                    applyUtilityFilters(activeUtilityCat, showLaterals, showManholes);
-                    m.easeTo({
-                        pitch: 58,
-                        bearing: -24,
-                        zoom: 16.45,
-                        duration: 1200
-                    });
-                } else {
-                    if (m.getLayer('utilities-highlight')) {
-                        m.setFilter('utilities-highlight', ['==', 'utility_id', '']);
-                    }
-                    m.easeTo({
-                        pitch: 62,
-                        bearing: -22,
-                        zoom: 16.55,
-                        duration: 1000
-                    });
-                }
-            };
-
-            const getCardinal = (deg) => {
-                const d = Math.round(((deg % 360) + 360) % 360);
-                const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-                const idx = Math.round(d / 45) % 8;
-                return dirs[idx];
-            };
-
-            const handleRotateStep = (deltaDeg) => {
-                const m = window.mapInstance;
-                if (!m) return;
-                const current = m.getBearing();
-                m.easeTo({
-                    bearing: (current + deltaDeg) % 360,
-                    duration: 350
-                });
-            };
-
-            const handleSetCardinalBearing = (targetBearing) => {
-                const m = window.mapInstance;
-                if (!m) return;
-                m.easeTo({
-                    bearing: targetBearing,
-                    duration: 550
-                });
-            };
-
-            const handleSetPitchAngle = (targetPitch) => {
-                const m = window.mapInstance;
-                if (!m) return;
-                m.easeTo({
-                    pitch: targetPitch,
-                    duration: 550
-                });
-            };
-
-            const handleUtilityCategoryChange = (cat) => {
-                setActiveUtilityCat(cat);
-                applyUtilityFilters(cat, showLaterals, showManholes);
-            };
-
-            const handleToggleLaterals = () => {
-                const next = !showLaterals;
-                setShowLaterals(next);
-                applyUtilityFilters(activeUtilityCat, next, showManholes);
-            };
-
-            const handleToggleManholes = () => {
-                const next = !showManholes;
-                setShowManholes(next);
-                applyUtilityFilters(activeUtilityCat, showLaterals, next);
-            };
-
-            const applyUtilityFilters = (cat, latEnabled, mhEnabled) => {
-                const m = window.mapInstance;
-                if (!m) return;
-
-                const catCondition = (cat === 'all') ? ['!=', 'category', ''] : ['==', 'category', cat];
-                const trunkFilter = ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true], catCondition];
-
-                [
-                    'utilities-trench-shadow',
-                    'utilities-pipe-casing',
-                    'utilities-trunks-core',
-                    'utilities-specular-ridge',
-                    'utilities-flow-pulse'
-                ].forEach(id => {
-                    if (m.getLayer(id)) m.setFilter(id, trunkFilter);
-                });
-
-                // Hitbox covers all subterranean conduits & stations for instant click registration
-                if (m.getLayer('utilities-click-hitbox')) {
-                    m.setFilter('utilities-click-hitbox', catCondition);
-                }
-
-                if (m.getLayer('utilities-station-boxes')) {
-                    const showStation = (cat === 'all' || cat === 'metro_underground');
-                    m.setLayoutProperty('utilities-station-boxes', 'visibility', showStation ? 'visible' : 'none');
-                }
-                if (m.getLayer('utilities-station-boxes-outline')) {
-                    const showStation = (cat === 'all' || cat === 'metro_underground');
-                    m.setLayoutProperty('utilities-station-boxes-outline', 'visibility', showStation ? 'visible' : 'none');
-                }
-                if (m.getLayer('utilities-coastal-inner')) {
-                    const showCoastal = (cat === 'all' || cat === 'coastal_road_tunnel');
-                    m.setLayoutProperty('utilities-coastal-inner', 'visibility', showCoastal ? 'visible' : 'none');
-                }
-                if (m.getLayer('utilities-coastal-lighting')) {
-                    const showCoastal = (cat === 'all' || cat === 'coastal_road_tunnel');
-                    m.setLayoutProperty('utilities-coastal-lighting', 'visibility', showCoastal ? 'visible' : 'none');
-                }
-                if (m.getLayer('utilities-metro-rails')) {
-                    const showMetro = (cat === 'all' || cat === 'metro_underground');
-                    m.setLayoutProperty('utilities-metro-rails', 'visibility', showMetro ? 'visible' : 'none');
-                }
-                if (m.getLayer('utilities-pedestrian-stripes')) {
-                    const showPed = (cat === 'all' || cat === 'pedestrian_subway');
-                    m.setLayoutProperty('utilities-pedestrian-stripes', 'visibility', showPed ? 'visible' : 'none');
-                }
-
-                if (m.getLayer('utilities-laterals')) {
-                    m.setLayoutProperty('utilities-laterals', 'visibility', latEnabled ? 'visible' : 'none');
-                    if (latEnabled) {
-                        m.setFilter('utilities-laterals', ['all', ['==', 'is_lateral', true], catCondition]);
-                    }
-                }
-
-                if (m.getLayer('utilities-manholes-base')) {
-                    m.setLayoutProperty('utilities-manholes-base', 'visibility', mhEnabled ? 'visible' : 'none');
-                    if (mhEnabled) {
-                        m.setFilter('utilities-manholes-base', ['all', ['==', 'is_manhole', true], catCondition]);
-                    }
-                }
-                if (m.getLayer('utilities-manholes')) {
-                    m.setLayoutProperty('utilities-manholes', 'visibility', mhEnabled ? 'visible' : 'none');
-                    if (mhEnabled) {
-                        m.setFilter('utilities-manholes', ['all', ['==', 'is_manhole', true], catCondition]);
-                    }
-                }
-            };
-
             const handleSearch = (q) => {
                 setSearchQuery(q);
                 if (!q.trim() || !buildingsData) {
@@ -1443,97 +1083,7 @@ def serve_dashboard():
                 setSearchResults(matched);
             };
 
-            const handleFlyToUtility = (u) => {
-                if (!window.mapInstance || !utilitiesData) return;
-                const feat = utilitiesData.features.find(f => f.properties && f.properties.utility_id === u.utility_id);
-                if (!feat || !feat.geometry) return;
-                const geom = feat.geometry;
-                if (geom.type === 'Point') {
-                    window.mapInstance.flyTo({ center: geom.coordinates, zoom: 17.5, pitch: 68, duration: 1200 });
-                } else if (geom.type === 'LineString') {
-                    const coords = geom.coordinates;
-                    const mid = coords[Math.floor(coords.length / 2)];
-                    window.mapInstance.flyTo({ center: mid, zoom: 17.2, pitch: 68, duration: 1200 });
-                } else if (geom.type === 'Polygon') {
-                    const coords = geom.coordinates[0];
-                    const mid = coords[0];
-                    window.mapInstance.flyTo({ center: mid, zoom: 17.2, pitch: 68, duration: 1200 });
-                }
-            };
-
-            const createUtilityPopupHTML = (p) => {
-                const isStation = p.is_station_box === true || p.is_station_box === 'true';
-                const isManhole = p.is_manhole === true || p.is_manhole === 'true';
-                const isLateral = p.is_lateral === true || p.is_lateral === 'true';
-
-                let categoryTitle = "SUBTERRANEAN CONDUIT";
-                if (isStation) categoryTitle = "METRO 3 STATION BOX";
-                else if (p.category === 'coastal_road_tunnel') categoryTitle = isManhole ? "MCRP PORTAL / VENT SHAFT" : "UNDERSEA ROAD HIGHWAY TUNNEL";
-                else if (p.category === 'metro_underground') categoryTitle = isManhole ? "METRO VENTILATION SHAFT" : "RAPID TRANSIT METRO TUNNEL";
-                else if (p.category === 'vehicular_subway') categoryTitle = "VEHICULAR ROAD UNDERPASS";
-                else if (p.category === 'pedestrian_subway') categoryTitle = isManhole ? "SUBWAY ENTRANCE PORTAL" : "PEDESTRIAN COMMUTER SUBWAY";
-                else if (isManhole) categoryTitle = "INSPECTION CHAMBER / VAULT";
-                else if (isLateral) categoryTitle = "BUILDING SERVICE LATERAL";
-                else categoryTitle = "PRIMARY TRUNK TRANSMISSION AQUEDUCT";
-
-                const diameterStr = p.nominal_diameter_mm >= 1000 
-                    ? `${(p.nominal_diameter_mm / 1000).toFixed(1)} m (${p.nominal_diameter_mm} mm)`
-                    : `${p.nominal_diameter_mm} mm`;
-
-                const accentColor = p.color || '#00e5ff';
-
-                return `
-                    <div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; width: 100%; box-sizing: border-box; overflow: hidden; user-select: text;">
-                        <!-- Header with dedicated right clearance for MapLibre close X -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-right: 26px;">
-                            <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 12px; background: ${accentColor}; color: #000; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
-                                ${categoryTitle}
-                            </span>
-                            <span style="font-size: 10.5px; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.3); white-space: nowrap; flex-shrink: 0;">
-                                -${p.depth_msl_m}m MSL
-                            </span>
-                        </div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #fff; margin-bottom: 3px; line-height: 1.35; word-break: break-word;">
-                            ${p.label || 'Subterranean Asset'}
-                        </div>
-                        <div style="font-size: 10.5px; color: #94a3b8; margin-bottom: 10px; line-height: 1.3; word-break: break-word;">
-                            ${p.corridor_name || ''}
-                        </div>
-                        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; background: rgba(15,23,42,0.85); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; font-size: 10.5px; box-sizing: border-box;">
-                            <div style="min-width: 0; overflow: hidden;">
-                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">DIAMETER / BORE</div>
-                                <div style="font-weight: 800; color: ${accentColor}; margin-top: 1px; word-break: break-word;">${diameterStr}</div>
-                            </div>
-                            <div style="min-width: 0; overflow: hidden;">
-                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">CLEARANCE</div>
-                                <div style="font-weight: 700; color: #10b981; margin-top: 1px; word-break: break-word; line-height: 1.25; font-size: 10px;">${p.clearance_status || 'Compliant'}</div>
-                            </div>
-                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); min-width: 0; overflow: hidden;">
-                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">SPECIFICATION & AUTHORITY</div>
-                                <div style="color: #cbd5e1; font-size: 10px; margin-top: 1px; word-break: break-word; line-height: 1.3;">
-                                    ${p.material || ''} • <b style="color: #38bdf8;">${p.authority || ''}</b>
-                                </div>
-                            </div>
-                            ${p.connected_building ? `
-                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); min-width: 0; overflow: hidden;">
-                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">CONNECTED LANDMARK</div>
-                                <div style="color: #f59e0b; font-size: 10px; font-weight: 700; margin-top: 1px; word-break: break-word;">
-                                    🏢 ${p.connected_building}
-                                </div>
-                            </div>
-                            ` : ''}
-                        </div>
-                        <div style="font-size: 9.5px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; padding: 0 2px;">
-                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;">ULPIN: <b style="font-family: monospace; color: #f59e0b;">${p.utility_ulpin || p.utility_id}</b></span>
-                            <span style="color: #10b981; font-weight: 700; flex-shrink: 0;">● Active</span>
-                        </div>
-                    </div>
-                `;
-            };
-
-            const initMapLibre = (bldGeo, archGeo, utilGeo) => {
-                const MANTRALAYA_COORD = [72.8270, 18.9276];
-
+            const initMapLibre = (bldGeo) => {
                 const map = new maplibregl.Map({
                     container: 'map',
                     style: {
@@ -1550,728 +1100,69 @@ def serve_dashboard():
                             id: 'satellite-base',
                             type: 'raster',
                             source: 'esri-satellite',
-                            paint: { 'raster-brightness-max': 0.92, 'raster-contrast': 0.15 }
+                            paint: { 'raster-brightness-max': 0.85, 'raster-contrast': 0.15 }
                         }]
                     },
-                    center: MANTRALAYA_COORD,
-                    zoom: 16.55,
-                    pitch: 62,
-                    bearing: -22,
+                    center: [SOUTH_MUMBAI.lon, SOUTH_MUMBAI.lat],
+                    zoom: 16.2,
+                    pitch: 60,
+                    bearing: -18,
                     maxPitch: 85,
                     antialias: true
                 });
 
                 map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
 
-                map.on('load', () => {
-                    // Realistic Geographic Sun & Ambient Architectural Lighting (Illuminates all 360° sides)
-                    map.setLight({
-                        anchor: 'map',
-                        color: '#ffffff',
-                        intensity: 0.90,
-                        position: [1.3, 210, 30]
+                map.on('load', async () => {
+                    const utilities = await fetch('/api/utilities').then(r => r.json());
+
+                    map.addSource('util-src', { type: 'geojson', data: utilities });
+                    map.addLayer({
+                        id: 'metro-dashed',
+                        type: 'line',
+                        source: 'util-src',
+                        filter: ['==', 'category', 'metro_underground'],
+                        paint: { 'line-color': '#00e5ff', 'line-width': 6, 'line-dasharray': [2, 1.5] }
+                    });
+                    map.addLayer({
+                        id: 'pipeline-solid',
+                        type: 'line',
+                        source: 'util-src',
+                        filter: ['!=', 'category', 'metro_underground'],
+                        paint: { 'line-color': '#ff3b30', 'line-width': 5.5, 'line-opacity': 0.9 }
                     });
 
-                    // 1. Cadastral Land Parcel Outlines on Ground
                     map.addSource('buildings-src', { type: 'geojson', data: bldGeo });
                     map.addLayer({
-                        id: 'buildings-ground-line',
-                        type: 'line',
+                        id: 'buildings-3d',
+                        type: 'fill-extrusion',
                         source: 'buildings-src',
                         paint: {
-                            'line-color': [
-                                'case',
-                                ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], '#f59e0b',
-                                ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
-                                ['!=', ['get', 'name'], ''], '#38bdf8',
-                                '#64748b'
-                            ],
-                            'line-width': [
-                                'case',
-                                ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], 2.5,
-                                ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], 2.5,
-                                1.0
-                            ],
-                            'line-opacity': 0.7
-                        }
-                    });
-
-                    // 2. Subterranean Infrastructure Networks (Rendered beneath buildings into bedrock strata)
-                    if (utilGeo) {
-                        map.addSource('utilities-src', { type: 'geojson', data: utilGeo });
-
-                        // A. Invisible 40px Wide Hitbox Buffer (Ensures 100% effortless clicking precision on all subterranean conduits)
-                        map.addLayer({
-                            id: 'utilities-click-hitbox',
-                            type: 'line',
-                            source: 'utilities-src',
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-width': 40.0,
-                                'line-color': '#000000',
-                                'line-opacity': 0.02
-                            }
-                        });
-
-                        // B. Subtle Ground Trench Drop Shadow (Crisp depth separation beneath the surface)
-                        map.addLayer({
-                            id: 'utilities-trench-shadow',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#020617',
-                                'line-width': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 18.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 15.0,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 13.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 11.5,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 11.0,
-                                    ['==', ['get', 'category'], 'water_supply'], 11.0,
-                                    ['==', ['get', 'category'], 'power_best'], 9.5,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 9.0,
-                                    8.5
-                                ],
-                                'line-blur': 2.5,
-                                'line-opacity': 0.50
-                            }
-                        });
-
-                        // C. Outer Pipe Wall / Structural Metallic & Concrete Casing (Clean, crisp structural boundary)
-                        map.addLayer({
-                            id: 'utilities-pipe-casing',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#070d1e',
-                                    ['==', ['get', 'category'], 'metro_underground'], '#0f0926',
-                                    ['==', ['get', 'category'], 'vehicular_subway'], '#1c1917',
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#1c1917',
-                                    ['==', ['get', 'category'], 'drainage_trunk'], '#064e3b',
-                                    ['==', ['get', 'category'], 'water_supply'], '#082f49',
-                                    ['==', ['get', 'category'], 'power_best'], '#450a0a',
-                                    ['==', ['get', 'category'], 'gas_mgl'], '#451a03',
-                                    '#1e293b'
-                                ],
-                                'line-width': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 13.5,
-                                    ['==', ['get', 'category'], 'metro_underground'], 11.0,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 9.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 8.0,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 7.8,
-                                    ['==', ['get', 'category'], 'water_supply'], 7.8,
-                                    ['==', ['get', 'category'], 'power_best'], 6.8,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 6.2,
-                                    6.0
-                                ],
-                                'line-opacity': 1.0
-                            }
-                        });
-
-                        // D. Physical Pipe Core Body (Vibrant, high-contrast BIM vector conduits matching reference image)
-                        map.addLayer({
-                            id: 'utilities-trunks-core',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#0284c7',
-                                    ['==', ['get', 'category'], 'metro_underground'], '#8b5cf6',
-                                    ['==', ['get', 'category'], 'vehicular_subway'], '#f97316',
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#eab308',
-                                    ['==', ['get', 'category'], 'drainage_trunk'], '#10b981',
-                                    ['==', ['get', 'category'], 'water_supply'], '#00e5ff',
-                                    ['==', ['get', 'category'], 'power_best'], '#ef4444',
-                                    ['==', ['get', 'category'], 'gas_mgl'], '#f59e0b',
-                                    ['get', 'color']
-                                ],
-                                'line-width': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 9.5,
-                                    ['==', ['get', 'category'], 'metro_underground'], 7.5,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 6.2,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 5.5,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 5.2,
-                                    ['==', ['get', 'category'], 'water_supply'], 5.2,
-                                    ['==', ['get', 'category'], 'power_best'], 4.5,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 4.2,
-                                    4.0
-                                ],
-                                'line-opacity': 1.0
-                            }
-                        });
-
-                        // E. 3D Cylindrical Specular Crown Ridge (Highlighting top ridge of conduit)
-                        map.addLayer({
-                            id: 'utilities-specular-ridge',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['all', ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#ffffff',
-                                'line-width': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 2.2,
-                                    ['==', ['get', 'category'], 'metro_underground'], 1.8,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 1.5,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 1.4,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 1.3,
-                                    ['==', ['get', 'category'], 'water_supply'], 1.3,
-                                    ['==', ['get', 'category'], 'power_best'], 1.2,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 1.1,
-                                    1.0
-                                ],
-                                'line-opacity': 0.75,
-                                'line-blur': 0.2
-                            }
-                        });
-
-                        // F. Coastal Road Tunnel Dual-Lane Striping & Interior Lighting
-                        map.addLayer({
-                            id: 'utilities-coastal-inner',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['==', 'category', 'coastal_road_tunnel'],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#ffffff',
-                                'line-width': 2.2,
-                                'line-dasharray': [4, 3],
-                                'line-opacity': 0.95
-                            }
-                        });
-                        map.addLayer({
-                            id: 'utilities-coastal-lighting',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['==', 'category', 'coastal_road_tunnel'],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#38bdf8',
-                                'line-width': 1.2,
-                                'line-opacity': 0.85
-                            }
-                        });
-
-                        // G. Metro Line 3 Twin Steel Railway Tracks
-                        map.addLayer({
-                            id: 'utilities-metro-rails',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['==', 'category', 'metro_underground'],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#e2e8f0',
-                                'line-width': 1.8,
-                                'line-dasharray': [2, 1.5],
-                                'line-opacity': 0.95
-                            }
-                        });
-
-                        // H. Pedestrian Subway Tactile Footway Striping
-                        map.addLayer({
-                            id: 'utilities-pedestrian-stripes',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['==', 'category', 'pedestrian_subway'],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#fef08a',
-                                'line-width': 1.8,
-                                'line-dasharray': [1.5, 1.5],
-                                'line-opacity': 0.95
-                            }
-                        });
-
-                        // I. Building Lateral Hookups (Direct conduit branches into building basements)
-                        map.addLayer({
-                            id: 'utilities-laterals',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['==', 'is_lateral', true],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': ['get', 'color'],
-                                'line-width': 3.5,
-                                'line-dasharray': [2, 1.5],
-                                'line-opacity': 0.95
-                            }
-                        });
-
-                        // J. Subterranean Fluid & Energy Flow Pulse Layer
-                        map.addLayer({
-                            id: 'utilities-flow-pulse',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['all', ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#38bdf8',
-                                    ['==', ['get', 'category'], 'metro_underground'], '#c084fc',
-                                    ['==', ['get', 'category'], 'power_best'], '#fef08a',
-                                    ['==', ['get', 'category'], 'gas_mgl'], '#fde047',
-                                    ['==', ['get', 'category'], 'water_supply'], '#e0f2fe',
-                                    '#ffffff'
-                                ],
-                                'line-width': 2.5,
-                                'line-dasharray': [1, 4],
-                                'line-opacity': 0.85
-                            }
-                        });
-
-                        // K. Metro Line 3 3D Subterranean Station Boxes (Volumetric cut-and-cover underground structures)
-                        map.addLayer({
-                            id: 'utilities-station-boxes',
-                            type: 'fill-extrusion',
-                            source: 'utilities-src',
-                            filter: ['==', 'is_station_box', true],
-                            layout: { 'visibility': 'none' },
-                            paint: {
-                                'fill-extrusion-base': 0,
-                                'fill-extrusion-height': 5.5,
-                                'fill-extrusion-color': '#8b5cf6',
-                                'fill-extrusion-opacity': 0.70
-                            }
-                        });
-                        map.addLayer({
-                            id: 'utilities-station-boxes-outline',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['==', 'is_station_box', true],
-                            layout: { 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#c084fc',
-                                'line-width': 2.5,
-                                'line-opacity': 1.0
-                            }
-                        });
-
-                        // L. Realistic Precision Engineering CAD Inspection Nodes (Sleek junction pins matching reference image)
-                        map.addLayer({
-                            id: 'utilities-manholes-base',
-                            type: 'circle',
-                            source: 'utilities-src',
-                            filter: ['==', 'is_manhole', true],
-                            layout: { 'visibility': 'none' },
-                            paint: {
-                                'circle-radius': 6.5,
-                                'circle-color': '#020617',
-                                'circle-blur': 0.4,
-                                'circle-opacity': 0.55
-                            }
-                        });
-                        map.addLayer({
-                            id: 'utilities-manholes',
-                            type: 'circle',
-                            source: 'utilities-src',
-                            filter: ['==', 'is_manhole', true],
-                            layout: { 'visibility': 'none' },
-                            paint: {
-                                'circle-radius': 4.8,
-                                'circle-color': ['get', 'color'],
-                                'circle-stroke-width': 1.5,
-                                'circle-stroke-color': '#ffffff',
-                                'circle-opacity': 1.0
-                            }
-                        });
-
-                        // M. Subterranean Selection Highlight Beam
-                        map.addLayer({
-                            id: 'utilities-highlight',
-                            type: 'line',
-                            source: 'utilities-src',
-                            filter: ['==', 'utility_id', ''],
-                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
-                            paint: {
-                                'line-color': '#ffffff',
-                                'line-width': 10.0,
-                                'line-opacity': 0.95,
-                                'line-blur': 1.2
-                            }
-                        });
-                    }
-
-                    // 3. 3D Architectural Multi-Storey Strata Sources & Layers (Drawn ABOVE subterranean networks)
-                    map.addSource('buildings-arch-src', { type: 'geojson', data: archGeo });
-
-                    // Foundation Base Plinth (Protruding ground base)
-                    map.addLayer({
-                        id: 'buildings-3d-base-rim',
-                        type: 'fill-extrusion',
-                        source: 'buildings-arch-src',
-                        filter: ['==', 'strata_type', 'base_rim'],
-                        paint: {
-                            'fill-extrusion-base': ['get', 'base_m'],
-                            'fill-extrusion-height': ['get', 'height_m'],
                             'fill-extrusion-color': [
-                                'case',
-                                ['==', ['get', 'is_mantralaya'], true], '#f59e0b',
-                                ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], '#f59e0b',
-                                ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
-                                '#1e293b'
+                                'interpolate', ['linear'], ['get', 'height_m'],
+                                0, '#0284c7',
+                                25, '#00e5ff',
+                                55, '#38bdf8',
+                                85, '#818cf8',
+                                120, '#c084fc'
                             ],
-                            'fill-extrusion-opacity': 1.0
-                        }
-                    });
-
-                    // Storey Facade Wall Panels (Deep dark charcoal / navy slate #161f2e)
-                    map.addLayer({
-                        id: 'buildings-3d-glass',
-                        type: 'fill-extrusion',
-                        source: 'buildings-arch-src',
-                        filter: ['==', 'strata_type', 'glass'],
-                        paint: {
-                            'fill-extrusion-base': ['get', 'base_m'],
                             'fill-extrusion-height': ['get', 'height_m'],
-                            'fill-extrusion-color': '#161f2e',
-                            'fill-extrusion-opacity': 1.0
+                            'fill-extrusion-base': 0,
+                            'fill-extrusion-opacity': 0.92
                         }
                     });
 
-                    // Concrete Floor Slab Dividers (Protruding crisp bright white ledges #ffffff)
-                    map.addLayer({
-                        id: 'buildings-3d-slabs',
-                        type: 'fill-extrusion',
-                        source: 'buildings-arch-src',
-                        filter: ['==', 'strata_type', 'slab'],
-                        paint: {
-                            'fill-extrusion-base': ['get', 'base_m'],
-                            'fill-extrusion-height': ['get', 'height_m'],
-                            'fill-extrusion-color': '#ffffff',
-                            'fill-extrusion-opacity': 1.0
-                        }
+                    map.on('click', 'buildings-3d', (e) => {
+                        if (!e.features.length) return;
+                        const f = e.features[0];
+                        setSelectedBuilding(f);
                     });
 
-                    // Concrete Roof Caps / Parapet Crowns (Uniform slate steel-blue #7b92b1 matching reference image)
-                    map.addLayer({
-                        id: 'buildings-3d-roofs',
-                        type: 'fill-extrusion',
-                        source: 'buildings-arch-src',
-                        filter: ['==', 'strata_type', 'roof'],
-                        paint: {
-                            'fill-extrusion-base': ['get', 'base_m'],
-                            'fill-extrusion-height': ['get', 'height_m'],
-                            'fill-extrusion-color': '#7b92b1',
-                            'fill-extrusion-opacity': 1.0
-                        }
-                    });
-
-                    // Active Building Selection Highlight
-                    map.addLayer({
-                        id: 'buildings-3d-highlight',
-                        type: 'fill-extrusion',
-                        source: 'buildings-arch-src',
-                        filter: ['==', 'spatial_id', ''],
-                        paint: {
-                            'fill-extrusion-base': ['get', 'base_m'],
-                            'fill-extrusion-height': ['+', ['get', 'height_m'], 1.2],
-                            'fill-extrusion-color': '#00e5ff',
-                            'fill-extrusion-opacity': 0.85
-                        }
-                    });
-
-                    // Live Bearing & Pitch Updates for 360° Compass HUD
-                    map.on('rotate', () => {
-                        setCurrentBearing(map.getBearing());
-                    });
-                    map.on('pitch', () => {
-                        setCurrentPitch(map.getPitch());
-                    });
-
-                    // 360° Left-Click Drag Orbit System for Subterranean Exploration
-                    const canvas = map.getCanvas();
-                    let isLeftDragging = false;
-                    let dragStartX = 0;
-                    let dragStartY = 0;
-                    let startBearing = 0;
-                    let startPitch = 0;
-                    let hasDragged = false;
-                    let suppressNextClick = false;
-
-                    const onMouseDown = (e) => {
-                        if (e.button === 0 && undergroundModeRef.current && undergroundOrbitModeRef.current) {
-                            isLeftDragging = true;
-                            hasDragged = false;
-                            dragStartX = e.clientX;
-                            dragStartY = e.clientY;
-                            startBearing = map.getBearing();
-                            startPitch = map.getPitch();
-                            map.dragPan.disable();
-                        }
-                    };
-
-                    const onMouseMove = (e) => {
-                        if (!isLeftDragging) return;
-                        const dx = e.clientX - dragStartX;
-                        const dy = e.clientY - dragStartY;
-                        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-                            hasDragged = true;
-                        }
-                        if (hasDragged) {
-                            const newBearing = (startBearing + dx * 0.35) % 360;
-                            const newPitch = Math.max(0, Math.min(85, startPitch - dy * 0.25));
-                            map.setBearing(newBearing);
-                            map.setPitch(newPitch);
-                        }
-                    };
-
-                    const onMouseUp = (e) => {
-                        if (!isLeftDragging) return;
-                        isLeftDragging = false;
-                        map.dragPan.enable();
-                        if (hasDragged) {
-                            suppressNextClick = true;
-                            setTimeout(() => { suppressNextClick = false; }, 60);
-                        }
-                    };
-
-                    canvas.addEventListener('mousedown', onMouseDown);
-                    window.addEventListener('mousemove', onMouseMove);
-                    window.addEventListener('mouseup', onMouseUp);
-
-                    // 4. Unified Interactive Subterranean & Architectural Click Dispatcher
-                    map.on('click', (e) => {
-                        if (suppressNextClick) {
-                            suppressNextClick = false;
-                            return;
-                        }
-                        const hitTolerance = 24; // 24px wide bounding box for effortless, 100% reliable clicks
-                        const bbox = [
-                            [e.point.x - hitTolerance, e.point.y - hitTolerance],
-                            [e.point.x + hitTolerance, e.point.y + hitTolerance]
-                        ];
-
-                        // Check Subterranean Utilities FIRST (Top Priority)
-                        const allUtilLayers = [
-                            'utilities-click-hitbox',
-                            'utilities-trunks-core',
-                            'utilities-pipe-casing',
-                            'utilities-station-boxes',
-                            'utilities-station-boxes-outline',
-                            'utilities-coastal-inner',
-                            'utilities-metro-rails',
-                            'utilities-pedestrian-stripes',
-                            'utilities-laterals',
-                            'utilities-manholes'
-                        ].filter(id => map.getLayer(id) && map.getLayoutProperty(id, 'visibility') !== 'none');
-
-                        const utilHits = allUtilLayers.length > 0 ? map.queryRenderedFeatures(bbox, { layers: allUtilLayers }) : [];
-
-                        if (utilHits && utilHits.length > 0) {
-                            const feat = utilHits.find(f => f.properties && (f.properties.is_manhole === true || f.properties.is_station_box === true)) || utilHits[0];
-                            const p = Object.assign({}, feat.properties);
-                            if (typeof p.is_station_box === 'string') p.is_station_box = p.is_station_box === 'true';
-                            if (typeof p.is_lateral === 'string') p.is_lateral = p.is_lateral === 'true';
-                            if (typeof p.is_manhole === 'string') p.is_manhole = p.is_manhole === 'true';
-
-                            setSelectedUtility(p);
-                            setSelectedBuilding(null);
-
-                            if (map.getLayer('utilities-highlight')) {
-                                map.setLayoutProperty('utilities-highlight', 'visibility', 'visible');
-                                map.setFilter('utilities-highlight', ['==', 'utility_id', p.utility_id || '']);
-                            }
-                            if (map.getLayer('buildings-3d-highlight')) {
-                                map.setFilter('buildings-3d-highlight', ['==', 'spatial_id', '']);
-                            }
-
-                            // Show instant 3D interactive floating popup anchored to clicked location
-                            if (window.utilityPopup) window.utilityPopup.remove();
-                            window.utilityPopup = new maplibregl.Popup({
-                                closeButton: true,
-                                closeOnClick: false,
-                                offset: [0, -10],
-                                className: 'subterranean-popup'
-                            })
-                            .setLngLat(e.lngLat)
-                            .setHTML(createUtilityPopupHTML(p))
-                            .addTo(map);
-
-                            return; // Stop propagation: Utility inspected!
-                        }
-
-                        // Check 3D Buildings (Secondary Priority)
-                        const clickLayers = ['buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs', 'buildings-3d-base-rim'].filter(id => map.getLayer(id));
-                        const bldHits = map.queryRenderedFeatures(bbox, { layers: clickLayers });
-
-                        if (bldHits && bldHits.length > 0) {
-                            if (window.utilityPopup) window.utilityPopup.remove();
-                            const f = bldHits[0];
-                            const spId = f.properties.spatial_id;
-                            const masterFeat = bldGeo.features.find(b => b.properties.spatial_id === spId) || f;
-                            setSelectedBuilding(masterFeat);
-                            setSelectedUtility(null);
-
-                            if (map.getLayer('buildings-3d-highlight')) {
-                                map.setFilter('buildings-3d-highlight', ['==', 'spatial_id', spId]);
-                            }
-                            if (map.getLayer('utilities-highlight')) {
-                                map.setFilter('utilities-highlight', ['==', 'utility_id', '']);
-                            }
-                            return;
-                        }
-
-                        // Empty Space Clicked: Deselect both
-                        if (window.utilityPopup) window.utilityPopup.remove();
-                        setSelectedBuilding(null);
-                        setSelectedUtility(null);
-                        if (map.getLayer('buildings-3d-highlight')) {
-                            map.setFilter('buildings-3d-highlight', ['==', 'spatial_id', '']);
-                        }
-                        if (map.getLayer('utilities-highlight')) {
-                            map.setFilter('utilities-highlight', ['==', 'utility_id', '']);
-                        }
-                    });
-
-                    // 5. Interactive Mouse Cursor Pointer Feedback
-                    map.on('mousemove', (e) => {
-                        const bbox = [[e.point.x - 16, e.point.y - 16], [e.point.x + 16, e.point.y + 16]];
-                        const allUtilLayers = [
-                            'utilities-click-hitbox',
-                            'utilities-trunks-core',
-                            'utilities-pipe-casing',
-                            'utilities-station-boxes',
-                            'utilities-station-boxes-outline',
-                            'utilities-coastal-inner',
-                            'utilities-metro-rails',
-                            'utilities-pedestrian-stripes',
-                            'utilities-laterals',
-                            'utilities-manholes'
-                        ].filter(id => map.getLayer(id) && map.getLayoutProperty(id, 'visibility') !== 'none');
-
-                        const utilHits = allUtilLayers.length > 0 ? map.queryRenderedFeatures(bbox, { layers: allUtilLayers }) : [];
-                        if (utilHits && utilHits.length > 0) {
-                            map.getCanvas().style.cursor = 'pointer';
-                            return;
-                        }
-
-                        const clickLayers = ['buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs', 'buildings-3d-base-rim'].filter(id => map.getLayer(id));
-                        const bldHits = map.queryRenderedFeatures(bbox, { layers: clickLayers });
-                        if (bldHits && bldHits.length > 0) {
-                            map.getCanvas().style.cursor = 'pointer';
-                            return;
-                        }
-
-                        map.getCanvas().style.cursor = '';
-                    });
-
-                    // 6. Subterranean Flow Pulse Animation Loop
-                    let flowOffset = 0;
-                    let lastFlowTs = 0;
-                    function loopUtilityFlow(ts) {
-                        if (ts - lastFlowTs > 75) {
-                            lastFlowTs = ts;
-                            flowOffset = (flowOffset + 1) % 12;
-                            if (window.mapInstance && window.mapInstance.getLayer('utilities-flow-pulse')) {
-                                try {
-                                    if (window.mapInstance.getLayoutProperty('utilities-flow-pulse', 'visibility') === 'visible') {
-                                        const d1 = flowOffset % 6;
-                                        const d2 = 6 - d1;
-                                        window.mapInstance.setPaintProperty('utilities-flow-pulse', 'line-dasharray', [0.8, d1, 2.5, d2]);
-                                    }
-                                } catch(err) {}
-                            }
-                        }
-                        window.flowPulseRaf = requestAnimationFrame(loopUtilityFlow);
-                    }
-                    window.flowPulseRaf = requestAnimationFrame(loopUtilityFlow);
+                    map.on('mouseenter', 'buildings-3d', () => map.getCanvas().style.cursor = 'pointer');
+                    map.on('mouseleave', 'buildings-3d', () => map.getCanvas().style.cursor = '');
                 });
 
                 window.mapInstance = map;
-
-                // Keyboard 3D Navigation Controls (WASD + RF)
-                if (!window.mapKeyboardNavInitialized) {
-                    window.mapKeyboardNavInitialized = true;
-                    const pressedKeys = new Set();
-                    const NAV_KEYS = ['w', 'a', 's', 'd', 'r', 'f', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'];
-
-                    window.addEventListener('keydown', (e) => {
-                        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-                        const k = e.key.toLowerCase();
-                        if (NAV_KEYS.includes(k)) {
-                            e.preventDefault();
-                            pressedKeys.add(k);
-                        }
-                    });
-
-                    window.addEventListener('keyup', (e) => {
-                        const k = e.key.toLowerCase();
-                        pressedKeys.delete(k);
-                    });
-
-                    function loopKeyboardNav() {
-                        if (window.mapInstance && pressedKeys.size > 0) {
-                            const m = window.mapInstance;
-                            const center = m.getCenter();
-                            const bearing = m.getBearing();
-                            const pitch = m.getPitch();
-                            const zoom = m.getZoom();
-
-                            const zoomFactor = Math.pow(2, 16.5 - zoom);
-                            const moveDist = 0.000045 * zoomFactor;
-                            const rad = (bearing * Math.PI) / 180;
-                            const dLng = Math.sin(rad) * moveDist;
-                            const dLat = Math.cos(rad) * moveDist;
-
-                            let newLng = center.lng;
-                            let newLat = center.lat;
-                            let newBearing = bearing;
-                            let newPitch = pitch;
-
-                            // W: Moving forward along current camera view
-                            if (pressedKeys.has('w') || pressedKeys.has('arrowup')) {
-                                newLng += dLng;
-                                newLat += dLat;
-                            }
-                            // S: Backward moving
-                            if (pressedKeys.has('s') || pressedKeys.has('arrowdown')) {
-                                newLng -= dLng;
-                                newLat -= dLat;
-                            }
-                            // A: Rotate right (as requested: a - right)
-                            if (pressedKeys.has('a') || pressedKeys.has('arrowright')) {
-                                newBearing = (newBearing + 1.25) % 360;
-                            }
-                            // D: Rotate left (as requested: d - left)
-                            if (pressedKeys.has('d') || pressedKeys.has('arrowleft')) {
-                                newBearing = (newBearing - 1.25) % 360;
-                            }
-                            // R: Upwards angle (pitch up towards horizon)
-                            if (pressedKeys.has('r')) {
-                                newPitch = Math.min(85, newPitch + 0.9);
-                            }
-                            // F: Downwards angle (pitch down towards ground)
-                            if (pressedKeys.has('f')) {
-                                newPitch = Math.max(0, newPitch - 0.9);
-                            }
-
-                            if (newLng !== center.lng || newLat !== center.lat) {
-                                m.setCenter([newLng, newLat]);
-                            }
-                            if (newBearing !== bearing) {
-                                m.setBearing(newBearing);
-                            }
-                            if (newPitch !== pitch) {
-                                m.setPitch(newPitch);
-                            }
-                        }
-                        requestAnimationFrame(loopKeyboardNav);
-                    }
-                    requestAnimationFrame(loopKeyboardNav);
-                }
             };
 
             return (
@@ -2298,7 +1189,7 @@ def serve_dashboard():
                                 <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
                                     {cadastre ? (
                                         <span>
-                                             <b style={{ color: '#fff' }}>{cadastre.name}</b> • {cadastre.land_ulpin} • {cadastre.cts_no}
+                                            <b style={{ color: '#fff' }}>{cadastre.name}</b> • {cadastre.land_ulpin} • {cadastre.cts_no}
                                         </span>
                                     ) : "Cadastral Land Parcel & Vertical Property Identification System"}
                                 </div>
@@ -2395,645 +1286,14 @@ def serve_dashboard():
                                     ← Exit 3D Digital Twin
                                 </button>
                             ) : (
-                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                    {/* 3D Map Feature Toggles */}
-                                    <button
-                                        onClick={toggleStoreys}
-                                        style={{
-                                            background: showStoreys ? 'rgba(0, 229, 255, 0.18)' : 'rgba(15,23,42,0.8)',
-                                            color: showStoreys ? 'var(--accent-cyan)' : 'var(--text-dim)',
-                                            border: `1px solid ${showStoreys ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
-                                            padding: '6px 11px', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: 5
-                                        }}
-                                        title="Toggle 3D Multi-Storey Architecture"
-                                    >
-                                        🏢 3D Storeys
-                                    </button>
-                                    <button
-                                        onClick={toggleOrbit}
-                                        style={{
-                                            background: isOrbiting ? 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)' : 'rgba(15,23,42,0.8)',
-                                            color: isOrbiting ? '#000' : 'var(--text-secondary)',
-                                            border: '1px solid var(--border-subtle)',
-                                            padding: '6px 11px', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: 5
-                                        }}
-                                        title="Toggle Continuous 3D Aerial Orbit"
-                                    >
-                                        {isOrbiting ? "⏸️ Pause" : "🎥 3D Orbit"}
-                                    </button>
-                                    <button
-                                        onClick={handleToggleUnderground}
-                                        style={{
-                                            background: undergroundMode ? 'linear-gradient(135deg, #00e5ff 0%, #10b981 100%)' : 'rgba(15,23,42,0.8)',
-                                            color: undergroundMode ? '#000' : 'var(--text-secondary)',
-                                            border: `1px solid ${undergroundMode ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
-                                            boxShadow: undergroundMode ? '0 0 16px rgba(0, 229, 255, 0.45)' : 'none',
-                                            padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 800, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s'
-                                        }}
-                                        title="Toggle Subsurface 3D Cutaway & Pipeline Network Filter"
-                                    >
-                                        <span>🚇 Underground 3D</span>
-                                        {undergroundMode && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#000', animation: 'pulse 1.5s infinite' }} />}
-                                    </button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                                    <span className="pulsing-dot"></span> GIS Live Stream
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Keyboard 3D Navigation HUD */}
-                    {viewMode === 'map' && (
-                        <div style={{
-                            position: 'absolute', bottom: 24, left: 24,
-                            background: 'rgba(11, 18, 33, 0.88)', backdropFilter: 'blur(12px)',
-                            WebkitBackdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: 8,
-                            padding: '8px 14px', zIndex: 50, pointerEvents: 'auto',
-                            display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: '#94a3b8',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <span style={{ padding: '2px 6px', background: 'rgba(255,255,255,0.12)', borderRadius: 4, fontWeight: 800, color: '#fff' }}>W</span>
-                                <span style={{ padding: '2px 6px', background: 'rgba(255,255,255,0.12)', borderRadius: 4, fontWeight: 800, color: '#fff' }}>S</span>
-                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Move</span>
-                            </div>
-                            <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.15)' }} />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <span style={{ padding: '2px 6px', background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', borderRadius: 4, fontWeight: 800 }}>A</span>
-                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Right</span>
-                                <span style={{ padding: '2px 6px', background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', borderRadius: 4, fontWeight: 800 }}>D</span>
-                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Left</span>
-                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>360° Rotate</span>
-                            </div>
-                            <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.15)' }} />
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <span style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-amber)', borderRadius: 4, fontWeight: 800 }}>R</span>
-                                <span style={{ padding: '2px 6px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-amber)', borderRadius: 4, fontWeight: 800 }}>F</span>
-                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Angle</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Left-Hand 3D Integrated Pipe Network Analytical Panel (Matching Reference Image) */}
-                    {viewMode === 'map' && undergroundMode && (
-                        <div className="glass-panel" style={{
-                            position: 'absolute', top: 96, left: 16, width: 340, maxHeight: 'calc(100vh - 130px)',
-                            display: 'flex', flexDirection: 'column', padding: 18, zIndex: 60, pointerEvents: 'auto',
-                            overflowY: 'auto', boxShadow: '0 20px 48px rgba(0,0,0,0.75)', border: '1px solid rgba(0, 229, 255, 0.35)'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                                <span style={{
-                                    fontSize: 9.5, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
-                                    background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)'
-                                }}>
-                                    3D SUBTERRANEAN INFRASTRUCTURE
-                                </span>
-                                <span style={{ fontSize: 10, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
-                                    <span className="pulsing-dot" style={{ width: 6, height: 6 }}></span> Active
-                                </span>
-                            </div>
-
-                            <h3 style={{ margin: '0 0 4px 0', fontSize: 15, color: '#fff', fontWeight: 800 }}>
-                                Subterranean 3D Cadastre
-                            </h3>
-                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.4 }}>
-                                Tunnels, Metro 3, Subways, Underpasses & Utility Networks across South Mumbai.
-                            </div>
-
-                            {/* Subterranean Category Filters */}
-                            <div style={{ marginBottom: 14 }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8 }}>
-                                    Subterranean Network Layers
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                                    {[
-                                        { id: 'all', label: 'All Subterranean Networks', color: '#00e5ff', count: '134 Assets' },
-                                        { id: 'coastal_road_tunnel', label: '🌊 Coastal Road Undersea Tunnel', color: '#38bdf8', count: 'Twin 12.2m Tubes' },
-                                        { id: 'metro_underground', label: '🚇 Metro 3 Aqua Line Railway', color: '#f43f5e', count: '8 Stations + Tunnels' },
-                                        { id: 'vehicular_subway', label: '🚗 Vehicular Roads & Underpasses', color: '#fb923c', count: '3 Road Tunnels' },
-                                        { id: 'pedestrian_subway', label: '🚶 Pedestrian Subway Networks', color: '#10b981', count: 'CSMT & Churchgate' },
-                                        { id: 'water_supply', label: '💧 Potable Water Transmission', color: '#00e5ff', count: '1800mm - 600mm' },
-                                        { id: 'power_best', label: '⚡ BEST 110kV / 33kV Grid', color: '#ef4444', count: 'High-Voltage Conduits' },
-                                        { id: 'gas_mgl', label: '🔥 MGL City Gas Pipeline', color: '#f59e0b', count: 'Steel & MDPE Grid' },
-                                        { id: 'drainage_trunk', label: '🌿 Deep Sewer & Storm Drainage', color: '#14b8a6', count: '2400mm Box Outfalls' },
-                                        { id: 'telecom', label: '📡 Telecom Optical Fiber Banks', color: '#a855f7', count: '4-Way Duct Banks' }
-                                    ].map(cat => {
-                                        const isActive = (activeUtilityCat === cat.id);
-                                        return (
-                                            <div
-                                                key={cat.id}
-                                                onClick={() => handleUtilityCategoryChange(cat.id)}
-                                                style={{
-                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                    padding: '7px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11,
-                                                    background: isActive ? 'rgba(0, 229, 255, 0.15)' : 'rgba(15, 23, 42, 0.6)',
-                                                    border: isActive ? `1px solid ${cat.color}` : '1px solid var(--border-subtle)',
-                                                    transition: 'all 0.15s'
-                                                }}
-                                                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                                                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(15, 23, 42, 0.6)'; }}
-                                            >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, boxShadow: `0 0 6px ${cat.color}` }} />
-                                                    <span style={{ fontWeight: isActive ? 700 : 500, color: isActive ? '#fff' : 'var(--text-secondary)' }}>
-                                                        {cat.label}
-                                                    </span>
-                                                </div>
-                                                <span className="code-font" style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>
-                                                    {cat.count}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Subsurface Component Toggles */}
-                            <div style={{
-                                background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 12,
-                                border: '1px solid var(--border-subtle)', marginBottom: 14
-                            }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8 }}>
-                                    Cadastral Sub-Components
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                    <div
-                                        onClick={handleToggleLaterals}
-                                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-                                    >
-                                        <div style={{ fontSize: 11, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <span>🏢 Building Feeder Laterals (21 Basements)</span>
-                                        </div>
-                                        <div style={{
-                                            width: 34, height: 18, borderRadius: 10, padding: 2,
-                                            background: showLaterals ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.15)',
-                                            display: 'flex', alignItems: 'center', justifyContent: showLaterals ? 'flex-end' : 'flex-start',
-                                            transition: 'background 0.2s'
-                                        }}>
-                                            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#000' }} />
-                                        </div>
-                                    </div>
-                                    <div
-                                        onClick={handleToggleManholes}
-                                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-                                    >
-                                        <div style={{ fontSize: 11, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <span>⭕ Shafts, Portals & Chambers (20 Nodes)</span>
-                                        </div>
-                                        <div style={{
-                                            width: 34, height: 18, borderRadius: 10, padding: 2,
-                                            background: showManholes ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.15)',
-                                            display: 'flex', alignItems: 'center', justifyContent: showManholes ? 'flex-end' : 'flex-start',
-                                            transition: 'background 0.2s'
-                                        }}>
-                                            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#000' }} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Subsurface Engineering Statistics */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>SPATIAL CLEARANCE</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-emerald)' }}>
-                                        0 Clashes (100%)
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>DEPTH RANGE</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-cyan)' }}>
-                                        -1.0m to -70.0m
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>TOTAL ASSETS</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>
-                                        134 Features
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>METRO STATIONS</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-amber)' }}>
-                                        8 Aqua Boxes
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Subsurface Depth Strata Guide */}
-                            <div style={{
-                                background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 10,
-                                border: '1px solid var(--border-subtle)', fontSize: 10.5
-                            }}>
-                                <div style={{ fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 6 }}>
-                                    Subterranean Depth Strata
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#a855f7' }}>
-                                        <span>• -1.0m to -1.2m</span>
-                                        <span>Telecom Optical Ducts</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
-                                        <span>• -1.6m to -2.2m</span>
-                                        <span>BEST 110kV/33kV Power Grid</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f59e0b' }}>
-                                        <span>• -2.1m to -2.5m</span>
-                                        <span>MGL City Gas Steel Network</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#00e5ff' }}>
-                                        <span>• -2.8m to -3.8m</span>
-                                        <span>MCGM Potable Water Aqueducts</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
-                                        <span>• -4.0m to -5.0m</span>
-                                        <span>CSMT & Churchgate Subways</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#14b8a6' }}>
-                                        <span>• -4.8m to -5.8m</span>
-                                        <span>Deep Sewer & Storm Outfalls</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fb923c' }}>
-                                        <span>• -6.5m to -8.0m</span>
-                                        <span>Vehicular Highway Underpasses</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f43f5e' }}>
-                                        <span>• -20.0m to -24.5m</span>
-                                        <span>MMRC Metro 3 Aqua Line Stations</span>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#38bdf8' }}>
-                                        <span>• -25.0m to -70.0m</span>
-                                        <span>Coastal Road Undersea Tunnels</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Subterranean 360° View Quick Controls */}
-                            <div style={{
-                                background: 'rgba(15,23,42,0.85)', borderRadius: 8, padding: 10,
-                                border: '1px solid rgba(0,229,255,0.25)', marginTop: 12
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                    <span style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: '0.04em' }}>
-                                        360° VIEW & ROTATION ACCESS
-                                    </span>
-                                    <span style={{ fontSize: 9.5, color: '#94a3b8' }}>
-                                        {Math.round(((currentBearing % 360) + 360) % 360)}° {getCardinal(currentBearing)}
-                                    </span>
-                                </div>
-                                <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
-                                    <button
-                                        onClick={() => handleRotateStep(-45)}
-                                        style={{
-                                            flex: 1, padding: '6px 4px', background: 'rgba(30,41,59,0.7)',
-                                            border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 6,
-                                            fontSize: 10, fontWeight: 700, cursor: 'pointer'
-                                        }}
-                                    >
-                                        ↺ -45° Left
-                                    </button>
-                                    <button
-                                        onClick={toggleOrbit}
-                                        style={{
-                                            flex: 1.4, padding: '6px 4px',
-                                            background: isOrbiting ? 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)' : 'rgba(0,229,255,0.15)',
-                                            border: '1px solid rgba(0,229,255,0.3)', color: isOrbiting ? '#000' : 'var(--accent-cyan)',
-                                            borderRadius: 6, fontSize: 10, fontWeight: 800, cursor: 'pointer'
-                                        }}
-                                    >
-                                        {isOrbiting ? "⏸️ Pause" : "🔄 360° Orbit"}
-                                    </button>
-                                    <button
-                                        onClick={() => handleRotateStep(45)}
-                                        style={{
-                                            flex: 1, padding: '6px 4px', background: 'rgba(30,41,59,0.7)',
-                                            border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 6,
-                                            fontSize: 10, fontWeight: 700, cursor: 'pointer'
-                                        }}
-                                    >
-                                        ↻ +45° Right
-                                    </button>
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
-                                    {[
-                                        { label: 'N', deg: 0 },
-                                        { label: 'E', deg: 90 },
-                                        { label: 'S', deg: 180 },
-                                        { label: 'W', deg: 270 }
-                                    ].map(dir => (
-                                        <button
-                                            key={dir.label}
-                                            onClick={() => handleSetCardinalBearing(dir.deg)}
-                                            style={{
-                                                padding: '4px 2px', background: 'rgba(15,23,42,0.8)',
-                                                border: '1px solid rgba(255,255,255,0.08)', color: '#cbd5e1', borderRadius: 4,
-                                                fontSize: 9.5, fontWeight: 600, cursor: 'pointer'
-                                            }}
-                                        >
-                                            {dir.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div style={{ fontSize: 10.5, color: 'var(--text-dim)', textAlign: 'center', marginTop: 10 }}>
-                                💡 Tip: Click any tunnel, station, subway, or pipeline in 3D to inspect cadastral specifications.
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Floating 360° Subterranean Orbit & Camera Control HUD */}
-                    {viewMode === 'map' && undergroundMode && (
-                        <div className="glass-panel" style={{
-                            position: 'absolute', top: 96, right: 24, padding: '12px 16px', borderRadius: 12,
-                            pointerEvents: 'auto', zIndex: 50, border: '1px solid rgba(0, 229, 255, 0.35)',
-                            boxShadow: '0 16px 36px rgba(0,0,0,0.75)', width: 280
-                        }}>
-                            {/* Header with Heading Compass readout */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <span className="pulsing-dot" style={{ width: 6, height: 6, background: 'var(--accent-cyan)' }} />
-                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: '0.05em' }}>
-                                        360° SUBTERRANEAN VIEW
-                                    </span>
-                                </div>
-                                <span style={{
-                                    fontSize: 10, fontWeight: 800, color: '#fff', background: 'rgba(15,23,42,0.8)',
-                                    padding: '2px 7px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)'
-                                }}>
-                                    🧭 {Math.round(((currentBearing % 360) + 360) % 360)}° {getCardinal(currentBearing)}
-                                </span>
-                            </div>
-
-                            {/* Drag Mode Selector */}
-                            <div style={{
-                                display: 'flex', background: 'rgba(15,23,42,0.85)', borderRadius: 7, padding: 3,
-                                border: '1px solid rgba(255,255,255,0.08)', marginBottom: 10
-                            }}>
-                                <button
-                                    onClick={() => setUndergroundOrbitMode(true)}
-                                    style={{
-                                        flex: 1, padding: '5px 8px', borderRadius: 5, fontSize: 10.5, fontWeight: 700,
-                                        border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                                        background: undergroundOrbitMode ? 'var(--accent-cyan)' : 'transparent',
-                                        color: undergroundOrbitMode ? '#000' : 'var(--text-dim)'
-                                    }}
-                                    title="Left-click drag anywhere to rotate 360° around the underground network"
-                                >
-                                    🔄 360° Drag Orbit
-                                </button>
-                                <button
-                                    onClick={() => setUndergroundOrbitMode(false)}
-                                    style={{
-                                        flex: 1, padding: '5px 8px', borderRadius: 5, fontSize: 10.5, fontWeight: 700,
-                                        border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                                        background: !undergroundOrbitMode ? 'var(--accent-cyan)' : 'transparent',
-                                        color: !undergroundOrbitMode ? '#000' : 'var(--text-dim)'
-                                    }}
-                                    title="Left-click drag to pan the map"
-                                >
-                                    🖐️ Pan Mode
-                                </button>
-                            </div>
-
-                            {/* Quick Rotation Buttons */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: 5, marginBottom: 8 }}>
-                                <button
-                                    onClick={() => handleRotateStep(-45)}
-                                    style={{
-                                        background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.12)',
-                                        color: '#fff', padding: '6px 4px', borderRadius: 6, fontSize: 10.5, fontWeight: 700,
-                                        cursor: 'pointer'
-                                    }}
-                                    title="Turn 45° Counter-Clockwise"
-                                >
-                                    ↺ -45°
-                                </button>
-                                <button
-                                    onClick={toggleOrbit}
-                                    style={{
-                                        background: isOrbiting ? 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)' : 'rgba(0,229,255,0.15)',
-                                        border: '1px solid rgba(0,229,255,0.3)',
-                                        color: isOrbiting ? '#000' : 'var(--accent-cyan)',
-                                        padding: '6px 4px', borderRadius: 6, fontSize: 10.5, fontWeight: 800,
-                                        cursor: 'pointer'
-                                    }}
-                                    title="Toggle continuous 360° auto-orbit"
-                                >
-                                    {isOrbiting ? "⏸️ Pause" : "🔄 Auto 360°"}
-                                </button>
-                                <button
-                                    onClick={() => handleRotateStep(45)}
-                                    style={{
-                                        background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.12)',
-                                        color: '#fff', padding: '6px 4px', borderRadius: 6, fontSize: 10.5, fontWeight: 700,
-                                        cursor: 'pointer'
-                                    }}
-                                    title="Turn 45° Clockwise"
-                                >
-                                    ↻ +45°
-                                </button>
-                            </div>
-
-                            {/* Cardinal Directions 4-Grid */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, marginBottom: 8 }}>
-                                {[
-                                    { label: 'N (0°)', deg: 0 },
-                                    { label: 'E (90°)', deg: 90 },
-                                    { label: 'S (180°)', deg: 180 },
-                                    { label: 'W (270°)', deg: 270 }
-                                ].map(c => (
-                                    <button
-                                        key={c.label}
-                                        onClick={() => handleSetCardinalBearing(c.deg)}
-                                        style={{
-                                            background: 'rgba(15,23,42,0.7)', border: '1px solid rgba(255,255,255,0.08)',
-                                            color: '#cbd5e1', padding: '4px 0', borderRadius: 5, fontSize: 9.5, fontWeight: 700,
-                                            cursor: 'pointer'
-                                        }}
-                                        title={`Orient view towards ${c.label}`}
-                                    >
-                                        {c.label.split(' ')[0]}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Pitch Angle Selector */}
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
-                                <button
-                                    onClick={() => handleSetPitchAngle(0)}
-                                    style={{
-                                        background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-                                        color: '#94a3b8', padding: '4px 2px', borderRadius: 5, fontSize: 9.5, fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                    title="Top-Down Plan View (0°)"
-                                >
-                                    Top (0°)
-                                </button>
-                                <button
-                                    onClick={() => handleSetPitchAngle(58)}
-                                    style={{
-                                        background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-                                        color: '#94a3b8', padding: '4px 2px', borderRadius: 5, fontSize: 9.5, fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                    title="Isometric 3D Angle (58°)"
-                                >
-                                    3D (58°)
-                                </button>
-                                <button
-                                    onClick={() => handleSetPitchAngle(78)}
-                                    style={{
-                                        background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
-                                        color: '#94a3b8', padding: '4px 2px', borderRadius: 5, fontSize: 9.5, fontWeight: 600,
-                                        cursor: 'pointer'
-                                    }}
-                                    title="Deep Subterranean Horizon Angle (78°)"
-                                >
-                                    Deep (78°)
-                                </button>
-                            </div>
-
-                            <div style={{ fontSize: 9, color: 'var(--text-dim)', textAlign: 'center', marginTop: 8, lineHeight: 1.25 }}>
-                                Drag with left mouse, use A/D keys, or click above to orbit 360° freely.
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Selected Subterranean Cadastre Card (Styled identically to 3D Building Card) */}
-                    {viewMode === 'map' && selectedUtility && (
-                        <div className="glass-panel" style={{
-                            position: 'absolute', bottom: 30, right: 30, width: 390, padding: 22,
-                            pointerEvents: 'auto', zIndex: 60, boxShadow: '0 20px 48px rgba(0,0,0,0.85)',
-                            border: `1px solid ${selectedUtility.color || 'var(--accent-cyan)'}`
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{
-                                    fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20,
-                                    background: selectedUtility.color || 'var(--accent-cyan)', color: '#000', letterSpacing: '0.04em'
-                                }}>
-                                    SUBTERRANEAN 3D CADASTRE
-                                </span>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                    <button
-                                        onClick={() => handleFlyToUtility(selectedUtility)}
-                                        style={{
-                                            background: 'rgba(0,229,255,0.15)', border: '1px solid rgba(0,229,255,0.4)',
-                                            color: 'var(--accent-cyan)', padding: '3px 8px', borderRadius: 6,
-                                            fontSize: 10.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
-                                        }}
-                                        title="Fly 3D Camera to Subterranean Conduit"
-                                    >
-                                        🎯 Focus
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setSelectedUtility(null);
-                                            if (window.utilityPopup) window.utilityPopup.remove();
-                                            if (window.mapInstance && window.mapInstance.getLayer('utilities-highlight')) {
-                                                window.mapInstance.setFilter('utilities-highlight', ['==', 'utility_id', '']);
-                                            }
-                                        }}
-                                        style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16 }}
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-
-                            <h3 style={{ margin: '12px 0 4px 0', fontSize: 17, color: '#fff', fontWeight: 800, lineHeight: 1.3 }}>
-                                {selectedUtility.label}
-                            </h3>
-                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14 }}>
-                                {selectedUtility.corridor_name}
-                            </div>
-
-                            {/* 4-Grid Specifications (Matches Building Card Layout) */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>SUBTERRANEAN ULPIN</div>
-                                    <div className="code-font" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-amber)', wordBreak: 'break-all' }}>
-                                        {selectedUtility.utility_ulpin}
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>TOTAL BORE / DIAMETER</div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: selectedUtility.color || 'var(--accent-cyan)' }}>
-                                        {selectedUtility.nominal_diameter_mm >= 1000
-                                            ? `Ø ${(selectedUtility.nominal_diameter_mm / 1000).toFixed(1)}m (${selectedUtility.nominal_diameter_mm}mm)`
-                                            : `Ø ${selectedUtility.nominal_diameter_mm} mm`}
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>SUBTERRANEAN DEPTH</div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8' }}>
-                                        -{selectedUtility.depth_msl_m}m MSL (Bedrock)
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>CLEARANCE STATUS</div>
-                                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-emerald)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {selectedUtility.clearance_status || "Operational RoW"}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Structural Specification & Authority Box */}
-                            <div style={{ background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 10, border: '1px solid var(--border-subtle)', marginBottom: 14, fontSize: 11 }}>
-                                <div style={{ marginBottom: 4 }}>
-                                    <span style={{ color: 'var(--text-dim)' }}>Structural Specification: </span>
-                                    <b style={{ color: '#fff' }}>{selectedUtility.material}</b>
-                                </div>
-                                <div>
-                                    <span style={{ color: 'var(--text-dim)' }}>Managing Authority: </span>
-                                    <b style={{ color: 'var(--accent-cyan)' }}>{selectedUtility.authority}</b>
-                                </div>
-                                {selectedUtility.connected_building && (
-                                    <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                                        <span style={{ color: 'var(--text-dim)' }}>Connected Landmark: </span>
-                                        <b style={{ color: 'var(--accent-amber)' }}>🏢 {selectedUtility.connected_building}</b>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                <button
-                                    onClick={() => handleFlyToUtility(selectedUtility)}
-                                    style={{
-                                        width: '100%', background: `linear-gradient(135deg, ${selectedUtility.color || '#00e5ff'} 0%, #0284c7 100%)`,
-                                        color: '#000', border: 'none', padding: '12px', borderRadius: 8, fontWeight: 800,
-                                        fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        gap: 8, boxShadow: `0 0 20px ${selectedUtility.color ? selectedUtility.color + '66' : 'rgba(0,229,255,0.4)'}`, transition: 'all 0.2s'
-                                    }}
-                                >
-                                    🎯 Focus 3D Camera on Subterranean Conduit
-                                </button>
-
-                                {selectedUtility.building_spatial_id && (
-                                    <button
-                                        onClick={() => {
-                                            const bld = buildingsData && buildingsData.features.find(b => b.properties.spatial_id === selectedUtility.building_spatial_id);
-                                            if (bld) handleOpenTwin(bld);
-                                        }}
-                                        style={{
-                                            width: '100%', background: 'rgba(255,255,255,0.08)',
-                                            color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '10px', borderRadius: 8, fontWeight: 700,
-                                            fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            gap: 8
-                                        }}
-                                    >
-                                        🏢 Launch Connected Building 3D Digital Twin
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {viewMode === 'map' && selectedBuilding && !selectedUtility && (
+                    {viewMode === 'map' && selectedBuilding && (
                         <div className="glass-panel" style={{
                             position: 'absolute', bottom: 30, right: 30, width: 380, padding: 22,
                             pointerEvents: 'auto', zIndex: 60
