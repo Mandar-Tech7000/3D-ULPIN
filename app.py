@@ -174,11 +174,27 @@ def serve_dashboard():
         #react-root > * {
             pointer-events: auto;
         }
+
+        .ulpin-badge-popup .maplibregl-popup-content {
+            background: transparent !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+        .ulpin-badge-popup .maplibregl-popup-tip {
+            border-top-color: rgba(13, 20, 36, 0.95) !important;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <div id="fallback-map"></div>
+
+    <div id="viewport-tooltip">
+        <div id="tt-title" style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 2px;"></div>
+        <div id="tt-sub" style="color: var(--text-secondary);"></div>
+        <div id="tt-ulpin" class="code-font" style="color: var(--accent-amber); font-size: 10px; margin-top: 4px;"></div>
+    </div>
 
     <div id="twin-workspace">
         <div id="twin-canvas-container">
@@ -188,6 +204,7 @@ def serve_dashboard():
                 <div id="tt-ulpin" class="code-font" style="color: var(--accent-amber); font-size: 10px; margin-top: 4px;"></div>
             </div>
         </div>
+        <div id="twin-canvas-container"></div>
     </div>
 
     <div id="react-root"></div>
@@ -963,8 +980,613 @@ def serve_dashboard():
             }
         }
 
+        // ==========================================
+        // PROCEDURAL ARCHITECTURAL ENGINE & GEOMETRY
+        // ==========================================
+        function getPolygonCoords(geom) {
+            if (!geom) return null;
+            let ring = null;
+            if (geom.type === 'Polygon' && geom.coordinates && geom.coordinates.length > 0) {
+                ring = geom.coordinates[0];
+            } else if (geom.type === 'MultiPolygon' && geom.coordinates && geom.coordinates.length > 0 && geom.coordinates[0].length > 0) {
+                ring = geom.coordinates[0][0];
+            }
+            if (!ring || ring.length < 3) return null;
+            const closed = ring.slice();
+            const first = closed[0];
+            const last = closed[closed.length - 1];
+            if (first[0] !== last[0] || first[1] !== last[1]) {
+                closed.push([first[0], first[1]]);
+            }
+            return closed;
+        }
+
+        function getPolygonCenter(ring) {
+            let sumLon = 0, sumLat = 0;
+            const n = ring.length > 1 ? ring.length - 1 : ring.length;
+            for (let i = 0; i < n; i++) {
+                sumLon += ring[i][0];
+                sumLat += ring[i][1];
+            }
+            return [sumLon / n, sumLat / n];
+        }
+
+        function createProceduralBuildingFeatures(feature) {
+            if (!feature || !feature.geometry) return { archFeatures: [], groundFeatures: [] };
+            const p = feature.properties || {};
+            const ring = getPolygonCoords(feature.geometry);
+            if (!ring) return { archFeatures: [], groundFeatures: [] };
+
+            const groundFeatures = [
+                {
+                    type: 'Feature',
+                    geometry: { type: 'Polygon', coordinates: [ring] },
+                    properties: { id: 'selected-parcel-base' }
+                }
+            ];
+
+            const height = Math.max(parseFloat(p.height_m) || 16.0, 4.0);
+            const floors = Math.max(parseInt(p.floors) || Math.max(1, Math.round(height / 3.4)), 1);
+            const floorHeight = height / floors;
+            const slabThick = Math.min(0.38, floorHeight * 0.16);
+
+            const archFeatures = [];
+            // Neutral PBR architectural palette: dark slate slabs, charcoal mullions, tinted glass rhythm
+            const slabColors = ['#374151', '#4b5563', '#334155'];
+            const wallColors = ['#1e293b', '#243247', '#1a2434'];
+            const windowColors = ['#1e3a5f', '#1b2f48', '#16283d'];
+
+            for (let f = 0; f < floors; f++) {
+                const floorBase = f * floorHeight;
+                const slabTop = floorBase + slabThick;
+                const floorTop = (f + 1) * floorHeight;
+
+                // Concrete floor slab lip
+                archFeatures.push({
+                    type: 'Feature',
+                    geometry: { type: 'Polygon', coordinates: [ring] },
+                    properties: {
+                        base: floorBase,
+                        height: slabTop,
+                        color: slabColors[f % slabColors.length],
+                        tier: 'slab',
+                        floor: f
+                    }
+                });
+
+                // Architectural facade / window storey
+                archFeatures.push({
+                    type: 'Feature',
+                    geometry: { type: 'Polygon', coordinates: [ring] },
+                    properties: {
+                        base: slabTop,
+                        height: floorTop,
+                        color: f % 2 === 0 ? wallColors[0] : windowColors[0],
+                        tier: 'facade',
+                        floor: f
+                    }
+                });
+            }
+
+            // Rooftop parapet crown
+            archFeatures.push({
+                type: 'Feature',
+                geometry: { type: 'Polygon', coordinates: [ring] },
+                properties: {
+                    base: height,
+                    height: height + 1.2,
+                    color: '#64748b',
+                    tier: 'parapet',
+                    floor: floors
+                }
+            });
+
+            return { archFeatures, groundFeatures };
+        }
+
+        // ==========================================
+        // 1. CESIUM GOOGLE 3D TILES VIEWER
+        // ==========================================
+        function initCesiumViewer(bldGeo) {
+            const container = document.getElementById('map');
+            container.innerHTML = '';
+
+            const viewer = new Cesium.Viewer('map', {
+                timeline: false,
+                animation: false,
+                baseLayerPicker: false,
+                geocoder: false,
+                homeButton: false,
+                infoBox: false,
+                sceneModePicker: false,
+                selectionIndicator: false,
+                navigationHelpButton: false,
+                fullscreenButton: false,
+                scene3DOnly: true
+            });
+
+            if (viewer.cesiumWidget && viewer.cesiumWidget.creditContainer) {
+                viewer.cesiumWidget.creditContainer.style.display = 'none';
+            }
+
+            viewer.scene.globe.depthTestAgainstTerrain = true;
+            viewer.scene.globe.enableLighting = true;
+            viewer.scene.highDynamicRange = true;
+
+            viewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(SOUTH_MUMBAI.lon, SOUTH_MUMBAI.lat - 0.009, 720),
+                orientation: {
+                    heading: Cesium.Math.toRadians(12),
+                    pitch: Cesium.Math.toRadians(-32),
+                    roll: 0.0
+                }
+            });
+
+            // Load Google Photorealistic 3D Tiles
+            Cesium.createGooglePhotorealistic3DTileset({
+                key: GOOGLE_3D_TILES_API_KEY
+            }).then(tileset => {
+                viewer.scene.primitives.add(tileset);
+                console.log("✓ Google Photorealistic 3D Tiles active in scene.");
+            }).catch(err => {
+                console.warn("Google 3D Tiles failed in Cesium:", err);
+            });
+
+            // Thin 3D ULPIN parcel boundaries (clamped to 3D tiles, no z-fighting)
+            const features = bldGeo.features || [];
+            features.forEach(feat => {
+                const ring = getPolygonCoords(feat.geometry);
+                if (!ring) return;
+                const flatCoords = [];
+                ring.forEach(pt => flatCoords.push(pt[0], pt[1]));
+
+                viewer.entities.add({
+                    name: feat.properties.name || `ULPIN ${feat.properties.land_ulpin}`,
+                    userData: feat,
+                    polygon: {
+                        hierarchy: Cesium.Cartesian3.fromDegreesArray(flatCoords),
+                        material: Cesium.Color.fromCssColorString('rgba(56, 189, 248, 0.04)'),
+                        classificationType: Cesium.ClassificationType.CESIUM_3D_TILE
+                    },
+                    polyline: {
+                        positions: Cesium.Cartesian3.fromDegreesArray(flatCoords),
+                        width: 1.5,
+                        material: Cesium.Color.fromCssColorString('rgba(56, 189, 248, 0.65)'),
+                        clampToGround: true,
+                        classificationType: Cesium.ClassificationType.CESIUM_3D_TILE
+                    }
+                });
+            });
+
+            let selectedEntities = [];
+
+            function clearSelection() {
+                selectedEntities.forEach(ent => viewer.entities.remove(ent));
+                selectedEntities = [];
+            }
+
+            function highlightBuilding(feat) {
+                clearSelection();
+                if (!feat) return;
+
+                const p = feat.properties || {};
+                const ring = getPolygonCoords(feat.geometry);
+                if (!ring) return;
+
+                const flatCoords = [];
+                ring.forEach(pt => flatCoords.push(pt[0], pt[1]));
+                const center = getPolygonCenter(ring);
+
+                // Highlighted ground parcel
+                const groundEnt = viewer.entities.add({
+                    polygon: {
+                        hierarchy: Cesium.Cartesian3.fromDegreesArray(flatCoords),
+                        material: Cesium.Color.fromCssColorString('rgba(245, 158, 11, 0.28)'),
+                        classificationType: Cesium.ClassificationType.CESIUM_3D_TILE
+                    },
+                    polyline: {
+                        positions: Cesium.Cartesian3.fromDegreesArray(flatCoords),
+                        width: 3.5,
+                        material: Cesium.Color.fromCssColorString('#f59e0b'),
+                        clampToGround: true,
+                        classificationType: Cesium.ClassificationType.CESIUM_3D_TILE
+                    }
+                });
+                selectedEntities.push(groundEnt);
+
+                // Procedural architectural building storeys
+                const height = Math.max(parseFloat(p.height_m) || 16.0, 4.0);
+                const floors = Math.max(parseInt(p.floors) || Math.max(1, Math.round(height / 3.4)), 1);
+                const floorHeight = height / floors;
+                const slabThick = Math.min(0.38, floorHeight * 0.16);
+
+                const slabColors = ['#374151', '#4b5563', '#334155'];
+                const wallColors = ['#1e293b', '#243247', '#1a2434'];
+                const windowColors = ['#1e3a5f', '#1b2f48', '#16283d'];
+
+                for (let f = 0; f < floors; f++) {
+                    const floorBase = f * floorHeight;
+                    const slabTop = floorBase + slabThick;
+                    const floorTop = (f + 1) * floorHeight;
+
+                    selectedEntities.push(viewer.entities.add({
+                        polygon: {
+                            hierarchy: Cesium.Cartesian3.fromDegreesArray(flatCoords),
+                            height: floorBase,
+                            extrudedHeight: slabTop,
+                            material: Cesium.Color.fromCssColorString(slabColors[f % slabColors.length]),
+                            outline: false
+                        }
+                    }));
+
+                    selectedEntities.push(viewer.entities.add({
+                        polygon: {
+                            hierarchy: Cesium.Cartesian3.fromDegreesArray(flatCoords),
+                            height: slabTop,
+                            extrudedHeight: floorTop,
+                            material: Cesium.Color.fromCssColorString(f % 2 === 0 ? wallColors[0] : windowColors[0]),
+                            outline: false
+                        }
+                    }));
+                }
+
+                // Roof parapet crown
+                selectedEntities.push(viewer.entities.add({
+                    polygon: {
+                        hierarchy: Cesium.Cartesian3.fromDegreesArray(flatCoords),
+                        height: height,
+                        extrudedHeight: height + 1.2,
+                        material: Cesium.Color.fromCssColorString('#64748b'),
+                        outline: true,
+                        outlineColor: Cesium.Color.fromCssColorString('#f59e0b')
+                    }
+                }));
+
+                // Floating ULPIN Badge
+                selectedEntities.push(viewer.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(center[0], center[1], height + 14),
+                    label: {
+                        text: `${p.name || 'Building Asset'}\nULPIN: ${p.land_ulpin || ''}\n${height}m • ${floors} Floors`,
+                        font: '600 12px "JetBrains Mono", sans-serif',
+                        fillColor: Cesium.Color.WHITE,
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 2,
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        backgroundColor: Cesium.Color.fromCssColorString('rgba(13, 20, 36, 0.92)'),
+                        showBackground: true,
+                        backgroundPadding: new Cesium.Cartesian2(8, 5),
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY
+                    }
+                }));
+
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(center[0], center[1] - 0.0022, height + 170),
+                    orientation: {
+                        heading: Cesium.Math.toRadians(15),
+                        pitch: Cesium.Math.toRadians(-36),
+                        roll: 0
+                    },
+                    duration: 1.8
+                });
+            }
+
+            const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+            handler.setInputAction((click) => {
+                const picked = viewer.scene.pick(click.position);
+                if (Cesium.defined(picked) && picked.id && picked.id.userData) {
+                    if (window.appBridge.onBuildingSelected) {
+                        window.appBridge.onBuildingSelected(picked.id.userData);
+                    }
+                }
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            const tooltip = document.getElementById('viewport-tooltip');
+            handler.setInputAction((movement) => {
+                const picked = viewer.scene.pick(movement.endPosition);
+                if (Cesium.defined(picked) && picked.id && picked.id.userData) {
+                    viewer.canvas.style.cursor = 'pointer';
+                    const p = picked.id.userData.properties;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = movement.endPosition.x + 'px';
+                    tooltip.style.top = movement.endPosition.y + 'px';
+                    document.getElementById('tt-title').textContent = p.name || 'Building Asset';
+                    document.getElementById('tt-sub').textContent = `${p.street || ''} • ${p.height_m || 0}m (${p.floors || 1} Floors)`;
+                    document.getElementById('tt-ulpin').textContent = `ULPIN: ${p.land_ulpin || 'N/A'}`;
+                } else {
+                    viewer.canvas.style.cursor = '';
+                    tooltip.style.display = 'none';
+                }
+            }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+            window.cityViewer = {
+                type: 'cesium',
+                viewer,
+                highlightBuilding,
+                clearSelection,
+                flyToBuilding: (feat) => highlightBuilding(feat),
+                setPreset: (preset) => {
+                    if (preset === 'oblique') {
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(SOUTH_MUMBAI.lon, SOUTH_MUMBAI.lat - 0.009, 720),
+                            orientation: { heading: Cesium.Math.toRadians(12), pitch: Cesium.Math.toRadians(-32), roll: 0 },
+                            duration: 1.5
+                        });
+                    } else if (preset === 'plan') {
+                        viewer.camera.flyTo({
+                            destination: Cesium.Cartesian3.fromDegrees(SOUTH_MUMBAI.lon, SOUTH_MUMBAI.lat, 1800),
+                            orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+                            duration: 1.5
+                        });
+                    }
+                }
+            };
+            window.mapInstance = viewer;
+        }
+
+        // ==========================================
+        // 2. ENHANCED MAPLIBRE SATELLITE VIEWER
+        // ==========================================
+        function initMapLibreViewer(bldGeo) {
+            const container = document.getElementById('map');
+            container.innerHTML = '';
+
+            const map = new maplibregl.Map({
+                container: 'map',
+                style: {
+                    version: 8,
+                    sources: {
+                        'esri-satellite': {
+                            type: 'raster',
+                            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                            tileSize: 256,
+                            attribution: '&copy; ESRI World Imagery'
+                        }
+                    },
+                    layers: [{
+                        id: 'satellite-base',
+                        type: 'raster',
+                        source: 'esri-satellite',
+                        paint: { 'raster-brightness-max': 0.88, 'raster-contrast': 0.12 }
+                    }]
+                },
+                center: [SOUTH_MUMBAI.lon, SOUTH_MUMBAI.lat],
+                zoom: 16.2,
+                pitch: 60,
+                bearing: -18,
+                maxPitch: 85,
+                antialias: true
+            });
+
+            map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }));
+
+            let activePopup = null;
+
+            map.on('load', async () => {
+                const utilities = await fetch('/api/utilities').then(r => r.json());
+
+                // Infrastructure / Utilities
+                map.addSource('util-src', { type: 'geojson', data: utilities });
+                map.addLayer({
+                    id: 'metro-dashed',
+                    type: 'line',
+                    source: 'util-src',
+                    filter: ['==', 'category', 'metro_underground'],
+                    paint: { 'line-color': '#00e5ff', 'line-width': 5, 'line-dasharray': [2, 1.5] }
+                });
+                map.addLayer({
+                    id: 'pipeline-solid',
+                    type: 'line',
+                    source: 'util-src',
+                    filter: ['!=', 'category', 'metro_underground'],
+                    paint: { 'line-color': '#ff3b30', 'line-width': 4.5, 'line-opacity': 0.85 }
+                });
+
+                // 1. Thin cadastral parcel boundaries (NOT SOLID CYAN EXTUSIONS)
+                map.addSource('buildings-src', { type: 'geojson', data: bldGeo });
+                map.addLayer({
+                    id: 'parcels-fill',
+                    type: 'fill',
+                    source: 'buildings-src',
+                    paint: {
+                        'fill-color': '#38bdf8',
+                        'fill-opacity': [
+                            'interpolate', ['linear'], ['zoom'],
+                            13, 0.02,
+                            16, 0.05,
+                            18, 0.08
+                        ]
+                    }
+                });
+                map.addLayer({
+                    id: 'parcels-line',
+                    type: 'line',
+                    source: 'buildings-src',
+                    paint: {
+                        'line-color': 'rgba(56, 189, 248, 0.65)',
+                        'line-width': [
+                            'interpolate', ['linear'], ['zoom'],
+                            13, 0.8,
+                            16, 1.4,
+                            18, 2.0
+                        ]
+                    }
+                });
+
+                // 2. Selected parcel ground highlight
+                map.addSource('selected-parcel-src', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] }
+                });
+                map.addLayer({
+                    id: 'selected-parcel-fill',
+                    type: 'fill',
+                    source: 'selected-parcel-src',
+                    paint: {
+                        'fill-color': '#f59e0b',
+                        'fill-opacity': 0.25
+                    }
+                });
+                map.addLayer({
+                    id: 'selected-parcel-outline',
+                    type: 'line',
+                    source: 'selected-parcel-src',
+                    paint: {
+                        'line-color': '#f59e0b',
+                        'line-width': 3.5
+                    }
+                });
+
+                // 3. Selected building procedural architectural 3D model
+                map.addSource('selected-arch-src', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] }
+                });
+                map.addLayer({
+                    id: 'selected-building-3d',
+                    type: 'fill-extrusion',
+                    source: 'selected-arch-src',
+                    paint: {
+                        'fill-extrusion-color': ['get', 'color'],
+                        'fill-extrusion-height': ['get', 'height'],
+                        'fill-extrusion-base': ['get', 'base'],
+                        'fill-extrusion-opacity': 0.95
+                    }
+                });
+
+                // Interactions
+                map.on('click', 'parcels-fill', (e) => {
+                    if (!e.features.length) return;
+                    const f = e.features[0];
+                    if (window.appBridge.onBuildingSelected) {
+                        window.appBridge.onBuildingSelected(f);
+                    }
+                });
+
+                const tooltip = document.getElementById('viewport-tooltip');
+                map.on('mousemove', 'parcels-fill', (e) => {
+                    if (!e.features.length) return;
+                    map.getCanvas().style.cursor = 'pointer';
+                    const p = e.features[0].properties;
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = e.point.x + 'px';
+                    tooltip.style.top = e.point.y + 'px';
+                    document.getElementById('tt-title').textContent = p.name || 'Building Asset';
+                    document.getElementById('tt-sub').textContent = `${p.street || ''} • ${p.height_m || 0}m (${p.floors || 1} Floors)`;
+                    document.getElementById('tt-ulpin').textContent = `ULPIN: ${p.land_ulpin || 'N/A'}`;
+                });
+
+                map.on('mouseleave', 'parcels-fill', () => {
+                    map.getCanvas().style.cursor = '';
+                    tooltip.style.display = 'none';
+                });
+            });
+
+            function highlightBuilding(feature) {
+                if (!feature) {
+                    clearSelection();
+                    return;
+                }
+
+                const { archFeatures, groundFeatures } = createProceduralBuildingFeatures(feature);
+
+                if (map.getSource('selected-parcel-src')) {
+                    map.getSource('selected-parcel-src').setData({
+                        type: 'FeatureCollection',
+                        features: groundFeatures
+                    });
+                }
+
+                if (map.getSource('selected-arch-src')) {
+                    map.getSource('selected-arch-src').setData({
+                        type: 'FeatureCollection',
+                        features: archFeatures
+                    });
+                }
+
+                const ring = getPolygonCoords(feature.geometry);
+                if (ring) {
+                    const center = getPolygonCenter(ring);
+                    const p = feature.properties || {};
+
+                    if (activePopup) activePopup.remove();
+                    activePopup = new maplibregl.Popup({
+                        closeButton: false,
+                        closeOnClick: false,
+                        offset: 20,
+                        className: 'ulpin-badge-popup'
+                    })
+                    .setLngLat(center)
+                    .setHTML(`
+                        <div style="font-family: 'Plus Jakarta Sans', sans-serif; background: rgba(13, 20, 36, 0.95); border: 1px solid #f59e0b; border-radius: 8px; padding: 6px 10px; color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.6);">
+                            <div style="font-size: 11px; font-weight: 700; color: #f59e0b;">${p.name || 'Selected Property'}</div>
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #00e5ff; margin-top: 2px;">ULPIN: ${p.land_ulpin || ''}</div>
+                            <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;">${p.height_m || 0}m • ${p.floors || 1} Storeys</div>
+                        </div>
+                    `)
+                    .addTo(map);
+
+                    map.flyTo({
+                        center: center,
+                        zoom: 17.4,
+                        pitch: 62,
+                        bearing: -18,
+                        duration: 1600,
+                        essential: true
+                    });
+                }
+            }
+
+            function clearSelection() {
+                if (map.getSource('selected-parcel-src')) {
+                    map.getSource('selected-parcel-src').setData({ type: 'FeatureCollection', features: [] });
+                }
+                if (map.getSource('selected-arch-src')) {
+                    map.getSource('selected-arch-src').setData({ type: 'FeatureCollection', features: [] });
+                }
+                if (activePopup) {
+                    activePopup.remove();
+                    activePopup = null;
+                }
+            }
+
+            window.cityViewer = {
+                type: 'maplibre',
+                map,
+                highlightBuilding,
+                clearSelection,
+                flyToBuilding: (feat) => highlightBuilding(feat),
+                setPreset: (preset) => {
+                    if (preset === 'oblique') {
+                        map.flyTo({ center: [SOUTH_MUMBAI.lon, SOUTH_MUMBAI.lat], zoom: 16.2, pitch: 60, bearing: -18, duration: 1500 });
+                    } else if (preset === 'plan') {
+                        map.flyTo({ center: [SOUTH_MUMBAI.lon, SOUTH_MUMBAI.lat], zoom: 16.0, pitch: 0, bearing: 0, duration: 1500 });
+                    }
+                }
+            };
+            window.mapInstance = map;
+        }
+
+        function initCityViewer(bldGeo) {
+            const hasGoogleKey = Boolean(GOOGLE_3D_TILES_API_KEY && GOOGLE_3D_TILES_API_KEY.length > 5 && GOOGLE_3D_TILES_API_KEY !== 'your_google_3d_tiles_api_key_here');
+            if (hasGoogleKey && typeof Cesium !== 'undefined') {
+                try {
+                    initCesiumViewer(bldGeo);
+                    return 'google-3d';
+                } catch (err) {
+                    console.warn("Falling back to MapLibre:", err);
+                    initMapLibreViewer(bldGeo);
+                    return 'satellite';
+                }
+            } else {
+                initMapLibreViewer(bldGeo);
+                return 'satellite';
+            }
+        }
+
         function App() {
             const [viewMode, setViewMode] = useState('map');
+            const [engineMode, setEngineMode] = useState('satellite');
             const [buildingsData, setBuildingsData] = useState(null);
             const [selectedBuilding, setSelectedBuilding] = useState(null);
             const [cadastre, setCadastre] = useState(null);
@@ -984,6 +1606,8 @@ def serve_dashboard():
                     .then(data => {
                         setBuildingsData(data);
                         initMapLibre(data);
+                        const mode = initCityViewer(data);
+                        setEngineMode(mode);
                     })
                     .catch(err => console.error("Buildings fetch error:", err));
             }, []);
@@ -1002,6 +1626,12 @@ def serve_dashboard():
                     setSelectedFlat(unitData);
                     setSelectedFloor(unitData.floor_index);
                     if (twinRef.current) twinRef.current.selectFlat(unitData.unit_id);
+                };
+                window.appBridge.onBuildingSelected = (bldFeat) => {
+                    setSelectedBuilding(bldFeat);
+                    if (window.cityViewer && window.cityViewer.highlightBuilding) {
+                        window.cityViewer.highlightBuilding(bldFeat);
+                    }
                 };
             }, []);
 
@@ -1036,6 +1666,25 @@ def serve_dashboard():
                 document.getElementById('twin-workspace').style.display = 'none';
                 if (twinRef.current) {
                     twinRef.current.clearBuilding();
+                }
+                if (selectedBuilding && window.cityViewer && window.cityViewer.highlightBuilding) {
+                    window.cityViewer.highlightBuilding(selectedBuilding);
+                }
+            };
+
+            const handleSearchSelect = (b) => {
+                setSelectedBuilding(b);
+                setSearchResults([]);
+                setSearchQuery('');
+                if (window.cityViewer && window.cityViewer.highlightBuilding) {
+                    window.cityViewer.highlightBuilding(b);
+                }
+            };
+
+            const handleClearSelection = () => {
+                setSelectedBuilding(null);
+                if (window.cityViewer && window.cityViewer.clearSelection) {
+                    window.cityViewer.clearSelection();
                 }
             };
 
@@ -1220,6 +1869,7 @@ def serve_dashboard():
                                                 setSearchResults([]);
                                                 setSearchQuery('');
                                             }}
+                                            onClick={() => handleSearchSelect(b)}
                                             style={{
                                                 padding: '8px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 12,
                                                 marginBottom: 4, background: 'rgba(30, 41, 59, 0.5)', transition: 'background 0.15s'
@@ -1288,6 +1938,37 @@ def serve_dashboard():
                             ) : (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                                     <span className="pulsing-dot"></span> GIS Live Stream
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <button
+                                        onClick={() => window.cityViewer && window.cityViewer.setPreset('oblique')}
+                                        title="3D Oblique Perspective"
+                                        style={{
+                                            background: 'rgba(15,23,42,0.8)', color: 'var(--text-secondary)',
+                                            border: '1px solid var(--border-subtle)', padding: '6px 12px', borderRadius: 6,
+                                            fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+                                    >
+                                        🏙️ 3D View
+                                    </button>
+                                    <button
+                                        onClick={() => window.cityViewer && window.cityViewer.setPreset('plan')}
+                                        title="Top-Down Cadastral Plan"
+                                        style={{
+                                            background: 'rgba(15,23,42,0.8)', color: 'var(--text-secondary)',
+                                            border: '1px solid var(--border-subtle)', padding: '6px 12px', borderRadius: 6,
+                                            fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.color = '#fff'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+                                    >
+                                        🗺️ 2D Plan
+                                    </button>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-secondary)', marginLeft: 6 }}>
+                                        <span className="pulsing-dot"></span>
+                                        {engineMode === 'google-3d' ? 'Google 3D Tiles' : '3D Satellite Base'}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1307,6 +1988,7 @@ def serve_dashboard():
                                 </span>
                                 <button
                                     onClick={() => setSelectedBuilding(null)}
+                                    onClick={handleClearSelection}
                                     style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16 }}
                                 >
                                     ✕
