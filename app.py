@@ -184,6 +184,38 @@ def serve_dashboard():
         #react-root > * {
             pointer-events: auto;
         }
+
+        /* 3D Subterranean Interactive Inspection Popup */
+        .maplibregl-popup {
+            z-index: 80 !important;
+            pointer-events: auto !important;
+        }
+        .maplibregl-popup-content {
+            background: rgba(10, 17, 34, 0.96) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            border: 1px solid rgba(0, 229, 255, 0.45) !important;
+            border-radius: 12px !important;
+            padding: 14px 16px !important;
+            color: #f8fafc !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 229, 255, 0.25) !important;
+        }
+        .maplibregl-popup-tip {
+            border-top-color: rgba(10, 17, 34, 0.96) !important;
+            border-bottom-color: rgba(10, 17, 34, 0.96) !important;
+        }
+        .maplibregl-popup-close-button {
+            color: #94a3b8 !important;
+            font-size: 16px !important;
+            padding: 6px 10px !important;
+            right: 4px !important;
+            top: 4px !important;
+            border-radius: 6px !important;
+        }
+        .maplibregl-popup-close-button:hover {
+            color: #fff !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
     </style>
 </head>
 <body>
@@ -1142,17 +1174,32 @@ def serve_dashboard():
                     }
                 });
 
-                // 3. Subsurface infrastructure layers (Coastal Road, Metro 3, Subways, Utilities, Laterals & Chambers)
-                [
-                    'utilities-trunks-glow', 'utilities-trunks-core',
-                    'utilities-station-boxes', 'utilities-station-boxes-outline',
-                    'utilities-coastal-inner', 'utilities-pedestrian-stripes',
-                    'utilities-laterals', 'utilities-manholes'
-                ].forEach(id => {
+                // 3. Subsurface infrastructure layers (Physical casing, core, highlights, rails, striping, chambers, hitbox)
+                const allSubsurfaceLayers = [
+                    'utilities-click-hitbox',
+                    'utilities-trench-shadow',
+                    'utilities-pipe-casing',
+                    'utilities-trunks-core',
+                    'utilities-specular-ridge',
+                    'utilities-flow-pulse',
+                    'utilities-station-boxes',
+                    'utilities-station-boxes-outline',
+                    'utilities-coastal-inner',
+                    'utilities-coastal-lighting',
+                    'utilities-metro-rails',
+                    'utilities-pedestrian-stripes',
+                    'utilities-laterals',
+                    'utilities-manholes-base',
+                    'utilities-manholes'
+                ];
+                allSubsurfaceLayers.forEach(id => {
                     if (m.getLayer(id)) {
                         m.setLayoutProperty(id, 'visibility', utilVis);
                     }
                 });
+                if (!nextMode && window.utilityPopup) {
+                    window.utilityPopup.remove();
+                }
 
                 // 4. Ground parcel line opacity
                 if (m.getLayer('buildings-ground-line')) {
@@ -1203,13 +1250,18 @@ def serve_dashboard():
                 if (!m) return;
 
                 const catCondition = (cat === 'all') ? ['!=', 'category', ''] : ['==', 'category', cat];
+                const trunkFilter = ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true], catCondition];
 
-                if (m.getLayer('utilities-trunks-glow')) {
-                    m.setFilter('utilities-trunks-glow', ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true], catCondition]);
-                }
-                if (m.getLayer('utilities-trunks-core')) {
-                    m.setFilter('utilities-trunks-core', ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true], catCondition]);
-                }
+                [
+                    'utilities-click-hitbox',
+                    'utilities-trench-shadow',
+                    'utilities-pipe-casing',
+                    'utilities-trunks-core',
+                    'utilities-specular-ridge',
+                    'utilities-flow-pulse'
+                ].forEach(id => {
+                    if (m.getLayer(id)) m.setFilter(id, trunkFilter);
+                });
 
                 if (m.getLayer('utilities-station-boxes')) {
                     const showStation = (cat === 'all' || cat === 'metro_underground');
@@ -1223,6 +1275,14 @@ def serve_dashboard():
                     const showCoastal = (cat === 'all' || cat === 'coastal_road_tunnel');
                     m.setLayoutProperty('utilities-coastal-inner', 'visibility', showCoastal ? 'visible' : 'none');
                 }
+                if (m.getLayer('utilities-coastal-lighting')) {
+                    const showCoastal = (cat === 'all' || cat === 'coastal_road_tunnel');
+                    m.setLayoutProperty('utilities-coastal-lighting', 'visibility', showCoastal ? 'visible' : 'none');
+                }
+                if (m.getLayer('utilities-metro-rails')) {
+                    const showMetro = (cat === 'all' || cat === 'metro_underground');
+                    m.setLayoutProperty('utilities-metro-rails', 'visibility', showMetro ? 'visible' : 'none');
+                }
                 if (m.getLayer('utilities-pedestrian-stripes')) {
                     const showPed = (cat === 'all' || cat === 'pedestrian_subway');
                     m.setLayoutProperty('utilities-pedestrian-stripes', 'visibility', showPed ? 'visible' : 'none');
@@ -1235,6 +1295,12 @@ def serve_dashboard():
                     }
                 }
 
+                if (m.getLayer('utilities-manholes-base')) {
+                    m.setLayoutProperty('utilities-manholes-base', 'visibility', mhEnabled ? 'visible' : 'none');
+                    if (mhEnabled) {
+                        m.setFilter('utilities-manholes-base', ['all', ['==', 'is_manhole', true], catCondition]);
+                    }
+                }
                 if (m.getLayer('utilities-manholes')) {
                     m.setLayoutProperty('utilities-manholes', 'visibility', mhEnabled ? 'visible' : 'none');
                     if (mhEnabled) {
@@ -1257,6 +1323,93 @@ def serve_dashboard():
                            (p.street && p.street.toLowerCase().includes(lower));
                 }).slice(0, 6);
                 setSearchResults(matched);
+            };
+
+            const handleFlyToUtility = (u) => {
+                if (!window.mapInstance || !utilitiesData) return;
+                const feat = utilitiesData.features.find(f => f.properties && f.properties.utility_id === u.utility_id);
+                if (!feat || !feat.geometry) return;
+                const geom = feat.geometry;
+                if (geom.type === 'Point') {
+                    window.mapInstance.flyTo({ center: geom.coordinates, zoom: 17.5, pitch: 68, duration: 1200 });
+                } else if (geom.type === 'LineString') {
+                    const coords = geom.coordinates;
+                    const mid = coords[Math.floor(coords.length / 2)];
+                    window.mapInstance.flyTo({ center: mid, zoom: 17.2, pitch: 68, duration: 1200 });
+                } else if (geom.type === 'Polygon') {
+                    const coords = geom.coordinates[0];
+                    const mid = coords[0];
+                    window.mapInstance.flyTo({ center: mid, zoom: 17.2, pitch: 68, duration: 1200 });
+                }
+            };
+
+            const createUtilityPopupHTML = (p) => {
+                const isStation = p.is_station_box === true || p.is_station_box === 'true';
+                const isManhole = p.is_manhole === true || p.is_manhole === 'true';
+                const isLateral = p.is_lateral === true || p.is_lateral === 'true';
+
+                let categoryTitle = "SUBTERRANEAN CONDUIT";
+                if (isStation) categoryTitle = "METRO 3 STATION BOX";
+                else if (p.category === 'coastal_road_tunnel') categoryTitle = isManhole ? "MCRP PORTAL / VENT SHAFT" : "UNDERSEA ROAD HIGHWAY TUNNEL";
+                else if (p.category === 'metro_underground') categoryTitle = isManhole ? "METRO VENTILATION SHAFT" : "RAPID TRANSIT METRO TUNNEL";
+                else if (p.category === 'vehicular_subway') categoryTitle = "VEHICULAR ROAD UNDERPASS";
+                else if (p.category === 'pedestrian_subway') categoryTitle = isManhole ? "SUBWAY ENTRANCE PORTAL" : "PEDESTRIAN COMMUTER SUBWAY";
+                else if (isManhole) categoryTitle = "INSPECTION CHAMBER / VAULT";
+                else if (isLateral) categoryTitle = "BUILDING SERVICE LATERAL";
+                else categoryTitle = "PRIMARY TRUNK TRANSMISSION AQUEDUCT";
+
+                const diameterStr = p.nominal_diameter_mm >= 1000 
+                    ? `${(p.nominal_diameter_mm / 1000).toFixed(1)} m (${p.nominal_diameter_mm} mm)`
+                    : `${p.nominal_diameter_mm} mm`;
+
+                const accentColor = p.color || '#00e5ff';
+
+                return `
+                    <div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-width: 250px; max-width: 320px; user-select: text;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 12px; background: ${accentColor}; color: #000;">
+                                ${categoryTitle}
+                            </span>
+                            <span style="font-size: 11px; font-weight: 800; color: #38bdf8;">
+                                -${p.depth_msl_m} m MSL
+                            </span>
+                        </div>
+                        <div style="font-weight: 800; font-size: 13.5px; color: #fff; margin-bottom: 3px; line-height: 1.35;">
+                            ${p.label || 'Subterranean Asset'}
+                        </div>
+                        <div style="font-size: 10.5px; color: #94a3b8; margin-bottom: 10px; line-height: 1.3;">
+                            ${p.corridor_name || ''}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: rgba(15,23,42,0.8); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; font-size: 10.5px;">
+                            <div>
+                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">DIAMETER / BORE</div>
+                                <div style="font-weight: 800; color: ${accentColor}; margin-top: 1px;">${diameterStr}</div>
+                            </div>
+                            <div>
+                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">CLEARANCE STATUS</div>
+                                <div style="font-weight: 700; color: #10b981; margin-top: 1px;">${p.clearance_status || 'Compliant'}</div>
+                            </div>
+                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06);">
+                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">SPECIFICATION & AUTHORITY</div>
+                                <div style="color: #cbd5e1; font-size: 10px; margin-top: 1px;">
+                                    ${p.material || ''} • <b style="color: #38bdf8;">${p.authority || ''}</b>
+                                </div>
+                            </div>
+                            ${p.connected_building ? `
+                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06);">
+                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">CONNECTED LANDMARK</div>
+                                <div style="color: #f59e0b; font-size: 10px; font-weight: 700; margin-top: 1px;">
+                                    🏢 ${p.connected_building}
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div style="font-size: 9.5px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; padding: 0 2px;">
+                            <span>ULPIN: <b style="font-family: monospace; color: #f59e0b;">${p.utility_ulpin || p.utility_id}</b></span>
+                            <span style="color: #10b981; font-weight: 700;">● Active</span>
+                        </div>
+                    </div>
+                `;
             };
 
             const initMapLibre = (bldGeo, archGeo, utilGeo) => {
@@ -1399,57 +1552,80 @@ def serve_dashboard():
                     if (utilGeo) {
                         map.addSource('utilities-src', { type: 'geojson', data: utilGeo });
 
-                        // Metro Line 3 3D Subterranean Station Boxes (Rendered as glowing 3D translucent underground volumes)
+                        // A. Invisible 28px Wide Hitbox Buffer (Ensures 100% effortless clicking precision on all pipes)
                         map.addLayer({
-                            id: 'utilities-station-boxes',
-                            type: 'fill-extrusion',
-                            source: 'utilities-src',
-                            filter: ['==', 'is_station_box', true],
-                            layout: { 'visibility': 'none' },
-                            paint: {
-                                'fill-extrusion-base': 0,
-                                'fill-extrusion-height': 5.5,
-                                'fill-extrusion-color': '#f43f5e',
-                                'fill-extrusion-opacity': 0.70
-                            }
-                        });
-
-                        map.addLayer({
-                            id: 'utilities-station-boxes-outline',
+                            id: 'utilities-click-hitbox',
                             type: 'line',
                             source: 'utilities-src',
-                            filter: ['==', 'is_station_box', true],
-                            layout: { 'visibility': 'none' },
+                            filter: ['all', ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
+                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': '#fda4af',
-                                'line-width': 2.5,
-                                'line-opacity': 0.95
+                                'line-width': 28.0,
+                                'line-opacity': 0.0001
                             }
                         });
 
-                        // Trunk Pipeline & Tunnel Glowing Halos
+                        // B. Subterranean Trench Bedrock Drop Shadow (Creates depth separation from surrounding bedrock)
                         map.addLayer({
-                            id: 'utilities-trunks-glow',
+                            id: 'utilities-trench-shadow',
                             type: 'line',
                             source: 'utilities-src',
                             filter: ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': ['get', 'color'],
+                                'line-color': '#01040a',
                                 'line-width': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 18.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 14.0,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 12.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 10.0,
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 24.0,
+                                    ['==', ['get', 'category'], 'metro_underground'], 18.0,
+                                    ['==', ['get', 'category'], 'vehicular_subway'], 16.0,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 14.0,
+                                    ['==', ['get', 'category'], 'drainage_trunk'], 13.0,
+                                    ['==', ['get', 'category'], 'water_supply'], 12.0,
                                     10.0
                                 ],
-                                'line-blur': 6,
+                                'line-blur': 6.0,
                                 'line-opacity': 0.85
                             }
                         });
 
-                        // Trunk Conduits & Tunnel Tubes Core Lines
+                        // C. Outer Pipe Wall / Structural Metallic & Concrete Casing (Creates realistic 3D conduit boundary)
+                        map.addLayer({
+                            id: 'utilities-pipe-casing',
+                            type: 'line',
+                            source: 'utilities-src',
+                            filter: ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
+                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
+                            paint: {
+                                'line-color': [
+                                    'case',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#0f172a',
+                                    ['==', ['get', 'category'], 'metro_underground'], '#082f49',
+                                    ['==', ['get', 'category'], 'vehicular_subway'], '#1e293b',
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#334155',
+                                    ['==', ['get', 'category'], 'water_supply'], '#0c4a6e',
+                                    ['==', ['get', 'category'], 'drainage_trunk'], '#134e4a',
+                                    ['==', ['get', 'category'], 'power_best'], '#451a03',
+                                    ['==', ['get', 'category'], 'gas_mgl'], '#422006',
+                                    '#1e293b'
+                                ],
+                                'line-width': [
+                                    'case',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 18.0,
+                                    ['==', ['get', 'category'], 'metro_underground'], 13.0,
+                                    ['==', ['get', 'category'], 'vehicular_subway'], 11.0,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 9.5,
+                                    ['==', ['get', 'category'], 'drainage_trunk'], 9.0,
+                                    ['==', ['get', 'category'], 'water_supply'], 8.5,
+                                    ['==', ['get', 'category'], 'power_best'], 7.0,
+                                    ['==', ['get', 'category'], 'gas_mgl'], 6.5,
+                                    6.0
+                                ],
+                                'line-opacity': 0.98
+                            }
+                        });
+
+                        // D. Physical Pipe Core Body (Authentic municipal and industrial utility cross-sections)
                         map.addLayer({
                             id: 'utilities-trunks-core',
                             type: 'line',
@@ -1457,22 +1633,52 @@ def serve_dashboard():
                             filter: ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': ['get', 'color'],
+                                'line-color': [
+                                    'case',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#1e293b',
+                                    ['==', ['get', 'category'], 'metro_underground'], '#0284c7',
+                                    ['==', ['get', 'category'], 'vehicular_subway'], '#334155',
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#475569',
+                                    ['get', 'color']
+                                ],
                                 'line-width': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 11.5,
-                                    ['==', ['get', 'category'], 'metro_underground'], 7.5,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 6.5,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 5.5,
-                                    ['==', ['get', 'category'], 'water_supply'], 4.5,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 5.0,
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 13.5,
+                                    ['==', ['get', 'category'], 'metro_underground'], 8.5,
+                                    ['==', ['get', 'category'], 'vehicular_subway'], 7.0,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 6.0,
+                                    ['==', ['get', 'category'], 'drainage_trunk'], 5.5,
+                                    ['==', ['get', 'category'], 'water_supply'], 5.0,
+                                    ['==', ['get', 'category'], 'power_best'], 4.2,
+                                    ['==', ['get', 'category'], 'gas_mgl'], 3.8,
                                     3.5
                                 ],
                                 'line-opacity': 1.0
                             }
                         });
 
-                        // Coastal Road Tunnel Center Striping (White dashed roadway center strip)
+                        // E. 3D Cylindrical Specular Crown Ridge (Creates realistic rounded 3D cylinder light reflection)
+                        map.addLayer({
+                            id: 'utilities-specular-ridge',
+                            type: 'line',
+                            source: 'utilities-src',
+                            filter: ['all', ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
+                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
+                            paint: {
+                                'line-color': '#ffffff',
+                                'line-width': [
+                                    'case',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 2.8,
+                                    ['==', ['get', 'category'], 'metro_underground'], 2.0,
+                                    ['==', ['get', 'is_lateral'], true], 0.8,
+                                    1.4
+                                ],
+                                'line-opacity': 0.65,
+                                'line-blur': 0.4
+                            }
+                        });
+
+                        // F. Coastal Road Tunnel Dual-Lane Striping & Interior Lighting
                         map.addLayer({
                             id: 'utilities-coastal-inner',
                             type: 'line',
@@ -1481,13 +1687,40 @@ def serve_dashboard():
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
                                 'line-color': '#ffffff',
-                                'line-width': 2.5,
-                                'line-dasharray': [3, 2],
+                                'line-width': 2.4,
+                                'line-dasharray': [4, 3],
                                 'line-opacity': 0.95
                             }
                         });
+                        map.addLayer({
+                            id: 'utilities-coastal-lighting',
+                            type: 'line',
+                            source: 'utilities-src',
+                            filter: ['==', 'category', 'coastal_road_tunnel'],
+                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
+                            paint: {
+                                'line-color': '#fbbf24',
+                                'line-width': 1.2,
+                                'line-opacity': 0.85
+                            }
+                        });
 
-                        // Pedestrian Subway Footway Striping (Illuminated walking pattern)
+                        // G. Metro Line 3 Twin Steel Railway Tracks
+                        map.addLayer({
+                            id: 'utilities-metro-rails',
+                            type: 'line',
+                            source: 'utilities-src',
+                            filter: ['==', 'category', 'metro_underground'],
+                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
+                            paint: {
+                                'line-color': '#94a3b8',
+                                'line-width': 1.8,
+                                'line-dasharray': [2, 1.5],
+                                'line-opacity': 0.90
+                            }
+                        });
+
+                        // H. Pedestrian Subway Tactile Footway Striping
                         map.addLayer({
                             id: 'utilities-pedestrian-stripes',
                             type: 'line',
@@ -1495,14 +1728,14 @@ def serve_dashboard():
                             filter: ['==', 'category', 'pedestrian_subway'],
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': '#ffffff',
+                                'line-color': '#facc15',
                                 'line-width': 2.0,
                                 'line-dasharray': [1.5, 1.5],
-                                'line-opacity': 0.85
+                                'line-opacity': 0.90
                             }
                         });
 
-                        // Lateral Building Connections (Branching into building basements)
+                        // I. Building Lateral Hookups (Connecting conduits straight into building basements)
                         map.addLayer({
                             id: 'utilities-laterals',
                             type: 'line',
@@ -1511,13 +1744,87 @@ def serve_dashboard():
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
                                 'line-color': ['get', 'color'],
-                                'line-width': 2.6,
-                                'line-dasharray': [2, 1.5],
+                                'line-width': 2.8,
+                                'line-dasharray': [2.5, 2],
                                 'line-opacity': 0.95
                             }
                         });
 
-                        // Inspection Vaults, Manholes & Subway Entrance Portals
+                        // J. Subterranean Fluid & Energy Flow Pulse Layer
+                        map.addLayer({
+                            id: 'utilities-flow-pulse',
+                            type: 'line',
+                            source: 'utilities-src',
+                            filter: ['all', ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
+                            layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
+                            paint: {
+                                'line-color': [
+                                    'case',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#38bdf8',
+                                    ['==', ['get', 'category'], 'metro_underground'], '#38bdf8',
+                                    ['==', ['get', 'category'], 'power_best'], '#fef08a',
+                                    ['==', ['get', 'category'], 'gas_mgl'], '#fde047',
+                                    ['==', ['get', 'category'], 'water_supply'], '#e0f2fe',
+                                    '#ffffff'
+                                ],
+                                'line-width': [
+                                    'case',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 3.0,
+                                    ['==', ['get', 'category'], 'metro_underground'], 2.5,
+                                    2.0
+                                ],
+                                'line-dasharray': [1, 4],
+                                'line-opacity': 0.80
+                            }
+                        });
+
+                        // K. Metro Line 3 3D Subterranean Station Boxes (Volumetric cut-and-cover underground structures)
+                        map.addLayer({
+                            id: 'utilities-station-boxes',
+                            type: 'fill-extrusion',
+                            source: 'utilities-src',
+                            filter: ['==', 'is_station_box', true],
+                            layout: { 'visibility': 'none' },
+                            paint: {
+                                'fill-extrusion-base': 0,
+                                'fill-extrusion-height': 6.5,
+                                'fill-extrusion-color': '#0284c7',
+                                'fill-extrusion-opacity': 0.72
+                            }
+                        });
+                        map.addLayer({
+                            id: 'utilities-station-boxes-outline',
+                            type: 'line',
+                            source: 'utilities-src',
+                            filter: ['==', 'is_station_box', true],
+                            layout: { 'visibility': 'none' },
+                            paint: {
+                                'line-color': '#38bdf8',
+                                'line-width': 3.0,
+                                'line-opacity': 1.0
+                            }
+                        });
+
+                        // L. Realistic 3D Concentric Cast-Iron Manholes & Portals
+                        map.addLayer({
+                            id: 'utilities-manholes-base',
+                            type: 'circle',
+                            source: 'utilities-src',
+                            filter: ['==', 'is_manhole', true],
+                            layout: { 'visibility': 'none' },
+                            paint: {
+                                'circle-radius': [
+                                    'case',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 13.0,
+                                    ['==', ['get', 'category'], 'metro_underground'], 12.0,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 10.0,
+                                    9.0
+                                ],
+                                'circle-color': '#020617',
+                                'circle-blur': 0.3,
+                                'circle-opacity': 0.85
+                            }
+                        });
                         map.addLayer({
                             id: 'utilities-manholes',
                             type: 'circle',
@@ -1527,19 +1834,19 @@ def serve_dashboard():
                             paint: {
                                 'circle-radius': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 9.5,
-                                    ['==', ['get', 'category'], 'metro_underground'], 9.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 7.5,
-                                    6.5
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 10.0,
+                                    ['==', ['get', 'category'], 'metro_underground'], 9.5,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 8.0,
+                                    7.0
                                 ],
                                 'circle-color': ['get', 'color'],
-                                'circle-stroke-width': 2.2,
+                                'circle-stroke-width': 2.8,
                                 'circle-stroke-color': '#ffffff',
                                 'circle-opacity': 1.0
                             }
                         });
 
-                        // Utility Selection Highlight Layer
+                        // M. Subterranean Selection Highlight Beam
                         map.addLayer({
                             id: 'utilities-highlight',
                             type: 'line',
@@ -1548,66 +1855,155 @@ def serve_dashboard():
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
                                 'line-color': '#ffffff',
-                                'line-width': 7.0,
-                                'line-opacity': 0.95
+                                'line-width': 9.0,
+                                'line-opacity': 0.95,
+                                'line-blur': 1.5
                             }
-                        });
-
-                        // Interactive Utility Click & Hover
-                        const utilLayers = ['utilities-trunks-core', 'utilities-station-boxes', 'utilities-laterals', 'utilities-manholes'];
-                        utilLayers.forEach(lyr => {
-                            map.on('click', lyr, (e) => {
-                                if (!e.features || !e.features.length) return;
-                                const p = e.features[0].properties;
-                                setSelectedUtility(p);
-                                setSelectedBuilding(null);
-                                if (map.getLayer('utilities-highlight')) {
-                                    map.setLayoutProperty('utilities-highlight', 'visibility', 'visible');
-                                    map.setFilter('utilities-highlight', ['==', 'utility_id', p.utility_id]);
-                                }
-                            });
-                            map.on('mouseenter', lyr, () => map.getCanvas().style.cursor = 'pointer');
-                            map.on('mouseleave', lyr, () => map.getCanvas().style.cursor = '');
                         });
                     }
 
-                    // 4. Interactive Click on Any 3D Building (Information only shown on click)
-                    const clickLayers = ['buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs', 'buildings-3d-base-rim'];
-                    clickLayers.forEach(lyr => {
-                        map.on('click', lyr, (e) => {
-                            if (!e.features || !e.features.length) return;
-                            const f = e.features[0];
+                    // 4. Unified Interactive Subterranean & Architectural Click Dispatcher
+                    map.on('click', (e) => {
+                        const hitTolerance = 14; // 14px buffer for effortless clicking on pipes
+                        const bbox = [
+                            [e.point.x - hitTolerance, e.point.y - hitTolerance],
+                            [e.point.x + hitTolerance, e.point.y + hitTolerance]
+                        ];
+
+                        // Check Subterranean Utilities FIRST (Top Priority)
+                        const allUtilLayers = [
+                            'utilities-click-hitbox',
+                            'utilities-trunks-core',
+                            'utilities-pipe-casing',
+                            'utilities-station-boxes',
+                            'utilities-station-boxes-outline',
+                            'utilities-coastal-inner',
+                            'utilities-metro-rails',
+                            'utilities-pedestrian-stripes',
+                            'utilities-laterals',
+                            'utilities-manholes'
+                        ].filter(id => map.getLayer(id) && map.getLayoutProperty(id, 'visibility') !== 'none');
+
+                        const utilHits = allUtilLayers.length > 0 ? map.queryRenderedFeatures(bbox, { layers: allUtilLayers }) : [];
+
+                        if (utilHits && utilHits.length > 0) {
+                            const feat = utilHits.find(f => f.properties && (f.properties.is_manhole === true || f.properties.is_station_box === true)) || utilHits[0];
+                            const p = Object.assign({}, feat.properties);
+                            if (typeof p.is_station_box === 'string') p.is_station_box = p.is_station_box === 'true';
+                            if (typeof p.is_lateral === 'string') p.is_lateral = p.is_lateral === 'true';
+                            if (typeof p.is_manhole === 'string') p.is_manhole = p.is_manhole === 'true';
+
+                            setSelectedUtility(p);
+                            setSelectedBuilding(null);
+
+                            if (map.getLayer('utilities-highlight')) {
+                                map.setLayoutProperty('utilities-highlight', 'visibility', 'visible');
+                                map.setFilter('utilities-highlight', ['==', 'utility_id', p.utility_id || '']);
+                            }
+                            if (map.getLayer('buildings-3d-highlight')) {
+                                map.setFilter('buildings-3d-highlight', ['==', 'spatial_id', '']);
+                            }
+
+                            // Show instant 3D interactive floating popup anchored to clicked location
+                            if (window.utilityPopup) window.utilityPopup.remove();
+                            window.utilityPopup = new maplibregl.Popup({
+                                closeButton: true,
+                                closeOnClick: false,
+                                offset: [0, -10],
+                                className: 'subterranean-popup'
+                            })
+                            .setLngLat(e.lngLat)
+                            .setHTML(createUtilityPopupHTML(p))
+                            .addTo(map);
+
+                            return; // Stop propagation: Utility inspected!
+                        }
+
+                        // Check 3D Buildings (Secondary Priority)
+                        const clickLayers = ['buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs', 'buildings-3d-base-rim'].filter(id => map.getLayer(id));
+                        const bldHits = map.queryRenderedFeatures(bbox, { layers: clickLayers });
+
+                        if (bldHits && bldHits.length > 0) {
+                            if (window.utilityPopup) window.utilityPopup.remove();
+                            const f = bldHits[0];
                             const spId = f.properties.spatial_id;
                             const masterFeat = bldGeo.features.find(b => b.properties.spatial_id === spId) || f;
                             setSelectedBuilding(masterFeat);
                             setSelectedUtility(null);
+
                             if (map.getLayer('buildings-3d-highlight')) {
                                 map.setFilter('buildings-3d-highlight', ['==', 'spatial_id', spId]);
                             }
                             if (map.getLayer('utilities-highlight')) {
                                 map.setFilter('utilities-highlight', ['==', 'utility_id', '']);
                             }
-                        });
-                        map.on('mouseenter', lyr, () => map.getCanvas().style.cursor = 'pointer');
-                        map.on('mouseleave', lyr, () => map.getCanvas().style.cursor = '');
-                    });
+                            return;
+                        }
 
-                    // Deselect when clicking outside any building or utility
-                    map.on('click', (e) => {
-                        const bldFeatures = map.queryRenderedFeatures(e.point, { layers: clickLayers });
-                        const utilLayers = ['utilities-trunks-core', 'utilities-laterals', 'utilities-manholes'];
-                        const utilFeatures = map.getLayer('utilities-trunks-core') ? map.queryRenderedFeatures(e.point, { layers: utilLayers }) : [];
-                        if ((!bldFeatures || bldFeatures.length === 0) && (!utilFeatures || utilFeatures.length === 0)) {
-                            setSelectedBuilding(null);
-                            setSelectedUtility(null);
-                            if (map.getLayer('buildings-3d-highlight')) {
-                                map.setFilter('buildings-3d-highlight', ['==', 'spatial_id', '']);
-                            }
-                            if (map.getLayer('utilities-highlight')) {
-                                map.setFilter('utilities-highlight', ['==', 'utility_id', '']);
-                            }
+                        // Empty Space Clicked: Deselect both
+                        if (window.utilityPopup) window.utilityPopup.remove();
+                        setSelectedBuilding(null);
+                        setSelectedUtility(null);
+                        if (map.getLayer('buildings-3d-highlight')) {
+                            map.setFilter('buildings-3d-highlight', ['==', 'spatial_id', '']);
+                        }
+                        if (map.getLayer('utilities-highlight')) {
+                            map.setFilter('utilities-highlight', ['==', 'utility_id', '']);
                         }
                     });
+
+                    // 5. Interactive Mouse Cursor Pointer Feedback
+                    map.on('mousemove', (e) => {
+                        const bbox = [[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]];
+                        const allUtilLayers = [
+                            'utilities-click-hitbox',
+                            'utilities-trunks-core',
+                            'utilities-pipe-casing',
+                            'utilities-station-boxes',
+                            'utilities-station-boxes-outline',
+                            'utilities-coastal-inner',
+                            'utilities-metro-rails',
+                            'utilities-pedestrian-stripes',
+                            'utilities-laterals',
+                            'utilities-manholes'
+                        ].filter(id => map.getLayer(id) && map.getLayoutProperty(id, 'visibility') !== 'none');
+
+                        const utilHits = allUtilLayers.length > 0 ? map.queryRenderedFeatures(bbox, { layers: allUtilLayers }) : [];
+                        if (utilHits && utilHits.length > 0) {
+                            map.getCanvas().style.cursor = 'pointer';
+                            return;
+                        }
+
+                        const clickLayers = ['buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs', 'buildings-3d-base-rim'].filter(id => map.getLayer(id));
+                        const bldHits = map.queryRenderedFeatures(bbox, { layers: clickLayers });
+                        if (bldHits && bldHits.length > 0) {
+                            map.getCanvas().style.cursor = 'pointer';
+                            return;
+                        }
+
+                        map.getCanvas().style.cursor = '';
+                    });
+
+                    // 6. Subterranean Flow Pulse Animation Loop
+                    let flowOffset = 0;
+                    let lastFlowTs = 0;
+                    function loopUtilityFlow(ts) {
+                        if (ts - lastFlowTs > 75) {
+                            lastFlowTs = ts;
+                            flowOffset = (flowOffset + 1) % 12;
+                            if (window.mapInstance && window.mapInstance.getLayer('utilities-flow-pulse')) {
+                                try {
+                                    if (window.mapInstance.getLayoutProperty('utilities-flow-pulse', 'visibility') === 'visible') {
+                                        const d1 = flowOffset % 6;
+                                        const d2 = 6 - d1;
+                                        window.mapInstance.setPaintProperty('utilities-flow-pulse', 'line-dasharray', [0.8, d1, 2.5, d2]);
+                                    }
+                                } catch(err) {}
+                            }
+                        }
+                        window.flowPulseRaf = requestAnimationFrame(loopUtilityFlow);
+                    }
+                    window.flowPulseRaf = requestAnimationFrame(loopUtilityFlow);
                 });
 
                 window.mapInstance = map;
@@ -2098,14 +2494,14 @@ def serve_dashboard():
                     {/* Selected Subterranean Cadastre Card */}
                     {viewMode === 'map' && selectedUtility && (
                         <div className="glass-panel" style={{
-                            position: 'absolute', bottom: 30, right: 30, width: 390, padding: 22,
-                            pointerEvents: 'auto', zIndex: 60, boxShadow: '0 20px 48px rgba(0,0,0,0.75)',
+                            position: 'absolute', bottom: 30, right: 30, width: 410, padding: 22,
+                            pointerEvents: 'auto', zIndex: 60, boxShadow: '0 20px 48px rgba(0,0,0,0.85)',
                             border: `1px solid ${selectedUtility.color || 'var(--accent-cyan)'}`
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{
-                                    fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20,
-                                    background: selectedUtility.color || 'var(--accent-cyan)', color: '#000'
+                                    fontSize: 9.5, fontWeight: 800, padding: '3px 9px', borderRadius: 20,
+                                    background: selectedUtility.color || 'var(--accent-cyan)', color: '#000', letterSpacing: '0.04em'
                                 }}>
                                     {selectedUtility.is_station_box ? "UNDERGROUND METRO STATION BOX" :
                                      selectedUtility.category === 'coastal_road_tunnel' ? (selectedUtility.is_manhole ? "MCRP PORTAL / VENTILATION SHAFT" : "UNDERSEA ROAD HIGHWAY TUNNEL") :
@@ -2115,56 +2511,103 @@ def serve_dashboard():
                                      selectedUtility.is_manhole ? "INSPECTION CHAMBER / VAULT" :
                                      (selectedUtility.is_lateral ? "BUILDING SERVICE LATERAL" : "PRIMARY TRUNK TRANSMISSION AQUEDUCT")}
                                 </span>
-                                <button
-                                    onClick={() => {
-                                        setSelectedUtility(null);
-                                        if (window.mapInstance && window.mapInstance.getLayer('utilities-highlight')) {
-                                            window.mapInstance.setFilter('utilities-highlight', ['==', 'utility_id', '']);
-                                        }
-                                    }}
-                                    style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16 }}
-                                >
-                                    ✕
-                                </button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <button
+                                        onClick={() => handleFlyToUtility(selectedUtility)}
+                                        style={{
+                                            background: 'rgba(0,229,255,0.15)', border: '1px solid rgba(0,229,255,0.4)',
+                                            color: 'var(--accent-cyan)', padding: '3px 8px', borderRadius: 6,
+                                            fontSize: 10.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
+                                        }}
+                                        title="Fly 3D Camera to Subterranean Asset"
+                                    >
+                                        🎯 Focus
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedUtility(null);
+                                            if (window.utilityPopup) window.utilityPopup.remove();
+                                            if (window.mapInstance && window.mapInstance.getLayer('utilities-highlight')) {
+                                                window.mapInstance.setFilter('utilities-highlight', ['==', 'utility_id', '']);
+                                            }
+                                        }}
+                                        style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16 }}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
                             </div>
 
-                            <h3 style={{ margin: '12px 0 4px 0', fontSize: 16, color: '#fff', fontWeight: 800 }}>
+                            <h3 style={{ margin: '12px 0 4px 0', fontSize: 16, color: '#fff', fontWeight: 800, lineHeight: 1.3 }}>
                                 {selectedUtility.label}
                             </h3>
-                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14 }}>
+                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12 }}>
                                 {selectedUtility.corridor_name}
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+                            {/* Mini 3D Subsurface Cross-Section Graphic */}
+                            <div style={{
+                                background: 'rgba(11, 18, 33, 0.75)', borderRadius: 8, padding: '10px 12px',
+                                border: '1px solid var(--border-subtle)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 14
+                            }}>
+                                <svg width="58" height="58" viewBox="0 0 60 60" style={{ flexShrink: 0 }}>
+                                    {/* Ground surface line */}
+                                    <line x1="2" y1="8" x2="58" y2="8" stroke="#64748b" strokeWidth="1.5" strokeDasharray="2,2" />
+                                    <text x="4" y="6" fill="#64748b" fontSize="6" fontFamily="sans-serif">GROUND 0.0m</text>
+                                    {/* Plumb depth line */}
+                                    <line x1="30" y1="8" x2="30" y2="34" stroke="#38bdf8" strokeWidth="1" strokeDasharray="1,1" />
+                                    {/* Outer Pipe Casing Ring */}
+                                    <circle cx="30" cy="36" r="18" fill="#0f172a" stroke="#475569" strokeWidth="2" />
+                                    {/* Inner Fluid / Transit Core */}
+                                    <circle cx="30" cy="36" r="13" fill={selectedUtility.color || '#00e5ff'} opacity="0.85" />
+                                    {/* Specular Highlight on Crown */}
+                                    <ellipse cx="30" cy="27" rx="8" ry="2" fill="#ffffff" opacity="0.6" />
+                                    {/* Center Dot */}
+                                    <circle cx="30" cy="36" r="2.5" fill="#ffffff" />
+                                </svg>
+                                <div style={{ fontSize: 11, lineHeight: 1.45, flex: 1 }}>
+                                    <div style={{ color: 'var(--text-dim)', fontSize: 9.5, fontWeight: 700, textTransform: 'uppercase' }}>
+                                        Cross-Section Specification
+                                    </div>
+                                    <div style={{ color: '#fff', fontWeight: 700 }}>
+                                        {selectedUtility.nominal_diameter_mm >= 1000
+                                            ? `Ø ${(selectedUtility.nominal_diameter_mm / 1000).toFixed(1)} m Bore Outer Diameter`
+                                            : `Ø ${selectedUtility.nominal_diameter_mm} mm Physical Conduit`}
+                                    </div>
+                                    <div style={{ color: 'var(--accent-cyan)', fontSize: 10.5 }}>
+                                        Depth: <b style={{ color: '#fff' }}>-{selectedUtility.depth_msl_m} m</b> below Sea Level
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
                                 <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>SUBTERRANEAN ULPIN</div>
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>SUBTERRANEAN ULPIN</div>
                                     <div className="code-font" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-amber)' }}>
                                         {selectedUtility.utility_ulpin}
                                     </div>
                                 </div>
                                 <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>DIMENSIONS / BORE</div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: selectedUtility.color || 'var(--accent-cyan)' }}>
-                                        {selectedUtility.nominal_diameter_mm >= 1000
-                                            ? `${(selectedUtility.nominal_diameter_mm / 1000).toFixed(1)} m (${selectedUtility.nominal_diameter_mm} mm)`
-                                            : `${selectedUtility.nominal_diameter_mm} mm`}
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>OPERATION STATUS</div>
+                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                        <span className="pulsing-dot" style={{ width: 6, height: 6 }}></span> Operational
                                     </div>
                                 </div>
                                 <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>SUBTERRANEAN DEPTH</div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>
-                                        -{selectedUtility.depth_msl_m} m MSL
-                                    </div>
-                                </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>ENGINEERING CLEARANCE</div>
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>STRUCTURAL CLEARANCE</div>
                                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-emerald)' }}>
                                         {selectedUtility.clearance_status}
                                     </div>
                                 </div>
+                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>CADASTRAL CORRIDOR</div>
+                                    <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        South Mumbai RoW
+                                    </div>
+                                </div>
                             </div>
 
-                            <div style={{ background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 10, border: '1px solid var(--border-subtle)', marginBottom: 14, fontSize: 11 }}>
+                            <div style={{ background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 10, border: '1px solid var(--border-subtle)', marginBottom: 12, fontSize: 11 }}>
                                 <div style={{ marginBottom: 4 }}>
                                     <span style={{ color: 'var(--text-dim)' }}>Structural Specification: </span>
                                     <b style={{ color: '#fff' }}>{selectedUtility.material}</b>
