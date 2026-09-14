@@ -1,0 +1,4567 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-TNL-SB",
+        "utility_ulpin": "2701-TUNNEL-MCRP-0001",
+        "label": "Mumbai Coastal Road (MCRP) Southbound Undersea Tunnel",
+        "corridor_name": "Marine Drive (Princess St) -> Priyadarshini Park (Southbound 3-Lane Tube)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 12190,
+        "depth_msl_m": 25.0,
+        "material": "High-Performance Waterproof Precast Segmental RCC Rings (Grade M65)",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#38bdf8",
+        "clearance_status": "Operational Undersea Highway Tunnel (Speed limit: 80 km/h)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8235,
+            18.9455
+          ],
+          [
+            72.821,
+            18.949
+          ],
+          [
+            72.8165,
+            18.9528
+          ],
+          [
+            72.8105,
+            18.9555
+          ],
+          [
+            72.8055,
+            18.958
+          ],
+          [
+            72.802,
+            18.961
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-TNL-NB",
+        "utility_ulpin": "2701-TUNNEL-MCRP-0002",
+        "label": "Mumbai Coastal Road (MCRP) Northbound Undersea Tunnel",
+        "corridor_name": "Priyadarshini Park -> Marine Drive (Northbound 3-Lane Tube)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 12190,
+        "depth_msl_m": 25.0,
+        "material": "High-Performance Waterproof Precast Segmental RCC Rings (Grade M65)",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#38bdf8",
+        "clearance_status": "Operational Undersea Highway Tunnel (Speed limit: 80 km/h)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82365,
+            18.94558
+          ],
+          [
+            72.82115,
+            18.94908
+          ],
+          [
+            72.81665,
+            18.95288
+          ],
+          [
+            72.81065,
+            18.95558
+          ],
+          [
+            72.80565,
+            18.95808
+          ],
+          [
+            72.80215,
+            18.96108
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-01",
+        "utility_ulpin": "2701-TUNNEL-CP-01",
+        "label": "MCRP Undersea Cross-Passage #1",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #1 (Ch. 180m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82245833333333,
+            18.946958333333335
+          ],
+          [
+            72.82260833333333,
+            18.94703833333333
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-02",
+        "utility_ulpin": "2701-TUNNEL-CP-02",
+        "label": "MCRP Undersea Cross-Passage #2",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #2 (Ch. 360m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82141666666666,
+            18.948416666666667
+          ],
+          [
+            72.82156666666667,
+            18.948496666666664
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-03",
+        "utility_ulpin": "2701-TUNNEL-CP-03",
+        "label": "MCRP Undersea Cross-Passage #3",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #3 (Ch. 540m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.819875,
+            18.94995
+          ],
+          [
+            72.820025,
+            18.950029999999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-04",
+        "utility_ulpin": "2701-TUNNEL-CP-04",
+        "label": "MCRP Undersea Cross-Passage #4",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #4 (Ch. 720m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.818,
+            18.951533333333334
+          ],
+          [
+            72.81815,
+            18.951613333333334
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-05",
+        "utility_ulpin": "2701-TUNNEL-CP-05",
+        "label": "MCRP Undersea Cross-Passage #5",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #5 (Ch. 900m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.816,
+            18.953025
+          ],
+          [
+            72.81615,
+            18.953105
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-06",
+        "utility_ulpin": "2701-TUNNEL-CP-06",
+        "label": "MCRP Undersea Cross-Passage #6",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #6 (Ch. 1080m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8135,
+            18.95415
+          ],
+          [
+            72.81365,
+            18.954230000000003
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-07",
+        "utility_ulpin": "2701-TUNNEL-CP-07",
+        "label": "MCRP Undersea Cross-Passage #7",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #7 (Ch. 1260m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.811,
+            18.955275
+          ],
+          [
+            72.81115,
+            18.955355
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-08",
+        "utility_ulpin": "2701-TUNNEL-CP-08",
+        "label": "MCRP Undersea Cross-Passage #8",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #8 (Ch. 1440m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.80883333333334,
+            18.956333333333333
+          ],
+          [
+            72.80898333333333,
+            18.956413333333334
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-09",
+        "utility_ulpin": "2701-TUNNEL-CP-09",
+        "label": "MCRP Undersea Cross-Passage #9",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #9 (Ch. 1620m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.80675,
+            18.957375
+          ],
+          [
+            72.8069,
+            18.957455
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-10",
+        "utility_ulpin": "2701-TUNNEL-CP-10",
+        "label": "MCRP Undersea Cross-Passage #10",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #10 (Ch. 1800m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.80491666666666,
+            18.958499999999997
+          ],
+          [
+            72.80506666666666,
+            18.958579999999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-COASTAL-CP-11",
+        "utility_ulpin": "2701-TUNNEL-CP-11",
+        "label": "MCRP Undersea Cross-Passage #11",
+        "corridor_name": "Twin-Tube Interconnector Cross Passage #11 (Ch. 1980m)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 3500,
+        "depth_msl_m": 24.5,
+        "material": "Reinforced Cast-in-situ Concrete Evacuation Passage",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#7dd3fc",
+        "clearance_status": "Emergency Egress & Fire Safety Passage"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.80345833333334,
+            18.95975
+          ],
+          [
+            72.80360833333333,
+            18.95983
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-L3-UP",
+        "utility_ulpin": "2701-METRO-L3-UP",
+        "label": "Mumbai Metro Line 3 (Aqua Line) Up-Track Running Tunnel",
+        "category": "metro_underground",
+        "corridor_name": "Cuffe Parade -> Churchgate -> CSMT -> Grant Road (Up-Track)",
+        "nominal_diameter_mm": 6500,
+        "depth_msl_m": 22.5,
+        "material": "Precast Segmental Reinforced Concrete Rings (5.8m Internal Dia)",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#f43f5e",
+        "clearance_status": "Underground Mass Rapid Transit Rail Tube"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8175,
+            18.9135
+          ],
+          [
+            72.8242,
+            18.9262
+          ],
+          [
+            72.8272,
+            18.934
+          ],
+          [
+            72.8318,
+            18.9332
+          ],
+          [
+            72.8358,
+            18.9412
+          ],
+          [
+            72.8285,
+            18.9495
+          ],
+          [
+            72.8215,
+            18.9565
+          ],
+          [
+            72.8152,
+            18.9638
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-L3-DN",
+        "utility_ulpin": "2701-METRO-L3-DN",
+        "label": "Mumbai Metro Line 3 (Aqua Line) Down-Track Running Tunnel",
+        "category": "metro_underground",
+        "corridor_name": "Grant Road -> CSMT -> Churchgate -> Cuffe Parade (Down-Track)",
+        "nominal_diameter_mm": 6500,
+        "depth_msl_m": 22.5,
+        "material": "Precast Segmental Reinforced Concrete Rings (5.8m Internal Dia)",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#f43f5e",
+        "clearance_status": "Underground Mass Rapid Transit Rail Tube"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.81761999999999,
+            18.91358
+          ],
+          [
+            72.82432,
+            18.926280000000002
+          ],
+          [
+            72.82732,
+            18.93408
+          ],
+          [
+            72.83192,
+            18.93328
+          ],
+          [
+            72.83592,
+            18.94128
+          ],
+          [
+            72.82862,
+            18.94958
+          ],
+          [
+            72.82162,
+            18.95658
+          ],
+          [
+            72.81532,
+            18.96388
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-CP",
+        "utility_ulpin": "2701-METRO-STN-CP",
+        "label": "Cuffe Parade Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (Colaba / Cuffe Parade Terminal)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 22000,
+        "depth_msl_m": 20.0,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -20.0m | Concourse Level: -11.0m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.8173955,
+              18.912422
+            ],
+            [
+              72.8176045,
+              18.912422
+            ],
+            [
+              72.8176045,
+              18.914578
+            ],
+            [
+              72.8173955,
+              18.914578
+            ],
+            [
+              72.8173955,
+              18.912422
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-VB",
+        "utility_ulpin": "2701-METRO-STN-VB",
+        "label": "Vidhan Bhavan Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (Madam Cama RoW (Mantralaya Enclave))",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 24000,
+        "depth_msl_m": 20.5,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -20.5m | Concourse Level: -11.5m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.824086,
+              18.9250547
+            ],
+            [
+              72.824314,
+              18.9250547
+            ],
+            [
+              72.824314,
+              18.9273453
+            ],
+            [
+              72.824086,
+              18.9273453
+            ],
+            [
+              72.824086,
+              18.9250547
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-CG",
+        "utility_ulpin": "2701-METRO-STN-CG",
+        "label": "Churchgate Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (J. Tata Rd / Maharshi Karve RoW)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 24000,
+        "depth_msl_m": 22.0,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -22.0m | Concourse Level: -13.0m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.827086,
+              18.9328322
+            ],
+            [
+              72.827314,
+              18.9328322
+            ],
+            [
+              72.827314,
+              18.9351678
+            ],
+            [
+              72.827086,
+              18.9351678
+            ],
+            [
+              72.827086,
+              18.9328322
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-HC",
+        "utility_ulpin": "2701-METRO-STN-HC",
+        "label": "Hutatma Chowk (Flora Fountain) Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (Dr. D.N. Road Historic RoW)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 22000,
+        "depth_msl_m": 22.5,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -22.5m | Concourse Level: -13.5m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.8316955,
+              18.932122
+            ],
+            [
+              72.8319045,
+              18.932122
+            ],
+            [
+              72.8319045,
+              18.934278
+            ],
+            [
+              72.8316955,
+              18.934278
+            ],
+            [
+              72.8316955,
+              18.932122
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-CST",
+        "utility_ulpin": "2701-METRO-STN-CST",
+        "label": "CSMT Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (Azad Maidan / Mahapalika Marg RoW)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 25000,
+        "depth_msl_m": 24.5,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -24.5m | Concourse Level: -15.5m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.8356813,
+              18.9399424
+            ],
+            [
+              72.8359187,
+              18.9399424
+            ],
+            [
+              72.8359187,
+              18.9424576
+            ],
+            [
+              72.8356813,
+              18.9424576
+            ],
+            [
+              72.8356813,
+              18.9399424
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-KD",
+        "utility_ulpin": "2701-METRO-STN-KD",
+        "label": "Kalbadevi Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (JSS Marg / Kalbadevi Corridor)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 20000,
+        "depth_msl_m": 22.0,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -22.0m | Concourse Level: -13.0m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.828405,
+              18.948422
+            ],
+            [
+              72.828595,
+              18.948422
+            ],
+            [
+              72.828595,
+              18.950578
+            ],
+            [
+              72.828405,
+              18.950578
+            ],
+            [
+              72.828405,
+              18.948422
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-GG",
+        "utility_ulpin": "2701-METRO-STN-GG",
+        "label": "Girgaon Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (JSS Marg near Girgaon Church)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 20000,
+        "depth_msl_m": 22.0,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -22.0m | Concourse Level: -13.0m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.821405,
+              18.955422
+            ],
+            [
+              72.821595,
+              18.955422
+            ],
+            [
+              72.821595,
+              18.957578
+            ],
+            [
+              72.821405,
+              18.957578
+            ],
+            [
+              72.821405,
+              18.955422
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-METRO-STN-GR",
+        "utility_ulpin": "2701-METRO-STN-GR",
+        "label": "Grant Road Metro Station (Underground 3D Station Box)",
+        "corridor_name": "Metro Line 3 Subterranean Station Complex (Nana Chowk / Grant Road RoW)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": false,
+        "is_station_box": true,
+        "nominal_diameter_mm": 22000,
+        "depth_msl_m": 21.0,
+        "material": "Waterproof Diaphragm Wall (D-Wall) & Cut-and-Cover RCC Box",
+        "authority": "Mumbai Metro Rail Corporation (MMRC)",
+        "color": "#fda4af",
+        "clearance_status": "Platform Level: -21.0m | Concourse Level: -12.0m"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.8150955,
+              18.9626771
+            ],
+            [
+              72.8153045,
+              18.9626771
+            ],
+            [
+              72.8153045,
+              18.9649229
+            ],
+            [
+              72.8150955,
+              18.9649229
+            ],
+            [
+              72.8150955,
+              18.9626771
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-VEH-UND-01",
+        "utility_ulpin": "2701-VEH-UND-1001",
+        "label": "Marine Drive - Princess Street South Portal Vehicular Underpass",
+        "corridor_name": "Marine Drive / N.S.C. Bose Road Sub-Surface Vehicular Grade Separation",
+        "category": "vehicular_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 9500,
+        "depth_msl_m": 7.0,
+        "material": "Cast-in-Situ Reinforced Cement Concrete (RCC) Vehicular Box",
+        "authority": "MCGM Roads & Traffic Department",
+        "color": "#fb923c",
+        "clearance_status": "Compliant Vehicular RoW"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.824,
+            18.944
+          ],
+          [
+            72.8235,
+            18.9455
+          ],
+          [
+            72.8228,
+            18.947
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-VEH-UND-02",
+        "utility_ulpin": "2701-VEH-UND-1002",
+        "label": "Haji Ali Grade-Separated Vehicular Underpass",
+        "corridor_name": "Lala Lajpatrai Marg Subterranean Vehicular Underpass Box",
+        "category": "vehicular_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 14000,
+        "depth_msl_m": 6.5,
+        "material": "4-Lane Cast-in-Situ RCC Grade-Separated Underpass Box",
+        "authority": "MCGM Coastal Road & Bridges Dept",
+        "color": "#fb923c",
+        "clearance_status": "Compliant Vehicular RoW"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8125,
+            18.975
+          ],
+          [
+            72.812,
+            18.9765
+          ],
+          [
+            72.8112,
+            18.978
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-VEH-UND-03",
+        "utility_ulpin": "2701-VEH-UND-1003",
+        "label": "Amarsons Garden Coastal Interchange Sub-Surface Vehicular Slipways",
+        "corridor_name": "Bhulabhai Desai (Warden) Road Subsurface Coastal Tunnel Feeders",
+        "category": "vehicular_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 11000,
+        "depth_msl_m": 8.0,
+        "material": "Post-Tensioned Sub-Surface RCC Vehicular Cutaway Conduits",
+        "authority": "MCGM Coastal Road Project (MCRP)",
+        "color": "#fb923c",
+        "clearance_status": "Compliant Vehicular RoW"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.804,
+            18.968
+          ],
+          [
+            72.803,
+            18.965
+          ],
+          [
+            72.802,
+            18.961
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CSMT-HUB",
+        "utility_ulpin": "2701-PED-CSMT-0001",
+        "label": "CSMT Pedestrian Subway Central Concourse Hub",
+        "corridor_name": "Chhatrapati Shivaji Maharaj Terminus Historic Subterranean Concourse",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 6000,
+        "depth_msl_m": 4.8,
+        "material": "Waterproofed Reinforced Concrete Pedestrian Box with Granite Cladding",
+        "authority": "MCGM & Central Railway",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8351,
+            18.9403
+          ],
+          [
+            72.8355,
+            18.9407
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CSMT-ARM1",
+        "utility_ulpin": "2701-PED-CSMT-0002",
+        "label": "CSMT Subway Arm A: Suburban Railway Ticket Hall Link",
+        "corridor_name": "Central Hub -> CSMT Suburban Main Platforms Underpass",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 5000,
+        "depth_msl_m": 4.8,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "Central Railway",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8353,
+            18.9405
+          ],
+          [
+            72.8359,
+            18.9402
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CSMT-ARM2",
+        "utility_ulpin": "2701-PED-CSMT-0003",
+        "label": "CSMT Subway Arm B: Bhatia Baug & Taxi Stand Exit",
+        "corridor_name": "Central Hub -> Bhatia Baug / P. D'Mello Pedestrian Stairwells",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4500,
+        "depth_msl_m": 4.6,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8353,
+            18.9405
+          ],
+          [
+            72.836,
+            18.941
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CSMT-ARM3",
+        "utility_ulpin": "2701-PED-CSMT-0004",
+        "label": "CSMT Subway Arm C: Capitol Cinema & Dr. D.N. Road Exit",
+        "corridor_name": "Central Hub -> Dr. D.N. Road Southbound Pedestrian Subway",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4500,
+        "depth_msl_m": 4.8,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8353,
+            18.9405
+          ],
+          [
+            72.8347,
+            18.9398
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CSMT-ARM4",
+        "utility_ulpin": "2701-PED-CSMT-0005",
+        "label": "CSMT Subway Arm D: BMC Municipal HQ & Mahapalika Marg",
+        "corridor_name": "Central Hub -> Brihanmumbai Municipal Corporation HQ Gate",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4500,
+        "depth_msl_m": 4.8,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8353,
+            18.9405
+          ],
+          [
+            72.8348,
+            18.9413
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CSMT-ARM5",
+        "utility_ulpin": "2701-PED-CSMT-0006",
+        "label": "CSMT Subway Arm E: Times of India Building & Anjuman-i-Islam",
+        "corridor_name": "Central Hub -> The Times of India Building Pedestrian Portal",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4000,
+        "depth_msl_m": 4.6,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8353,
+            18.9405
+          ],
+          [
+            72.8343,
+            18.9406
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CHG-HUB",
+        "utility_ulpin": "2701-PED-CHG-0001",
+        "label": "Churchgate Pedestrian Subway Central Concourse",
+        "corridor_name": "Churchgate Station Subsurface Commuter Transfer Concourse",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 7000,
+        "depth_msl_m": 4.5,
+        "material": "Waterproofed Heavy Duty RCC Box Pedestrian Subway",
+        "authority": "Western Railway & MCGM",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8268,
+            18.9334
+          ],
+          [
+            72.8276,
+            18.9336
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CHG-ARM1",
+        "utility_ulpin": "2701-PED-CHG-0002",
+        "label": "Churchgate Subway Arm 1: Western Railway Main Concourse Access",
+        "corridor_name": "Subterranean Link direct to Western Railway Suburban Ticket Counters",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 6000,
+        "depth_msl_m": 4.5,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "Western Railway",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8272,
+            18.9335
+          ],
+          [
+            72.8266,
+            18.9335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CHG-ARM2",
+        "utility_ulpin": "2701-PED-CHG-0003",
+        "label": "Churchgate Subway Arm 2: Eros Cinema & J. Tata Road Portal",
+        "corridor_name": "Subsurface crossing under Maharshi Karve Road towards Eros Cinema",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4500,
+        "depth_msl_m": 4.5,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8272,
+            18.9335
+          ],
+          [
+            72.826,
+            18.9338
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CHG-ARM3",
+        "utility_ulpin": "2701-PED-CHG-0004",
+        "label": "Churchgate Subway Arm 3: Veer Nariman Road & Cross Maidan Portal",
+        "corridor_name": "Pedestrian subway connection towards Cross Maidan & Sydenham College",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 5000,
+        "depth_msl_m": 4.5,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8272,
+            18.9335
+          ],
+          [
+            72.8282,
+            18.9335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-CHG-ARM4",
+        "utility_ulpin": "2701-PED-CHG-0005",
+        "label": "Churchgate Subway Arm 4: Oval Maidan & University of Mumbai Access",
+        "corridor_name": "Southward subterranean pedestrian corridor towards Oval Maidan",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4000,
+        "depth_msl_m": 4.3,
+        "material": "Reinforced Concrete Pedestrian Passageway",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8272,
+            18.9335
+          ],
+          [
+            72.8275,
+            18.9324
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-METROJNC",
+        "utility_ulpin": "2701-PED-MJNC-0001",
+        "label": "Metro Cinema / Washeshwar Junction Pedestrian Subway",
+        "corridor_name": "Dhobi Talao - Metro Junction Subterranean Pedestrian Crossing",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4500,
+        "depth_msl_m": 4.5,
+        "material": "RCC Box Pedestrian Subway with Anti-Skid Ceramic Tiling",
+        "authority": "MCGM C-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8292,
+            18.9424
+          ],
+          [
+            72.8298,
+            18.9428
+          ],
+          [
+            72.8305,
+            18.9432
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-FOUNTAIN",
+        "utility_ulpin": "2701-PED-FOUNT-0001",
+        "label": "Flora Fountain / Hutatma Chowk Pedestrian Subway",
+        "corridor_name": "Hutatma Chowk subterranean pedestrian link across Dr. D.N. Road",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 4500,
+        "depth_msl_m": 4.5,
+        "material": "Heritage-Integrated Reinforced Concrete Pedestrian Underpass",
+        "authority": "MCGM A-Ward Heritage Cell",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8315,
+            18.9328
+          ],
+          [
+            72.8322,
+            18.9331
+          ],
+          [
+            72.8328,
+            18.9335
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-HAJI-ALI",
+        "utility_ulpin": "2701-PED-HAJI-0001",
+        "label": "Haji Ali Pedestrian Promenade Underpass",
+        "corridor_name": "Lala Lajpatrai Marg Subsurface Pedestrian Crossing to Haji Ali Dargah",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 5000,
+        "depth_msl_m": 4.0,
+        "material": "Seawater-Resistant Waterproof RCC Box Subway",
+        "authority": "MCGM D-Ward",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8112,
+            18.9772
+          ],
+          [
+            72.8118,
+            18.9776
+          ],
+          [
+            72.8124,
+            18.978
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-INTER-CHG",
+        "utility_ulpin": "2701-PED-INTER-0001",
+        "label": "Churchgate WR Suburban <-> Metro 3 Intermodal Transit Connector",
+        "corridor_name": "Subterranean Pedestrian Commuter Tunnel with Moving Walkways (Travelators)",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 7500,
+        "depth_msl_m": 10.5,
+        "material": "Waterproofed Precast Segmental Concourse Tunnel",
+        "authority": "MMRC & Western Railway Joint Commuter Link",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8268,
+            18.9335
+          ],
+          [
+            72.8272,
+            18.934
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PED-INTER-CSMT",
+        "utility_ulpin": "2701-PED-INTER-0002",
+        "label": "CSMT Central Railway <-> Metro 3 Intermodal Transit Connector",
+        "corridor_name": "Subterranean Pedestrian High-Capacity Passenger Transfer Gallery",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 8000,
+        "depth_msl_m": 12.0,
+        "material": "Waterproofed Precast Segmental Concourse Tunnel",
+        "authority": "MMRC & Central Railway Joint Commuter Link",
+        "color": "#10b981",
+        "clearance_status": "Air-Conditioned Pedestrian Subway (Well-Lit with CCTV & Escalators)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8355,
+            18.9405
+          ],
+          [
+            72.8358,
+            18.9412
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-TRK-01",
+        "utility_ulpin": "2701-UTIL-WATER-1001",
+        "label": "MCGM Potable Water Trunk Main (Madam Cama RoW)",
+        "corridor_name": "Madam Cama Road High-Pressure Transmission Aqueduct",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 3.8,
+        "material": "K9 Ductile Iron Mortar Lined Pipe",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8205,
+            18.9268
+          ],
+          [
+            72.8222,
+            18.927
+          ],
+          [
+            72.824,
+            18.9272
+          ],
+          [
+            72.8265,
+            18.9274
+          ],
+          [
+            72.8285,
+            18.9276
+          ],
+          [
+            72.8325,
+            18.9281
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-TRK-02",
+        "utility_ulpin": "2701-UTIL-WATER-1002",
+        "label": "Marine Drive Coastal Water Transmission Main",
+        "corridor_name": "Netaji Subhash Chandra Bose Road Subsurface Transmission RoW",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 900,
+        "depth_msl_m": 3.2,
+        "material": "K9 Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.822,
+            18.924
+          ],
+          [
+            72.8232,
+            18.9295
+          ],
+          [
+            72.8242,
+            18.935
+          ],
+          [
+            72.8252,
+            18.9415
+          ],
+          [
+            72.8245,
+            18.946
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-TRK-03",
+        "utility_ulpin": "2701-UTIL-WATER-1003",
+        "label": "Dr. D.N. Road Fort Heritage Water Trunk Aqueduct",
+        "corridor_name": "Dr. Dadabhai Naoroji Road Subsurface Water Main",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 1800,
+        "depth_msl_m": 3.8,
+        "material": "Mild Steel Epoxy-Lined High-Pressure Aqueduct",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8318,
+            18.9332
+          ],
+          [
+            72.8335,
+            18.9365
+          ],
+          [
+            72.8355,
+            18.9405
+          ],
+          [
+            72.8368,
+            18.944
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-TRK-04",
+        "utility_ulpin": "2701-UTIL-WATER-1004",
+        "label": "Maharshi Karve Road Churchgate Transmission Line",
+        "corridor_name": "Maharshi Karve Road (Queens Road) Transmission RoW",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 900,
+        "depth_msl_m": 3.4,
+        "material": "Centrifugally Cast Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8265,
+            18.928
+          ],
+          [
+            72.827,
+            18.933
+          ],
+          [
+            72.8275,
+            18.938
+          ],
+          [
+            72.828,
+            18.943
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-DIST-05",
+        "utility_ulpin": "2701-UTIL-WATER-1005",
+        "label": "Nariman Point Commercial Hub Water Ring",
+        "corridor_name": "Free Press Journal Marg - Vinay K Shah Marg Ring",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 600,
+        "depth_msl_m": 2.8,
+        "material": "Ductile Iron Class K9 Pipe",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8205,
+            18.927
+          ],
+          [
+            72.8218,
+            18.9282
+          ],
+          [
+            72.8225,
+            18.9256
+          ],
+          [
+            72.8245,
+            18.925
+          ],
+          [
+            72.826,
+            18.9265
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-DIST-06",
+        "utility_ulpin": "2701-UTIL-WATER-1006",
+        "label": "Cuffe Parade Residential Distribution Ring",
+        "corridor_name": "Captain Prakash Pethe Marg Subterranean Water Ring",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 600,
+        "depth_msl_m": 2.8,
+        "material": "Ductile Iron Class K9 Pipe",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.816,
+            18.9125
+          ],
+          [
+            72.818,
+            18.915
+          ],
+          [
+            72.821,
+            18.916
+          ],
+          [
+            72.8205,
+            18.9135
+          ],
+          [
+            72.816,
+            18.9125
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-TRK-07",
+        "utility_ulpin": "2701-UTIL-WATER-1007",
+        "label": "Colaba Causeway (Shahid Bhagat Singh Rd) Water Trunk",
+        "corridor_name": "Shahid Bhagat Singh Road Primary Water Aqueduct",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 750,
+        "depth_msl_m": 3.0,
+        "material": "Cast Iron Mortar-Lined Trunk Main",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.831,
+            18.925
+          ],
+          [
+            72.8305,
+            18.92
+          ],
+          [
+            72.8295,
+            18.915
+          ],
+          [
+            72.829,
+            18.91
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-WATER-TRK-08",
+        "utility_ulpin": "2701-UTIL-WATER-1008",
+        "label": "Jagannath Shankar Sheth (JSS) Marg Girgaon Water Main",
+        "corridor_name": "JSS Marg Kalbadevi & Girgaon Water Feeder",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 900,
+        "depth_msl_m": 3.5,
+        "material": "K9 Ductile Iron Water Main",
+        "authority": "MCGM Hydraulic Engineer Department",
+        "color": "#00e5ff",
+        "clearance_status": "High-Pressure Potable Water Main (Clearance > 0.8m)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8285,
+            18.948
+          ],
+          [
+            72.825,
+            18.9525
+          ],
+          [
+            72.8215,
+            18.9565
+          ],
+          [
+            72.818,
+            18.96
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PWR-110KV-01",
+        "utility_ulpin": "2701-UTIL-PWR-2001",
+        "label": "BEST 110kV Primary Transmission Cable Conduit",
+        "corridor_name": "Backbay 110kV Receiving Station -> Marine Lines Transmission Trench",
+        "category": "power_best",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 450,
+        "depth_msl_m": 2.2,
+        "material": "110kV XLPE Lead-Sheathed Armoured Cu Cable in RCC Duct",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "High-Voltage Electrical RoW (Clearance Compliant)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.818,
+            18.916
+          ],
+          [
+            72.822,
+            18.924
+          ],
+          [
+            72.825,
+            18.929
+          ],
+          [
+            72.827,
+            18.936
+          ],
+          [
+            72.8275,
+            18.942
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PWR-33KV-02",
+        "utility_ulpin": "2701-UTIL-PWR-2002",
+        "label": "BEST 33kV Nariman Point Commercial Primary Feeder",
+        "corridor_name": "Nariman Point Power Corridor (Backbay Substation Grid)",
+        "category": "power_best",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 320,
+        "depth_msl_m": 1.8,
+        "material": "33kV Armoured XLPE Underground Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "High-Voltage Electrical RoW (Clearance Compliant)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8225,
+            18.9255
+          ],
+          [
+            72.8252,
+            18.928
+          ],
+          [
+            72.8268,
+            18.9302
+          ],
+          [
+            72.8282,
+            18.9338
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PWR-11KV-03",
+        "utility_ulpin": "2701-UTIL-PWR-2003",
+        "label": "BEST 11kV Government Enclave Redundant Loop",
+        "corridor_name": "Madam Cama - Barrister Rajni Patel Marg High-Security Power Loop",
+        "category": "power_best",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 240,
+        "depth_msl_m": 1.6,
+        "material": "11kV Triplex Shielded XLPE Cable in RCC Trench",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "High-Voltage Electrical RoW (Clearance Compliant)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8238,
+            18.926
+          ],
+          [
+            72.825,
+            18.9262
+          ],
+          [
+            72.8272,
+            18.9275
+          ],
+          [
+            72.8275,
+            18.9286
+          ],
+          [
+            72.826,
+            18.9288
+          ],
+          [
+            72.8238,
+            18.926
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PWR-33KV-04",
+        "utility_ulpin": "2701-UTIL-PWR-2004",
+        "label": "BEST Fort Financial District 33kV Feeder",
+        "corridor_name": "P. M. Road - Dalal Street BSE Power Conduit",
+        "category": "power_best",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 300,
+        "depth_msl_m": 1.9,
+        "material": "33kV Armoured Underground Power Feeder",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "High-Voltage Electrical RoW (Clearance Compliant)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.83,
+            18.928
+          ],
+          [
+            72.8328,
+            18.9298
+          ],
+          [
+            72.836,
+            18.9315
+          ],
+          [
+            72.8375,
+            18.933
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-PWR-33KV-05",
+        "utility_ulpin": "2701-UTIL-PWR-2005",
+        "label": "BEST Colaba Receiving Station to Apollo Substation Feeder",
+        "corridor_name": "Shahid Bhagat Singh Road Power Conduit",
+        "category": "power_best",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 300,
+        "depth_msl_m": 1.8,
+        "material": "33kV XLPE Underground Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "High-Voltage Electrical RoW (Clearance Compliant)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8305,
+            18.922
+          ],
+          [
+            72.832,
+            18.9235
+          ],
+          [
+            72.8335,
+            18.925
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-GAS-MGL-01",
+        "utility_ulpin": "2701-UTIL-GAS-3001",
+        "label": "MGL City Gas Steel Distribution Grid",
+        "corridor_name": "Jamnalal Bajaj Marg - Free Press Journal RoW",
+        "category": "gas_mgl",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 250,
+        "depth_msl_m": 2.5,
+        "material": "API 5L Gr.B Polyethylene Coated Carbon Steel (4 bar)",
+        "authority": "Mahanagar Gas Limited (MGL)",
+        "color": "#f59e0b",
+        "clearance_status": "Piped Natural Gas RoW (Cathodically Protected)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8235,
+            18.9265
+          ],
+          [
+            72.8258,
+            18.9288
+          ],
+          [
+            72.8275,
+            18.9315
+          ],
+          [
+            72.831,
+            18.932
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-GAS-MGL-02",
+        "utility_ulpin": "2701-UTIL-GAS-3002",
+        "label": "MGL Nariman Point Commercial Gas Pipeline",
+        "corridor_name": "Vinay K Shah Marg - General Jagannath Bhosale RoW",
+        "category": "gas_mgl",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 180,
+        "depth_msl_m": 2.2,
+        "material": "High-Density Polyethylene (PE 100) Gas Conduit",
+        "authority": "Mahanagar Gas Limited (MGL)",
+        "color": "#f59e0b",
+        "clearance_status": "Piped Natural Gas RoW (Cathodically Protected)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.821,
+            18.9265
+          ],
+          [
+            72.8228,
+            18.9248
+          ],
+          [
+            72.8248,
+            18.9249
+          ],
+          [
+            72.8268,
+            18.926
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-GAS-MGL-03",
+        "utility_ulpin": "2701-UTIL-GAS-3003",
+        "label": "MGL Maharshi Karve - Marine Lines Gas Main",
+        "corridor_name": "Maharshi Karve Road Subsurface Piped Natural Gas Main",
+        "category": "gas_mgl",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 2.3,
+        "material": "API 5L Carbon Steel / PE100 Medium Pressure",
+        "authority": "Mahanagar Gas Limited (MGL)",
+        "color": "#f59e0b",
+        "clearance_status": "Piped Natural Gas RoW (Cathodically Protected)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8265,
+            18.929
+          ],
+          [
+            72.827,
+            18.934
+          ],
+          [
+            72.8275,
+            18.939
+          ],
+          [
+            72.828,
+            18.944
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-GAS-MGL-04",
+        "utility_ulpin": "2701-UTIL-GAS-3004",
+        "label": "MGL Colaba Residential & Commercial Gas Main",
+        "corridor_name": "Shahid Bhagat Singh Road Subsurface Gas Distribution",
+        "category": "gas_mgl",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 160,
+        "depth_msl_m": 2.1,
+        "material": "PE 100 High Density Polyethylene Pipe",
+        "authority": "Mahanagar Gas Limited (MGL)",
+        "color": "#f59e0b",
+        "clearance_status": "Piped Natural Gas RoW (Cathodically Protected)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8315,
+            18.923
+          ],
+          [
+            72.8305,
+            18.918
+          ],
+          [
+            72.8295,
+            18.913
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-DRAIN-SWD-01",
+        "utility_ulpin": "2701-UTIL-DRAIN-4001",
+        "label": "MCGM Subsurface High-Capacity Stormwater Conduit",
+        "corridor_name": "Backbay Sea Outfall High-Flow Box Conduit",
+        "category": "drainage_trunk",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 2400,
+        "depth_msl_m": 5.5,
+        "material": "NP4 Heavy-Duty Precast RCC Box Conduit (2.4m x 2.0m)",
+        "authority": "MCGM Storm Water Drains & Sewerage Operations Dept",
+        "color": "#14b8a6",
+        "clearance_status": "Deep Gravity Drainage Conduit (Invert Level Verified)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.821,
+            18.923
+          ],
+          [
+            72.8248,
+            18.9275
+          ],
+          [
+            72.828,
+            18.931
+          ],
+          [
+            72.833,
+            18.9345
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-DRAIN-SWR-02",
+        "utility_ulpin": "2701-UTIL-DRAIN-4002",
+        "label": "MCGM Deep Interceptor Trunk Sewer",
+        "corridor_name": "Madam Cama - Fort Coastal Interceptor Trench",
+        "category": "drainage_trunk",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 1600,
+        "depth_msl_m": 4.8,
+        "material": "Sulphate Resistant Reinforced Concrete Pipe",
+        "authority": "MCGM Storm Water Drains & Sewerage Operations Dept",
+        "color": "#14b8a6",
+        "clearance_status": "Deep Gravity Drainage Conduit (Invert Level Verified)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8225,
+            18.9272
+          ],
+          [
+            72.826,
+            18.9278
+          ],
+          [
+            72.829,
+            18.9282
+          ],
+          [
+            72.834,
+            18.9295
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-DRAIN-SWR-03",
+        "utility_ulpin": "2701-UTIL-DRAIN-4003",
+        "label": "Marine Drive Seawall Deep Interceptor Sewer",
+        "corridor_name": "Marine Drive Foreshore Interceptor to Love Grove STP",
+        "category": "drainage_trunk",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 1800,
+        "depth_msl_m": 5.5,
+        "material": "Microtunnelled Glass-Reinforced Polymer (GRP) Pipe",
+        "authority": "MCGM Storm Water Drains & Sewerage Operations Dept",
+        "color": "#14b8a6",
+        "clearance_status": "Deep Gravity Drainage Conduit (Invert Level Verified)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.822,
+            18.925
+          ],
+          [
+            72.8235,
+            18.932
+          ],
+          [
+            72.8245,
+            18.939
+          ],
+          [
+            72.825,
+            18.946
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-DRAIN-SWD-04",
+        "utility_ulpin": "2701-UTIL-DRAIN-4004",
+        "label": "Haji Ali Coastal Stormwater Tidal Outfall",
+        "corridor_name": "Lala Lajpatrai Marg Outfall to Arabian Sea",
+        "category": "drainage_trunk",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 2000,
+        "depth_msl_m": 5.8,
+        "material": "Twin Reinforced Concrete Tidal Flap Box Drain",
+        "authority": "MCGM Storm Water Drains & Sewerage Operations Dept",
+        "color": "#14b8a6",
+        "clearance_status": "Deep Gravity Drainage Conduit (Invert Level Verified)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.814,
+            18.974
+          ],
+          [
+            72.812,
+            18.9765
+          ],
+          [
+            72.8105,
+            18.9785
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-TEL-ROW-01",
+        "utility_ulpin": "2701-UTIL-TEL-5001",
+        "label": "South Mumbai Digital Backbone (4-Way Duct Bank)",
+        "corridor_name": "Mahatma Gandhi Road - Fort Financial RoW",
+        "category": "telecom",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 400,
+        "depth_msl_m": 1.2,
+        "material": "4-Way HDPE High-Density Conduit Bank with Armoured OFC",
+        "authority": "MTNL, BMC Digital RoW & Telecom Operators",
+        "color": "#a855f7",
+        "clearance_status": "Dedicated High-Capacity Telecom RoW"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8265,
+            18.9275
+          ],
+          [
+            72.8305,
+            18.928
+          ],
+          [
+            72.833,
+            18.9315
+          ],
+          [
+            72.836,
+            18.94
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-TEL-ROW-02",
+        "utility_ulpin": "2701-UTIL-TEL-5002",
+        "label": "Nariman Point Financial Telecom Fiber Ring",
+        "corridor_name": "Free Press Journal Marg Subsurface Telecom Bank",
+        "category": "telecom",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 300,
+        "depth_msl_m": 1.1,
+        "material": "Multi-Duct Telecommunication Trench",
+        "authority": "MTNL, BMC Digital RoW & Telecom Operators",
+        "color": "#a855f7",
+        "clearance_status": "Dedicated High-Capacity Telecom RoW"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8215,
+            18.928
+          ],
+          [
+            72.8235,
+            18.927
+          ],
+          [
+            72.8255,
+            18.9275
+          ],
+          [
+            72.827,
+            18.929
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-TEL-ROW-03",
+        "utility_ulpin": "2701-UTIL-TEL-5003",
+        "label": "Dalal Street BSE / RBI High-Frequency Trading Fiber Trench",
+        "corridor_name": "Dalal Street - Mumbai Samachar Marg Subsurface Optical Network",
+        "category": "telecom",
+        "is_lateral": false,
+        "is_manhole": false,
+        "nominal_diameter_mm": 250,
+        "depth_msl_m": 1.0,
+        "material": "Low-Latency Armoured Single-Mode Fiber Conduit",
+        "authority": "MTNL, BMC Digital RoW & Telecom Operators",
+        "color": "#a855f7",
+        "clearance_status": "Dedicated High-Capacity Telecom RoW"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.832,
+            18.9285
+          ],
+          [
+            72.8332,
+            18.9298
+          ],
+          [
+            72.835,
+            18.932
+          ],
+          [
+            72.8372,
+            18.9328
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0001",
+        "utility_ulpin": "2701-UTIL-LAT-0001",
+        "label": "Mantralaya (State Government HQ) - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Mantralaya (State Government HQ)",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Mantralaya (State Government HQ)",
+        "building_spatial_id": "MUM-BLD-211FC714",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8265186,
+            18.92738116
+          ],
+          [
+            72.826931,
+            18.927825000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0002",
+        "utility_ulpin": "2701-UTIL-LAT-0002",
+        "label": "Mantralaya (State Government HQ) - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Mantralaya (State Government HQ)",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Mantralaya (State Government HQ)",
+        "building_spatial_id": "MUM-BLD-211FC714",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8265,
+            18.9274
+          ],
+          [
+            72.826971,
+            18.927865
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-GAS-0003",
+        "utility_ulpin": "2701-UTIL-LAT-0003",
+        "label": "Mantralaya (State Government HQ) - Natural Gas Supply Branch",
+        "corridor_name": "Basement Service Lateral -> Mantralaya (State Government HQ)",
+        "category": "gas_mgl",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Mantralaya (State Government HQ)",
+        "building_spatial_id": "MUM-BLD-211FC714",
+        "nominal_diameter_mm": 100,
+        "depth_msl_m": 1.6,
+        "material": "PE100 Medium Pressure MDPE",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82648139999999,
+            18.927418839999998
+          ],
+          [
+            72.827011,
+            18.927905
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0004",
+        "utility_ulpin": "2701-UTIL-LAT-0004",
+        "label": "Vidhan Bhavan (Maharashtra Legislature) - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Vidhan Bhavan (Maharashtra Legislature)",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Vidhan Bhavan (Maharashtra Legislature)",
+        "building_spatial_id": "MUM-BLD-B1D65D66",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82397652,
+            18.92679128
+          ],
+          [
+            72.824178,
+            18.926173000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0005",
+        "utility_ulpin": "2701-UTIL-LAT-0005",
+        "label": "Vidhan Bhavan (Maharashtra Legislature) - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Vidhan Bhavan (Maharashtra Legislature)",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Vidhan Bhavan (Maharashtra Legislature)",
+        "building_spatial_id": "MUM-BLD-B1D65D66",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.824,
+            18.9268
+          ],
+          [
+            72.824218,
+            18.926213
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0006",
+        "utility_ulpin": "2701-UTIL-LAT-0006",
+        "label": "Express Towers - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Express Towers",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Express Towers",
+        "building_spatial_id": "MUM-BLD-F7A4B224",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82202480000001,
+            18.927494839999998
+          ],
+          [
+            72.822089,
+            18.92808
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0007",
+        "utility_ulpin": "2701-UTIL-LAT-0007",
+        "label": "Express Towers - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Express Towers",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Express Towers",
+        "building_spatial_id": "MUM-BLD-F7A4B224",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.822,
+            18.9275
+          ],
+          [
+            72.822129,
+            18.92812
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-GAS-0008",
+        "utility_ulpin": "2701-UTIL-LAT-0008",
+        "label": "Express Towers - Natural Gas Supply Branch",
+        "corridor_name": "Basement Service Lateral -> Express Towers",
+        "category": "gas_mgl",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Express Towers",
+        "building_spatial_id": "MUM-BLD-F7A4B224",
+        "nominal_diameter_mm": 100,
+        "depth_msl_m": 1.6,
+        "material": "PE100 Medium Pressure MDPE",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8219752,
+            18.92750516
+          ],
+          [
+            72.822169,
+            18.92816
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0009",
+        "utility_ulpin": "2701-UTIL-LAT-0009",
+        "label": "Air-India Building - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Air-India Building",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Air-India Building",
+        "building_spatial_id": "MUM-BLD-5D896019",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82228463999999,
+            18.92920716
+          ],
+          [
+            72.822081,
+            18.928776000000003
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0010",
+        "utility_ulpin": "2701-UTIL-LAT-0010",
+        "label": "Air-India Building - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Air-India Building",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Air-India Building",
+        "building_spatial_id": "MUM-BLD-5D896019",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8223,
+            18.9292
+          ],
+          [
+            72.822121,
+            18.928816
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0011",
+        "utility_ulpin": "2701-UTIL-LAT-0011",
+        "label": "State Bank Bhavan - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> State Bank Bhavan",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "State Bank Bhavan",
+        "building_spatial_id": "MUM-BLD-9342A0D1",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82517344,
+            18.9267902
+          ],
+          [
+            72.825405,
+            18.926096
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0012",
+        "utility_ulpin": "2701-UTIL-LAT-0012",
+        "label": "State Bank Bhavan - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> State Bank Bhavan",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "State Bank Bhavan",
+        "building_spatial_id": "MUM-BLD-9342A0D1",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8252,
+            18.9268
+          ],
+          [
+            72.825445,
+            18.926136
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0013",
+        "utility_ulpin": "2701-UTIL-LAT-0013",
+        "label": "Union Bank of India Building - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Union Bank of India Building",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Union Bank of India Building",
+        "building_spatial_id": "MUM-BLD-A4928006",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82319272,
+            18.92710688
+          ],
+          [
+            72.822988,
+            18.926878000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0014",
+        "utility_ulpin": "2701-UTIL-LAT-0014",
+        "label": "Union Bank of India Building - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Union Bank of India Building",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Union Bank of India Building",
+        "building_spatial_id": "MUM-BLD-A4928006",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8232,
+            18.9271
+          ],
+          [
+            72.823028,
+            18.926918
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0015",
+        "utility_ulpin": "2701-UTIL-LAT-0015",
+        "label": "The Oberoi Mumbai - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> The Oberoi Mumbai",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "The Oberoi Mumbai",
+        "building_spatial_id": "MUM-BLD-47E19CEA",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82120432,
+            18.926883000000004
+          ],
+          [
+            72.820335,
+            18.926918
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0016",
+        "utility_ulpin": "2701-UTIL-LAT-0016",
+        "label": "The Oberoi Mumbai - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> The Oberoi Mumbai",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "The Oberoi Mumbai",
+        "building_spatial_id": "MUM-BLD-47E19CEA",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8212,
+            18.92685
+          ],
+          [
+            72.820375,
+            18.926958
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0017",
+        "utility_ulpin": "2701-UTIL-LAT-0017",
+        "label": "ICICI Centre - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> ICICI Centre",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "ICICI Centre",
+        "building_spatial_id": "MUM-BLD-CA12EF5D",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82681764,
+            18.927989720000003
+          ],
+          [
+            72.827017,
+            18.928401
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0018",
+        "utility_ulpin": "2701-UTIL-LAT-0018",
+        "label": "ICICI Centre - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> ICICI Centre",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "ICICI Centre",
+        "building_spatial_id": "MUM-BLD-CA12EF5D",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8268,
+            18.928
+          ],
+          [
+            72.827057,
+            18.928441
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0019",
+        "utility_ulpin": "2701-UTIL-LAT-0019",
+        "label": "The Shipping Corporation of India Ltd. - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> The Shipping Corporation of India Ltd.",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "The Shipping Corporation of India Ltd.",
+        "building_spatial_id": "MUM-BLD-EC16184B",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82587296,
+            18.927103719999998
+          ],
+          [
+            72.825767,
+            18.926384000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0020",
+        "utility_ulpin": "2701-UTIL-LAT-0020",
+        "label": "The Shipping Corporation of India Ltd. - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> The Shipping Corporation of India Ltd.",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "The Shipping Corporation of India Ltd.",
+        "building_spatial_id": "MUM-BLD-EC16184B",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8259,
+            18.9271
+          ],
+          [
+            72.825807,
+            18.926424
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0021",
+        "utility_ulpin": "2701-UTIL-LAT-0021",
+        "label": "Dalamal Towers - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Dalamal Towers",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Dalamal Towers",
+        "building_spatial_id": "MUM-BLD-EE9F2F38",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82397999999999,
+            18.92519228
+          ],
+          [
+            72.824153,
+            18.924660000000003
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0022",
+        "utility_ulpin": "2701-UTIL-LAT-0022",
+        "label": "Dalamal Towers - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Dalamal Towers",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Dalamal Towers",
+        "building_spatial_id": "MUM-BLD-EE9F2F38",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.824,
+            18.9252
+          ],
+          [
+            72.824193,
+            18.9247
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-GAS-0023",
+        "utility_ulpin": "2701-UTIL-LAT-0023",
+        "label": "Dalamal Towers - Natural Gas Supply Branch",
+        "corridor_name": "Basement Service Lateral -> Dalamal Towers",
+        "category": "gas_mgl",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Dalamal Towers",
+        "building_spatial_id": "MUM-BLD-EE9F2F38",
+        "nominal_diameter_mm": 100,
+        "depth_msl_m": 1.6,
+        "material": "PE100 Medium Pressure MDPE",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82402,
+            18.92520772
+          ],
+          [
+            72.82423299999999,
+            18.92474
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0024",
+        "utility_ulpin": "2701-UTIL-LAT-0024",
+        "label": "Mittal Towers - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Mittal Towers",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Mittal Towers",
+        "building_spatial_id": "MUM-BLD-31C06AFC",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8241816,
+            18.925589679999998
+          ],
+          [
+            72.82441800000001,
+            18.9251
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0025",
+        "utility_ulpin": "2701-UTIL-LAT-0025",
+        "label": "Mittal Towers - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Mittal Towers",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Mittal Towers",
+        "building_spatial_id": "MUM-BLD-31C06AFC",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8242,
+            18.9256
+          ],
+          [
+            72.824458,
+            18.92514
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-GAS-0026",
+        "utility_ulpin": "2701-UTIL-LAT-0026",
+        "label": "Mittal Towers - Natural Gas Supply Branch",
+        "corridor_name": "Basement Service Lateral -> Mittal Towers",
+        "category": "gas_mgl",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Mittal Towers",
+        "building_spatial_id": "MUM-BLD-31C06AFC",
+        "nominal_diameter_mm": 100,
+        "depth_msl_m": 1.6,
+        "material": "PE100 Medium Pressure MDPE",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8242184,
+            18.92561032
+          ],
+          [
+            72.824498,
+            18.925179999999997
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0027",
+        "utility_ulpin": "2701-UTIL-LAT-0027",
+        "label": "Jolly Maker Chambers II - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Jolly Maker Chambers II",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Jolly Maker Chambers II",
+        "building_spatial_id": "MUM-BLD-9931E689",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82228612,
+            18.92590692
+          ],
+          [
+            72.822087,
+            18.925513000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0028",
+        "utility_ulpin": "2701-UTIL-LAT-0028",
+        "label": "Jolly Maker Chambers II - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Jolly Maker Chambers II",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Jolly Maker Chambers II",
+        "building_spatial_id": "MUM-BLD-9931E689",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8223,
+            18.9259
+          ],
+          [
+            72.822127,
+            18.925553
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0029",
+        "utility_ulpin": "2701-UTIL-LAT-0029",
+        "label": "Maker Chambers-IV - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Maker Chambers-IV",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Maker Chambers-IV",
+        "building_spatial_id": "MUM-BLD-7EC952F0",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82267888,
+            18.92509384
+          ],
+          [
+            72.82281400000001,
+            18.924532000000003
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0030",
+        "utility_ulpin": "2701-UTIL-LAT-0030",
+        "label": "Maker Chambers-IV - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Maker Chambers-IV",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Maker Chambers-IV",
+        "building_spatial_id": "MUM-BLD-7EC952F0",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8227,
+            18.9251
+          ],
+          [
+            72.822854,
+            18.924572
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0031",
+        "utility_ulpin": "2701-UTIL-LAT-0031",
+        "label": "Maker Chambers III - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Maker Chambers III",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Maker Chambers III",
+        "building_spatial_id": "MUM-BLD-D79A2B2D",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82318232,
+            18.9253046
+          ],
+          [
+            72.82304500000001,
+            18.924818000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0032",
+        "utility_ulpin": "2701-UTIL-LAT-0032",
+        "label": "Maker Chambers III - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Maker Chambers III",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Maker Chambers III",
+        "building_spatial_id": "MUM-BLD-D79A2B2D",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8232,
+            18.9253
+          ],
+          [
+            72.823085,
+            18.924858
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0033",
+        "utility_ulpin": "2701-UTIL-LAT-0033",
+        "label": "Y B Chavan Centre - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Y B Chavan Centre",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Y B Chavan Centre",
+        "building_spatial_id": "MUM-BLD-892AE570",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82617532,
+            18.92578684
+          ],
+          [
+            72.826489,
+            18.925143000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0034",
+        "utility_ulpin": "2701-UTIL-LAT-0034",
+        "label": "Y B Chavan Centre - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Y B Chavan Centre",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Y B Chavan Centre",
+        "building_spatial_id": "MUM-BLD-892AE570",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8262,
+            18.9258
+          ],
+          [
+            72.826529,
+            18.925183
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0035",
+        "utility_ulpin": "2701-UTIL-LAT-0035",
+        "label": "Bombay Stock Exchange (BSE Towers) - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Bombay Stock Exchange (BSE Towers)",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Bombay Stock Exchange (BSE Towers)",
+        "building_spatial_id": "MUM-BLD-F22ACE60",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8330232,
+            18.929193440000002
+          ],
+          [
+            72.833124,
+            18.929740000000002
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0036",
+        "utility_ulpin": "2701-UTIL-LAT-0036",
+        "label": "Bombay Stock Exchange (BSE Towers) - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Bombay Stock Exchange (BSE Towers)",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Bombay Stock Exchange (BSE Towers)",
+        "building_spatial_id": "MUM-BLD-F22ACE60",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.833,
+            18.9292
+          ],
+          [
+            72.833164,
+            18.92978
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-GAS-0037",
+        "utility_ulpin": "2701-UTIL-LAT-0037",
+        "label": "Bombay Stock Exchange (BSE Towers) - Natural Gas Supply Branch",
+        "corridor_name": "Basement Service Lateral -> Bombay Stock Exchange (BSE Towers)",
+        "category": "gas_mgl",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Bombay Stock Exchange (BSE Towers)",
+        "building_spatial_id": "MUM-BLD-F22ACE60",
+        "nominal_diameter_mm": 100,
+        "depth_msl_m": 1.6,
+        "material": "PE100 Medium Pressure MDPE",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8329768,
+            18.92920656
+          ],
+          [
+            72.833204,
+            18.92982
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0038",
+        "utility_ulpin": "2701-UTIL-LAT-0038",
+        "label": "Taj Mahal Palace & Tower - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Taj Mahal Palace & Tower",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Taj Mahal Palace & Tower",
+        "building_spatial_id": "MUM-BLD-B0111D75",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.83248616,
+            18.922375
+          ],
+          [
+            72.833085,
+            18.922014
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0039",
+        "utility_ulpin": "2701-UTIL-LAT-0039",
+        "label": "Taj Mahal Palace & Tower - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Taj Mahal Palace & Tower",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Taj Mahal Palace & Tower",
+        "building_spatial_id": "MUM-BLD-B0111D75",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8325,
+            18.9224
+          ],
+          [
+            72.833125,
+            18.922054
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-GAS-0040",
+        "utility_ulpin": "2701-UTIL-LAT-0040",
+        "label": "Taj Mahal Palace & Tower - Natural Gas Supply Branch",
+        "corridor_name": "Basement Service Lateral -> Taj Mahal Palace & Tower",
+        "category": "gas_mgl",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Taj Mahal Palace & Tower",
+        "building_spatial_id": "MUM-BLD-B0111D75",
+        "nominal_diameter_mm": 100,
+        "depth_msl_m": 1.6,
+        "material": "PE100 Medium Pressure MDPE",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.83251383999999,
+            18.922425
+          ],
+          [
+            72.833165,
+            18.922093999999998
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0041",
+        "utility_ulpin": "2701-UTIL-LAT-0041",
+        "label": "Reserve Bank of India (Central Office) - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Reserve Bank of India (Central Office)",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Reserve Bank of India (Central Office)",
+        "building_spatial_id": "MUM-BLD-411BD415",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8365144,
+            18.93237456
+          ],
+          [
+            72.837096,
+            18.93272
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0042",
+        "utility_ulpin": "2701-UTIL-LAT-0042",
+        "label": "Reserve Bank of India (Central Office) - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Reserve Bank of India (Central Office)",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Reserve Bank of India (Central Office)",
+        "building_spatial_id": "MUM-BLD-411BD415",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8365,
+            18.9324
+          ],
+          [
+            72.837136,
+            18.93276
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0043",
+        "utility_ulpin": "2701-UTIL-LAT-0043",
+        "label": "Bank of India - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Bank of India",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Bank of India",
+        "building_spatial_id": "MUM-BLD-8A308258",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.83121876,
+            18.93041352
+          ],
+          [
+            72.830822,
+            18.930829000000003
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0044",
+        "utility_ulpin": "2701-UTIL-LAT-0044",
+        "label": "Bank of India - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Bank of India",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Bank of India",
+        "building_spatial_id": "MUM-BLD-8A308258",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8312,
+            18.9304
+          ],
+          [
+            72.830862,
+            18.930869
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0045",
+        "utility_ulpin": "2701-UTIL-LAT-0045",
+        "label": "World Trade Centre - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> World Trade Centre",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "World Trade Centre",
+        "building_spatial_id": "MUM-BLD-8AF0F596",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.81758684,
+            18.91481028
+          ],
+          [
+            72.817303,
+            18.914431
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0046",
+        "utility_ulpin": "2701-UTIL-LAT-0046",
+        "label": "World Trade Centre - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> World Trade Centre",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "World Trade Centre",
+        "building_spatial_id": "MUM-BLD-8AF0F596",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8176,
+            18.9148
+          ],
+          [
+            72.817343,
+            18.914471
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-WTR-0047",
+        "utility_ulpin": "2701-UTIL-LAT-0047",
+        "label": "Taj President - Potable Water Inflow Service",
+        "corridor_name": "Basement Service Lateral -> Taj President",
+        "category": "water_supply",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Taj President",
+        "building_spatial_id": "MUM-BLD-9D623B92",
+        "nominal_diameter_mm": 200,
+        "depth_msl_m": 1.9,
+        "material": "Ductile Iron Pipe",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.82038136000001,
+            18.91488808
+          ],
+          [
+            72.820658,
+            18.914394
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-MUM-LAT-PWR-0048",
+        "utility_ulpin": "2701-UTIL-LAT-0048",
+        "label": "Taj President - Substation 11kV Feeder Service",
+        "corridor_name": "Basement Service Lateral -> Taj President",
+        "category": "power_best",
+        "is_lateral": true,
+        "is_manhole": false,
+        "connected_building": "Taj President",
+        "building_spatial_id": "MUM-BLD-9D623B92",
+        "nominal_diameter_mm": 120,
+        "depth_msl_m": 1.4,
+        "material": "11kV XLPE Armoured Cu Cable",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Compliant (Direct Hookup)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            72.8204,
+            18.9149
+          ],
+          [
+            72.820698,
+            18.914434
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "CR-PORTAL-01",
+        "utility_ulpin": "2701-UTIL-MH-CR-PORTAL-01",
+        "label": "MCRP Marine Drive South Tunnel Portal & Control Hub",
+        "corridor_name": "Subterranean Node (MCRP Marine Drive South Tunnel Portal & Control Hub)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 12.0,
+        "material": "Reinforced Cut-and-Cover Tunnel Portal & Fire Control Station",
+        "authority": "MCGM Coastal Road Project",
+        "color": "#38bdf8",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8235,
+          18.9455
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "CR-PORTAL-02",
+        "utility_ulpin": "2701-UTIL-MH-CR-PORTAL-02",
+        "label": "MCRP Priyadarshini Park (PDP) North Portal & Vent Shaft",
+        "corridor_name": "Subterranean Node (MCRP Priyadarshini Park (PDP) North Portal & Vent Shaft)",
+        "category": "coastal_road_tunnel",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 10.0,
+        "material": "Ventilation Building & Evacuation Control Center",
+        "authority": "MCGM Coastal Road Project",
+        "color": "#38bdf8",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.802,
+          18.961
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "METRO-SHAFT-01",
+        "utility_ulpin": "2701-UTIL-MH-METRO-SHAFT-01",
+        "label": "Metro 3 Oval Maidan Emergency Egress & Vent Shaft",
+        "corridor_name": "Subterranean Node (Metro 3 Oval Maidan Emergency Egress & Vent Shaft)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 22.0,
+        "material": "Diaphragm Wall Heavy-Duty Ventilation Shaft",
+        "authority": "MMRC",
+        "color": "#f43f5e",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8285,
+          18.931
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "METRO-SHAFT-02",
+        "utility_ulpin": "2701-UTIL-MH-METRO-SHAFT-02",
+        "label": "Metro 3 Cross Maidan Deep Ventilation Shaft",
+        "corridor_name": "Subterranean Node (Metro 3 Cross Maidan Deep Ventilation Shaft)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 23.0,
+        "material": "Diaphragm Wall Heavy-Duty Ventilation Shaft",
+        "authority": "MMRC",
+        "color": "#f43f5e",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.83,
+          18.936
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "METRO-SHAFT-03",
+        "utility_ulpin": "2701-UTIL-MH-METRO-SHAFT-03",
+        "label": "Metro 3 Azad Maidan High-Volume Air Handling Shaft",
+        "corridor_name": "Subterranean Node (Metro 3 Azad Maidan High-Volume Air Handling Shaft)",
+        "category": "metro_underground",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 24.0,
+        "material": "MMRC Main Subsurface Environmental Control System (ECS)",
+        "authority": "MMRC",
+        "color": "#f43f5e",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.834,
+          18.941
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "PED-ENTR-01",
+        "utility_ulpin": "2701-UTIL-MH-PED-ENTR-01",
+        "label": "CSMT Pedestrian Subway Main Station Entrance Gate",
+        "corridor_name": "Subterranean Node (CSMT Pedestrian Subway Main Station Entrance Gate)",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 4.8,
+        "material": "Covered Escalator & Staircase Portal with Canopy",
+        "authority": "Central Railway / MCGM",
+        "color": "#10b981",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8359,
+          18.9402
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "PED-ENTR-02",
+        "utility_ulpin": "2701-UTIL-MH-PED-ENTR-02",
+        "label": "CSMT Pedestrian Subway BMC Headquarters Portal",
+        "corridor_name": "Subterranean Node (CSMT Pedestrian Subway BMC Headquarters Portal)",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 4.8,
+        "material": "Pedestrian Portal with Accessibility Ramp",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8348,
+          18.9413
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "PED-ENTR-03",
+        "utility_ulpin": "2701-UTIL-MH-PED-ENTR-03",
+        "label": "Churchgate Subway Eros Cinema Pedestrian Portal",
+        "corridor_name": "Subterranean Node (Churchgate Subway Eros Cinema Pedestrian Portal)",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 4.5,
+        "material": "Covered Subway Entrance with Dual Escalators",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.826,
+          18.9338
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "PED-ENTR-04",
+        "utility_ulpin": "2701-UTIL-MH-PED-ENTR-04",
+        "label": "Churchgate Subway Cross Maidan Pedestrian Portal",
+        "corridor_name": "Subterranean Node (Churchgate Subway Cross Maidan Pedestrian Portal)",
+        "category": "pedestrian_subway",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 4.5,
+        "material": "Cross Maidan Walking Portal",
+        "authority": "MCGM A-Ward",
+        "color": "#10b981",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8282,
+          18.9335
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-WM-01",
+        "utility_ulpin": "2701-UTIL-MH-MH-WM-01",
+        "label": "MCGM Potable Water Sluice Valve Chamber #1",
+        "corridor_name": "Subterranean Node (MCGM Potable Water Sluice Valve Chamber #1)",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 3.8,
+        "material": "Reinforced Concrete Chamber with CI Cover",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.824,
+          18.9272
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-WM-02",
+        "utility_ulpin": "2701-UTIL-MH-MH-WM-02",
+        "label": "MCGM Potable Water Isolation Chamber #2",
+        "corridor_name": "Subterranean Node (MCGM Potable Water Isolation Chamber #2)",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 3.8,
+        "material": "Modular Precast RCC Inspection Vault",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8265,
+          18.9274
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-WM-03",
+        "utility_ulpin": "2701-UTIL-MH-MH-WM-03",
+        "label": "Marine Drive Flow Metering Chamber #3",
+        "corridor_name": "Subterranean Node (Marine Drive Flow Metering Chamber #3)",
+        "category": "water_supply",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 3.2,
+        "material": "Reinforced Concrete Chamber with CI Cover",
+        "authority": "MCGM Hydraulic Engineer Dept",
+        "color": "#00e5ff",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8232,
+          18.9295
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-PWR-01",
+        "utility_ulpin": "2701-UTIL-MH-MH-PWR-01",
+        "label": "BEST Substation Primary Sectionalising Vault #1",
+        "corridor_name": "Subterranean Node (BEST Substation Primary Sectionalising Vault #1)",
+        "category": "power_best",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 1.8,
+        "material": "BEST Standard Transformer & Cable Pull Chamber",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8252,
+          18.928
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-PWR-02",
+        "utility_ulpin": "2701-UTIL-MH-MH-PWR-02",
+        "label": "BEST Madam Cama 11kV Junction Chamber #2",
+        "corridor_name": "Subterranean Node (BEST Madam Cama 11kV Junction Chamber #2)",
+        "category": "power_best",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 1.8,
+        "material": "BEST Standard Heavy Duty Pull Pit",
+        "authority": "BEST Electricity Undertaking",
+        "color": "#ef4444",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8268,
+          18.9302
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-GAS-01",
+        "utility_ulpin": "2701-UTIL-MH-MH-GAS-01",
+        "label": "MGL Gas District Regulating & Isolation Vault #1",
+        "corridor_name": "Subterranean Node (MGL Gas District Regulating & Isolation Vault #1)",
+        "category": "gas_mgl",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 2.5,
+        "material": "Explosion-Proof Steel & Concrete Vault",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8258,
+          18.9288
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-GAS-02",
+        "utility_ulpin": "2701-UTIL-MH-MH-GAS-02",
+        "label": "MGL Jamnalal Bajaj Main Valve Pit #2",
+        "corridor_name": "Subterranean Node (MGL Jamnalal Bajaj Main Valve Pit #2)",
+        "category": "gas_mgl",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 2.5,
+        "material": "Explosion-Proof Steel & Concrete Vault",
+        "authority": "Mahanagar Gas Limited",
+        "color": "#f59e0b",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8275,
+          18.9315
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-DRN-01",
+        "utility_ulpin": "2701-UTIL-MH-MH-DRN-01",
+        "label": "MCGM Storm Drainage Drop Manhole #1",
+        "corridor_name": "Subterranean Node (MCGM Storm Drainage Drop Manhole #1)",
+        "category": "drainage_trunk",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 5.5,
+        "material": "Heavy-Duty RCC Manhole Shaft (Class AA)",
+        "authority": "MCGM Storm Water Drains Dept",
+        "color": "#14b8a6",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8248,
+          18.9275
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-DRN-02",
+        "utility_ulpin": "2701-UTIL-MH-MH-DRN-02",
+        "label": "MCGM Coastal Interceptor Inspection Shaft #2",
+        "corridor_name": "Subterranean Node (MCGM Coastal Interceptor Inspection Shaft #2)",
+        "category": "drainage_trunk",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 5.5,
+        "material": "Heavy-Duty RCC Manhole Shaft (Class AA)",
+        "authority": "MCGM Storm Water Drains Dept",
+        "color": "#14b8a6",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.828,
+          18.931
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-TEL-01",
+        "utility_ulpin": "2701-UTIL-MH-MH-TEL-01",
+        "label": "Digital Backbone Optical Fiber Jointing Vault #1",
+        "corridor_name": "Subterranean Node (Digital Backbone Optical Fiber Jointing Vault #1)",
+        "category": "telecom",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 1.2,
+        "material": "Composite Poly-Concrete High-Security Vault",
+        "authority": "MTNL / BMC Digital Infrastructure",
+        "color": "#a855f7",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.8305,
+          18.928
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "utility_id": "MH-TEL-02",
+        "utility_ulpin": "2701-UTIL-MH-MH-TEL-02",
+        "label": "Fort Financial Telecom Optical Splice Vault #2",
+        "corridor_name": "Subterranean Node (Fort Financial Telecom Optical Splice Vault #2)",
+        "category": "telecom",
+        "is_lateral": false,
+        "is_manhole": true,
+        "nominal_diameter_mm": 1200,
+        "depth_msl_m": 1.2,
+        "material": "Composite Poly-Concrete High-Security Vault",
+        "authority": "MTNL / BMC Digital Infrastructure",
+        "color": "#a855f7",
+        "clearance_status": "Active Municipal Access / Inspection Node"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.833,
+          18.9315
+        ]
+      }
+    }
+  ]
+}
