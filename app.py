@@ -306,7 +306,7 @@ def serve_dashboard():
                         color: 0xffffff, roughness: 0.5, metalness: 0.2
                     }),
                     roofSlate: new THREE.MeshStandardMaterial({
-                        color: 0x7b94af, roughness: 0.65, metalness: 0.25
+                        color: 0x7b92b1, roughness: 0.65, metalness: 0.25
                     }),
                     exteriorStone: new THREE.MeshStandardMaterial({
                         color: 0x161f2e, roughness: 0.75, metalness: 0.25
@@ -1118,6 +1118,7 @@ def serve_dashboard():
                 if (workspaceEl) workspaceEl.style.display = 'flex';
 
                 try {
+                    const spId = bldFeat.properties.spatial_id;
                     const res = await fetch(`/api/building/${spId}/cadastre`);
                     if (!res.ok) throw new Error(`Cadastre API returned status ${res.status}`);
                     const cad = await res.json();
@@ -1268,13 +1269,12 @@ def serve_dashboard():
                     window.utilityPopup.remove();
                 }
 
-                // 4. Ground street parcel boundary lines
                 // 4. Ground street parcel boundary lines (faint in underground mode)
                 if (m.getLayer('buildings-ground-line')) {
-                    m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.40 : 0.7);
                     m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.12 : 0.70);
                     m.setPaintProperty('buildings-ground-line', 'line-color', nextMode ? '#334155' : [
                         'case',
+                        ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], '#f59e0b',
                         ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
                         ['!=', ['get', 'name'], ''], '#38bdf8',
                         '#64748b'
@@ -1578,12 +1578,14 @@ def serve_dashboard():
                         paint: {
                             'line-color': [
                                 'case',
+                                ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], '#f59e0b',
                                 ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
                                 ['!=', ['get', 'name'], ''], '#38bdf8',
                                 '#64748b'
                             ],
                             'line-width': [
                                 'case',
+                                ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], 2.5,
                                 ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], 2.5,
                                 1.0
                             ],

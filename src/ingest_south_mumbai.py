@@ -143,7 +143,7 @@ def build_architectural_3d_buildings():
         })
 
         # 2. Roof Parapet Crown (Architectural slate steel-blue cap matching user reference image)
-        roof_color = "#7b94af"
+        roof_color = "#7b92b1"
         arch_features.append({
             "type": "Feature",
             "properties": {
