@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "infrastructure",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "spatial_id": "MUM-CST-RD-01", "name": "Dharmveer Swarajya Rakshak Chhatrapati Sambhaji Maharaj Coastal Road", "category": "coastal_road", "type": "8-Lane Grade-Separated Coastal Expressway", "lanes": "8 Lanes (4x4 Divided with Seawall)", "speed_limit": "80 km/h", "depth_m": 3.5, "status": "Operational / Sea-Reclamation Causeway" }, "geometry": { "type": "LineString", "coordinates": [ [ 72.8182, 18.92 ], [ 72.8198, 18.9255 ], [ 72.8215, 18.933 ], [ 72.823, 18.941 ], [ 72.8242, 18.948 ] ] } },
+{ "type": "Feature", "properties": { "spatial_id": "MUM-RAIL-WR-MAIN", "name": "Western Railway Suburban Line (Churchgate Terminus Corridor)", "category": "rail", "type": "Quadruple Track Heavy Suburban Commuter Rail", "lanes": "4 Dedicated Heavy Tracks (1500V DC / 25kV AC Traction)", "speed_limit": "100 km/h", "depth_m": 0.0, "status": "Operational Suburban Rail" }, "geometry": { "type": "LineString", "coordinates": [ [ 72.8277, 18.9325 ], [ 72.8285, 18.9385 ], [ 72.8296, 18.945 ], [ 72.8305, 18.948 ] ] } }
+]
+}
