@@ -300,13 +300,16 @@ def serve_dashboard():
             initMaterials() {
                 return {
                     slabConcrete: new THREE.MeshStandardMaterial({
-                        color: 0x1f2937, roughness: 0.82, metalness: 0.18
+                        color: 0xffffff, roughness: 0.65, metalness: 0.15
                     }),
                     slabEdge: new THREE.MeshStandardMaterial({
-                        color: 0x374151, roughness: 0.7, metalness: 0.3
+                        color: 0xffffff, roughness: 0.5, metalness: 0.2
+                    }),
+                    roofSlate: new THREE.MeshStandardMaterial({
+                        color: 0x7b94af, roughness: 0.65, metalness: 0.25
                     }),
                     exteriorStone: new THREE.MeshStandardMaterial({
-                        color: 0x334155, roughness: 0.78, metalness: 0.15
+                        color: 0x161f2e, roughness: 0.75, metalness: 0.25
                     }),
                     exteriorAccent: new THREE.MeshStandardMaterial({
                         color: 0x1e293b, roughness: 0.6, metalness: 0.35
@@ -794,7 +797,7 @@ def serve_dashboard():
                 const parapetH = 1.15;
                 const parapetGeom = new THREE.ExtrudeGeometry(centeredShape, { depth: parapetH, bevelEnabled: false });
                 parapetGeom.rotateX(-Math.PI / 2);
-                const parapetMesh = new THREE.Mesh(parapetGeom, this.materials.slabEdge);
+                const parapetMesh = new THREE.Mesh(parapetGeom, this.materials.roofSlate);
                 crownGroup.add(parapetMesh);
 
                 const coreW = Math.min(bboxSize.x * 0.32, 10);
@@ -1089,6 +1092,7 @@ def serve_dashboard():
             }, []);
 
             const handleOpenTwin = async (bldFeat) => {
+                setSelectedBuilding(bldFeat);
                 if (!bldFeat || !bldFeat.properties) {
                     console.error("handleOpenTwin called with invalid building feature:", bldFeat);
                     return;

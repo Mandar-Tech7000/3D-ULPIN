@@ -129,7 +129,7 @@ def build_architectural_3d_buildings():
         }
 
         # 1. Foundation Base Plinth (Protruding ground foundation)
-        base_color = "#f59e0b" if is_mantralaya else "#94a3b8"
+        base_color = "#f59e0b" if is_mantralaya else "#1e293b"
         arch_features.append({
             "type": "Feature",
             "properties": {
@@ -142,8 +142,8 @@ def build_architectural_3d_buildings():
             "geometry": base_geom
         })
 
-        # 2. Roof Parapet Crown (Architectural slate concrete cap)
-        roof_color = "#cbd5e1"
+        # 2. Roof Parapet Crown (Architectural slate steel-blue cap matching user reference image)
+        roof_color = "#7b94af"
         arch_features.append({
             "type": "Feature",
             "properties": {
@@ -163,7 +163,7 @@ def build_architectural_3d_buildings():
             fl_base = fl_idx * fh
             fl_top = (fl_idx + 1) * fh
 
-            # Protruding Concrete Floor Divider Slab (Horizontal white ledge visible on North, South, East, West)
+            # Protruding Concrete Floor Divider Slab (Horizontal crisp white ledge visible on all sides)
             if fl_idx > 0:
                 arch_features.append({
                     "type": "Feature",
@@ -178,14 +178,11 @@ def build_architectural_3d_buildings():
                     "geometry": slab_geom
                 })
 
-            # Glass Facade Curtain Wall (Recessed inside the slab ledges)
+            # Facade Curtain Wall (Dark charcoal navy slate between white slab dividers)
             g_start = fl_base + (slab_th / 2.0 if fl_idx > 0 else base_h)
             g_end = fl_top - (slab_th / 2.0 if fl_idx < floors - 1 else (total_h - roof_base))
             if g_end > g_start:
-                if is_mantralaya:
-                    glass_color = "#60a5fa" if fl_idx % 2 == 0 else "#93c5fd"
-                else:
-                    glass_color = "#7dd3fc" if fl_idx % 2 == 0 else "#60a5fa"
+                glass_color = "#161f2e"
 
                 arch_features.append({
                     "type": "Feature",
