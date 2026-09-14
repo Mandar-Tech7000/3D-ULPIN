@@ -18,6 +18,14 @@ from src.cadastre_service import generate_building_cadastre
 app = FastAPI(title="South Mumbai 3D Urban Architecture Twin - Vertical ULPIN Cadastre")
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
+@app.middleware("http")
+async def add_no_cache_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
 BUILDINGS_PATH = BASE_DIR / "data" / "processed" / "buildings.geojson"
 ARCH_BUILDINGS_PATH = BASE_DIR / "data" / "processed" / "buildings_3d_architectural.geojson"
 UTILITIES_PATH = BASE_DIR / "data" / "processed" / "utilities.geojson"
@@ -1063,10 +1071,11 @@ def serve_dashboard():
             }, [undergroundOrbitMode]);
 
             useEffect(() => {
+                const ts = Date.now();
                 Promise.all([
-                    fetch('/api/buildings').then(r => r.json()),
-                    fetch('/api/buildings/architectural').then(r => r.json()),
-                    fetch('/api/utilities').then(r => r.json())
+                    fetch(`/api/buildings?t=${ts}`).then(r => r.json()),
+                    fetch(`/api/buildings/architectural?t=${ts}`).then(r => r.json()),
+                    fetch(`/api/utilities?t=${ts}`).then(r => r.json())
                 ]).then(([bldData, archData, utilData]) => {
                     setBuildingsData(bldData);
                     setUtilitiesData(utilData);
@@ -1222,13 +1231,7 @@ def serve_dashboard():
                     mapDiv.style.backgroundColor = nextMode ? '#0b1120' : '#020816';
                 }
 
-                // 2. High-contrast architectural buildings (solid white/grey matching reference image)
-                ['buildings-3d-base-rim', 'buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs'].forEach(id => {
-                    if (m.getLayer(id)) {
-                        m.setPaintProperty(id, 'fill-extrusion-opacity', bldOpacity);
-                    }
-                });
-                // 2. Translucent ghost architectural buildings ("visible very less" as requested)
+                // 2. Translucent ghost architectural buildings in underground mode, solid in normal mode
                 if (m.getLayer('buildings-3d-base-rim')) {
                     m.setPaintProperty('buildings-3d-base-rim', 'fill-extrusion-opacity', nextMode ? 0.08 : 1.0);
                 }
@@ -1913,12 +1916,18 @@ def serve_dashboard():
                         paint: {
                             'fill-extrusion-base': ['get', 'base_m'],
                             'fill-extrusion-height': ['get', 'height_m'],
-                            'fill-extrusion-color': ['get', 'color'],
+                            'fill-extrusion-color': [
+                                'case',
+                                ['==', ['get', 'is_mantralaya'], true], '#f59e0b',
+                                ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'], '#f59e0b',
+                                ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
+                                '#1e293b'
+                            ],
                             'fill-extrusion-opacity': 1.0
                         }
                     });
 
-                    // Storey Glass Facade Panels (Deep reflective architectural glass)
+                    // Storey Facade Wall Panels (Deep dark charcoal / navy slate #161f2e)
                     map.addLayer({
                         id: 'buildings-3d-glass',
                         type: 'fill-extrusion',
@@ -1927,12 +1936,12 @@ def serve_dashboard():
                         paint: {
                             'fill-extrusion-base': ['get', 'base_m'],
                             'fill-extrusion-height': ['get', 'height_m'],
-                            'fill-extrusion-color': ['get', 'color'],
+                            'fill-extrusion-color': '#161f2e',
                             'fill-extrusion-opacity': 1.0
                         }
                     });
 
-                    // Concrete Floor Slab Dividers (Protruding ledges visible on all sides)
+                    // Concrete Floor Slab Dividers (Protruding crisp bright white ledges #ffffff)
                     map.addLayer({
                         id: 'buildings-3d-slabs',
                         type: 'fill-extrusion',
@@ -1941,12 +1950,12 @@ def serve_dashboard():
                         paint: {
                             'fill-extrusion-base': ['get', 'base_m'],
                             'fill-extrusion-height': ['get', 'height_m'],
-                            'fill-extrusion-color': ['get', 'color'],
+                            'fill-extrusion-color': '#ffffff',
                             'fill-extrusion-opacity': 1.0
                         }
                     });
 
-                    // Concrete Roof Caps / Parapet Crowns (Architectural slate concrete cap)
+                    // Concrete Roof Caps / Parapet Crowns (Uniform slate steel-blue #7b92b1 matching reference image)
                     map.addLayer({
                         id: 'buildings-3d-roofs',
                         type: 'fill-extrusion',
@@ -1955,7 +1964,7 @@ def serve_dashboard():
                         paint: {
                             'fill-extrusion-base': ['get', 'base_m'],
                             'fill-extrusion-height': ['get', 'height_m'],
-                            'fill-extrusion-color': ['get', 'color'],
+                            'fill-extrusion-color': '#7b92b1',
                             'fill-extrusion-opacity': 1.0
                         }
                     });
