@@ -506,16 +506,26 @@ def serve_dashboard():
                 this.buildingData = buildingFeature;
                 this.cadastreData = cadastre;
 
-                const p = buildingFeature.properties;
-                const geom = buildingFeature.geometry;
+                const p = (buildingFeature && buildingFeature.properties) ? buildingFeature.properties : {};
+                const geom = (buildingFeature && buildingFeature.geometry && buildingFeature.geometry.coordinates) 
+                    ? buildingFeature.geometry 
+                    : (cadastre && cadastre.geometry ? cadastre.geometry : null);
+
+                if (!geom) {
+                    console.error("loadBuilding: No valid geometry found for building", buildingFeature, cadastre);
+                    return;
+                }
 
                 let ring = [];
-                if (geom.type === 'Polygon') {
+                if (geom.type === 'Polygon' && geom.coordinates && geom.coordinates[0]) {
                     ring = geom.coordinates[0];
-                } else if (geom.type === 'MultiPolygon') {
+                } else if (geom.type === 'MultiPolygon' && geom.coordinates && geom.coordinates[0] && geom.coordinates[0][0]) {
                     ring = geom.coordinates[0][0];
                 }
-                if (!ring || ring.length < 3) return;
+                if (!ring || ring.length < 3) {
+                    console.error("loadBuilding: Polygon ring has less than 3 points", ring);
+                    return;
+                }
 
                 let avgLon = 0, avgLat = 0;
                 ring.forEach(pt => { avgLon += pt[0]; avgLat += pt[1]; });
@@ -1079,28 +1089,48 @@ def serve_dashboard():
             }, []);
 
             const handleOpenTwin = async (bldFeat) => {
-                setSelectedBuilding(bldFeat);
+                if (!bldFeat || !bldFeat.properties) {
+                    console.error("handleOpenTwin called with invalid building feature:", bldFeat);
+                    return;
+                }
+                const spId = bldFeat.properties.spatial_id;
+
+                // Look up master feature from buildingsData to guarantee full polygon coordinates
+                let master = null;
+                if (buildingsData && buildingsData.features) {
+                    master = buildingsData.features.find(b => b.properties && b.properties.spatial_id === spId);
+                }
+                if (!master) {
+                    master = bldFeat;
+                }
+
+                setSelectedBuilding(master);
                 setSelectedFloor(null);
                 setSelectedFlat(null);
                 setExplodeRatio(0);
                 setViewMode('twin');
 
-                document.getElementById('twin-workspace').style.display = 'flex';
+                const workspaceEl = document.getElementById('twin-workspace');
+                if (workspaceEl) workspaceEl.style.display = 'flex';
 
                 try {
-                    const spId = bldFeat.properties.spatial_id;
                     const res = await fetch(`/api/building/${spId}/cadastre`);
+                    if (!res.ok) throw new Error(`Cadastre API returned status ${res.status}`);
                     const cad = await res.json();
                     setCadastre(cad);
 
-                    if (twinRef.current) {
-                        setTimeout(() => {
-                            twinRef.current.onResize();
-                            twinRef.current.loadBuilding(bldFeat, cad);
-                        }, 50);
+                    // Ensure renderer instance exists and loads the building
+                    if (!twinRef.current) {
+                        twinRef.current = new ArchitecturalDigitalTwinRenderer('twin-canvas-container');
                     }
+                    setTimeout(() => {
+                        if (twinRef.current) {
+                            twinRef.current.onResize();
+                            twinRef.current.loadBuilding(master, cad);
+                        }
+                    }, 60);
                 } catch (err) {
-                    console.error("Cadastre fetch failed:", err);
+                    console.error("Cadastre fetch failed for", spId, err);
                 }
             };
 
@@ -1175,6 +1205,7 @@ def serve_dashboard():
                 if (!m) return;
 
                 const satOpacity = nextMode ? 0.0 : 0.92; // 0.0 exposes dark GIS street bed
+                const bldOpacity = nextMode ? 0.88 : 1.0; // Crisp solid white/grey architectural massing matching reference BIM image
                 const utilVis = nextMode ? 'visible' : 'none';
 
                 // 1. Expose dark slate GIS ground & street bed
@@ -1186,6 +1217,12 @@ def serve_dashboard():
                     mapDiv.style.backgroundColor = nextMode ? '#0b1120' : '#020816';
                 }
 
+                // 2. High-contrast architectural buildings (solid white/grey matching reference image)
+                ['buildings-3d-base-rim', 'buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs'].forEach(id => {
+                    if (m.getLayer(id)) {
+                        m.setPaintProperty(id, 'fill-extrusion-opacity', bldOpacity);
+                    }
+                });
                 // 2. Translucent ghost architectural buildings ("visible very less" as requested)
                 if (m.getLayer('buildings-3d-base-rim')) {
                     m.setPaintProperty('buildings-3d-base-rim', 'fill-extrusion-opacity', nextMode ? 0.08 : 1.0);
@@ -1227,8 +1264,10 @@ def serve_dashboard():
                     window.utilityPopup.remove();
                 }
 
+                // 4. Ground street parcel boundary lines
                 // 4. Ground street parcel boundary lines (faint in underground mode)
                 if (m.getLayer('buildings-ground-line')) {
+                    m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.40 : 0.7);
                     m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.12 : 0.70);
                     m.setPaintProperty('buildings-ground-line', 'line-color', nextMode ? '#334155' : [
                         'case',
@@ -1238,6 +1277,7 @@ def serve_dashboard():
                     ]);
                 }
 
+                // 5. Oblique architectural 3D perspective matching reference BIM digital twin
                 // 5. Oblique architectural 3D perspective with full 360-degree rotation freedom
                 if (nextMode) {
                     applyUtilityFilters(activeUtilityCat, showLaterals, showManholes);
@@ -2407,7 +2447,9 @@ def serve_dashboard():
                             <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.15)' }} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <span style={{ padding: '2px 6px', background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', borderRadius: 4, fontWeight: 800 }}>A</span>
+                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Right</span>
                                 <span style={{ padding: '2px 6px', background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', borderRadius: 4, fontWeight: 800 }}>D</span>
+                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Left</span>
                                 <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>360° Rotate</span>
                             </div>
                             <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.15)' }} />
