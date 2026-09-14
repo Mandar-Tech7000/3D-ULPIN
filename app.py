@@ -1033,8 +1033,21 @@ def serve_dashboard():
             const [activeUtilityCat, setActiveUtilityCat] = useState('all');
             const [showLaterals, setShowLaterals] = useState(true);
             const [showManholes, setShowManholes] = useState(true);
+            const [undergroundOrbitMode, setUndergroundOrbitMode] = useState(true);
+            const [currentBearing, setCurrentBearing] = useState(-24);
+            const [currentPitch, setCurrentPitch] = useState(58);
 
             const twinRef = useRef(null);
+            const undergroundModeRef = useRef(false);
+            const undergroundOrbitModeRef = useRef(true);
+
+            useEffect(() => {
+                undergroundModeRef.current = undergroundMode;
+            }, [undergroundMode]);
+
+            useEffect(() => {
+                undergroundOrbitModeRef.current = undergroundOrbitMode;
+            }, [undergroundOrbitMode]);
 
             useEffect(() => {
                 Promise.all([
@@ -1162,7 +1175,6 @@ def serve_dashboard():
                 if (!m) return;
 
                 const satOpacity = nextMode ? 0.0 : 0.92; // 0.0 exposes dark GIS street bed
-                const bldOpacity = nextMode ? 0.88 : 1.0; // Crisp solid white/grey architectural massing matching reference BIM image
                 const utilVis = nextMode ? 'visible' : 'none';
 
                 // 1. Expose dark slate GIS ground & street bed
@@ -1174,12 +1186,19 @@ def serve_dashboard():
                     mapDiv.style.backgroundColor = nextMode ? '#0b1120' : '#020816';
                 }
 
-                // 2. High-contrast architectural buildings (solid white/grey matching reference image)
-                ['buildings-3d-base-rim', 'buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs'].forEach(id => {
-                    if (m.getLayer(id)) {
-                        m.setPaintProperty(id, 'fill-extrusion-opacity', bldOpacity);
-                    }
-                });
+                // 2. Translucent ghost architectural buildings ("visible very less" as requested)
+                if (m.getLayer('buildings-3d-base-rim')) {
+                    m.setPaintProperty('buildings-3d-base-rim', 'fill-extrusion-opacity', nextMode ? 0.08 : 1.0);
+                }
+                if (m.getLayer('buildings-3d-glass')) {
+                    m.setPaintProperty('buildings-3d-glass', 'fill-extrusion-opacity', nextMode ? 0.05 : 1.0);
+                }
+                if (m.getLayer('buildings-3d-slabs')) {
+                    m.setPaintProperty('buildings-3d-slabs', 'fill-extrusion-opacity', nextMode ? 0.12 : 1.0);
+                }
+                if (m.getLayer('buildings-3d-roofs')) {
+                    m.setPaintProperty('buildings-3d-roofs', 'fill-extrusion-opacity', nextMode ? 0.10 : 1.0);
+                }
 
                 // 3. Subsurface infrastructure layers (Crisp vector conduits, specular lines, junction nodes)
                 const allSubsurfaceLayers = [
@@ -1208,9 +1227,9 @@ def serve_dashboard():
                     window.utilityPopup.remove();
                 }
 
-                // 4. Ground street parcel boundary lines
+                // 4. Ground street parcel boundary lines (faint in underground mode)
                 if (m.getLayer('buildings-ground-line')) {
-                    m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.40 : 0.7);
+                    m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.12 : 0.70);
                     m.setPaintProperty('buildings-ground-line', 'line-color', nextMode ? '#334155' : [
                         'case',
                         ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
@@ -1219,7 +1238,7 @@ def serve_dashboard():
                     ]);
                 }
 
-                // 5. Oblique architectural 3D perspective matching reference BIM digital twin
+                // 5. Oblique architectural 3D perspective with full 360-degree rotation freedom
                 if (nextMode) {
                     applyUtilityFilters(activeUtilityCat, showLaterals, showManholes);
                     m.easeTo({
@@ -1239,6 +1258,41 @@ def serve_dashboard():
                         duration: 1000
                     });
                 }
+            };
+
+            const getCardinal = (deg) => {
+                const d = Math.round(((deg % 360) + 360) % 360);
+                const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+                const idx = Math.round(d / 45) % 8;
+                return dirs[idx];
+            };
+
+            const handleRotateStep = (deltaDeg) => {
+                const m = window.mapInstance;
+                if (!m) return;
+                const current = m.getBearing();
+                m.easeTo({
+                    bearing: (current + deltaDeg) % 360,
+                    duration: 350
+                });
+            };
+
+            const handleSetCardinalBearing = (targetBearing) => {
+                const m = window.mapInstance;
+                if (!m) return;
+                m.easeTo({
+                    bearing: targetBearing,
+                    duration: 550
+                });
+            };
+
+            const handleSetPitchAngle = (targetPitch) => {
+                const m = window.mapInstance;
+                if (!m) return;
+                m.easeTo({
+                    pitch: targetPitch,
+                    duration: 550
+                });
             };
 
             const handleUtilityCategoryChange = (cat) => {
@@ -1874,8 +1928,71 @@ def serve_dashboard():
                         }
                     });
 
+                    // Live Bearing & Pitch Updates for 360° Compass HUD
+                    map.on('rotate', () => {
+                        setCurrentBearing(map.getBearing());
+                    });
+                    map.on('pitch', () => {
+                        setCurrentPitch(map.getPitch());
+                    });
+
+                    // 360° Left-Click Drag Orbit System for Subterranean Exploration
+                    const canvas = map.getCanvas();
+                    let isLeftDragging = false;
+                    let dragStartX = 0;
+                    let dragStartY = 0;
+                    let startBearing = 0;
+                    let startPitch = 0;
+                    let hasDragged = false;
+                    let suppressNextClick = false;
+
+                    const onMouseDown = (e) => {
+                        if (e.button === 0 && undergroundModeRef.current && undergroundOrbitModeRef.current) {
+                            isLeftDragging = true;
+                            hasDragged = false;
+                            dragStartX = e.clientX;
+                            dragStartY = e.clientY;
+                            startBearing = map.getBearing();
+                            startPitch = map.getPitch();
+                            map.dragPan.disable();
+                        }
+                    };
+
+                    const onMouseMove = (e) => {
+                        if (!isLeftDragging) return;
+                        const dx = e.clientX - dragStartX;
+                        const dy = e.clientY - dragStartY;
+                        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                            hasDragged = true;
+                        }
+                        if (hasDragged) {
+                            const newBearing = (startBearing + dx * 0.35) % 360;
+                            const newPitch = Math.max(0, Math.min(85, startPitch - dy * 0.25));
+                            map.setBearing(newBearing);
+                            map.setPitch(newPitch);
+                        }
+                    };
+
+                    const onMouseUp = (e) => {
+                        if (!isLeftDragging) return;
+                        isLeftDragging = false;
+                        map.dragPan.enable();
+                        if (hasDragged) {
+                            suppressNextClick = true;
+                            setTimeout(() => { suppressNextClick = false; }, 60);
+                        }
+                    };
+
+                    canvas.addEventListener('mousedown', onMouseDown);
+                    window.addEventListener('mousemove', onMouseMove);
+                    window.addEventListener('mouseup', onMouseUp);
+
                     // 4. Unified Interactive Subterranean & Architectural Click Dispatcher
                     map.on('click', (e) => {
+                        if (suppressNextClick) {
+                            suppressNextClick = false;
+                            return;
+                        }
                         const hitTolerance = 24; // 24px wide bounding box for effortless, 100% reliable clicks
                         const bbox = [
                             [e.point.x - hitTolerance, e.point.y - hitTolerance],
@@ -2290,9 +2407,8 @@ def serve_dashboard():
                             <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.15)' }} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <span style={{ padding: '2px 6px', background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', borderRadius: 4, fontWeight: 800 }}>A</span>
-                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Right</span>
                                 <span style={{ padding: '2px 6px', background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', borderRadius: 4, fontWeight: 800 }}>D</span>
-                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>Left</span>
+                                <span style={{ color: '#cbd5e1', fontSize: 10.5 }}>360° Rotate</span>
                             </div>
                             <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.15)' }} />
                             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -2497,8 +2613,235 @@ def serve_dashboard():
                                 </div>
                             </div>
 
+                            {/* Subterranean 360° View Quick Controls */}
+                            <div style={{
+                                background: 'rgba(15,23,42,0.85)', borderRadius: 8, padding: 10,
+                                border: '1px solid rgba(0,229,255,0.25)', marginTop: 12
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                    <span style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: '0.04em' }}>
+                                        360° VIEW & ROTATION ACCESS
+                                    </span>
+                                    <span style={{ fontSize: 9.5, color: '#94a3b8' }}>
+                                        {Math.round(((currentBearing % 360) + 360) % 360)}° {getCardinal(currentBearing)}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                                    <button
+                                        onClick={() => handleRotateStep(-45)}
+                                        style={{
+                                            flex: 1, padding: '6px 4px', background: 'rgba(30,41,59,0.7)',
+                                            border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 6,
+                                            fontSize: 10, fontWeight: 700, cursor: 'pointer'
+                                        }}
+                                    >
+                                        ↺ -45° Left
+                                    </button>
+                                    <button
+                                        onClick={toggleOrbit}
+                                        style={{
+                                            flex: 1.4, padding: '6px 4px',
+                                            background: isOrbiting ? 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)' : 'rgba(0,229,255,0.15)',
+                                            border: '1px solid rgba(0,229,255,0.3)', color: isOrbiting ? '#000' : 'var(--accent-cyan)',
+                                            borderRadius: 6, fontSize: 10, fontWeight: 800, cursor: 'pointer'
+                                        }}
+                                    >
+                                        {isOrbiting ? "⏸️ Pause" : "🔄 360° Orbit"}
+                                    </button>
+                                    <button
+                                        onClick={() => handleRotateStep(45)}
+                                        style={{
+                                            flex: 1, padding: '6px 4px', background: 'rgba(30,41,59,0.7)',
+                                            border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 6,
+                                            fontSize: 10, fontWeight: 700, cursor: 'pointer'
+                                        }}
+                                    >
+                                        ↻ +45° Right
+                                    </button>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
+                                    {[
+                                        { label: 'N', deg: 0 },
+                                        { label: 'E', deg: 90 },
+                                        { label: 'S', deg: 180 },
+                                        { label: 'W', deg: 270 }
+                                    ].map(dir => (
+                                        <button
+                                            key={dir.label}
+                                            onClick={() => handleSetCardinalBearing(dir.deg)}
+                                            style={{
+                                                padding: '4px 2px', background: 'rgba(15,23,42,0.8)',
+                                                border: '1px solid rgba(255,255,255,0.08)', color: '#cbd5e1', borderRadius: 4,
+                                                fontSize: 9.5, fontWeight: 600, cursor: 'pointer'
+                                            }}
+                                        >
+                                            {dir.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div style={{ fontSize: 10.5, color: 'var(--text-dim)', textAlign: 'center', marginTop: 10 }}>
                                 💡 Tip: Click any tunnel, station, subway, or pipeline in 3D to inspect cadastral specifications.
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Floating 360° Subterranean Orbit & Camera Control HUD */}
+                    {viewMode === 'map' && undergroundMode && (
+                        <div className="glass-panel" style={{
+                            position: 'absolute', top: 96, right: 24, padding: '12px 16px', borderRadius: 12,
+                            pointerEvents: 'auto', zIndex: 50, border: '1px solid rgba(0, 229, 255, 0.35)',
+                            boxShadow: '0 16px 36px rgba(0,0,0,0.75)', width: 280
+                        }}>
+                            {/* Header with Heading Compass readout */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <span className="pulsing-dot" style={{ width: 6, height: 6, background: 'var(--accent-cyan)' }} />
+                                    <span style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: '0.05em' }}>
+                                        360° SUBTERRANEAN VIEW
+                                    </span>
+                                </div>
+                                <span style={{
+                                    fontSize: 10, fontWeight: 800, color: '#fff', background: 'rgba(15,23,42,0.8)',
+                                    padding: '2px 7px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.1)'
+                                }}>
+                                    🧭 {Math.round(((currentBearing % 360) + 360) % 360)}° {getCardinal(currentBearing)}
+                                </span>
+                            </div>
+
+                            {/* Drag Mode Selector */}
+                            <div style={{
+                                display: 'flex', background: 'rgba(15,23,42,0.85)', borderRadius: 7, padding: 3,
+                                border: '1px solid rgba(255,255,255,0.08)', marginBottom: 10
+                            }}>
+                                <button
+                                    onClick={() => setUndergroundOrbitMode(true)}
+                                    style={{
+                                        flex: 1, padding: '5px 8px', borderRadius: 5, fontSize: 10.5, fontWeight: 700,
+                                        border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                                        background: undergroundOrbitMode ? 'var(--accent-cyan)' : 'transparent',
+                                        color: undergroundOrbitMode ? '#000' : 'var(--text-dim)'
+                                    }}
+                                    title="Left-click drag anywhere to rotate 360° around the underground network"
+                                >
+                                    🔄 360° Drag Orbit
+                                </button>
+                                <button
+                                    onClick={() => setUndergroundOrbitMode(false)}
+                                    style={{
+                                        flex: 1, padding: '5px 8px', borderRadius: 5, fontSize: 10.5, fontWeight: 700,
+                                        border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                                        background: !undergroundOrbitMode ? 'var(--accent-cyan)' : 'transparent',
+                                        color: !undergroundOrbitMode ? '#000' : 'var(--text-dim)'
+                                    }}
+                                    title="Left-click drag to pan the map"
+                                >
+                                    🖐️ Pan Mode
+                                </button>
+                            </div>
+
+                            {/* Quick Rotation Buttons */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: 5, marginBottom: 8 }}>
+                                <button
+                                    onClick={() => handleRotateStep(-45)}
+                                    style={{
+                                        background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.12)',
+                                        color: '#fff', padding: '6px 4px', borderRadius: 6, fontSize: 10.5, fontWeight: 700,
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Turn 45° Counter-Clockwise"
+                                >
+                                    ↺ -45°
+                                </button>
+                                <button
+                                    onClick={toggleOrbit}
+                                    style={{
+                                        background: isOrbiting ? 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)' : 'rgba(0,229,255,0.15)',
+                                        border: '1px solid rgba(0,229,255,0.3)',
+                                        color: isOrbiting ? '#000' : 'var(--accent-cyan)',
+                                        padding: '6px 4px', borderRadius: 6, fontSize: 10.5, fontWeight: 800,
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Toggle continuous 360° auto-orbit"
+                                >
+                                    {isOrbiting ? "⏸️ Pause" : "🔄 Auto 360°"}
+                                </button>
+                                <button
+                                    onClick={() => handleRotateStep(45)}
+                                    style={{
+                                        background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.12)',
+                                        color: '#fff', padding: '6px 4px', borderRadius: 6, fontSize: 10.5, fontWeight: 700,
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Turn 45° Clockwise"
+                                >
+                                    ↻ +45°
+                                </button>
+                            </div>
+
+                            {/* Cardinal Directions 4-Grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, marginBottom: 8 }}>
+                                {[
+                                    { label: 'N (0°)', deg: 0 },
+                                    { label: 'E (90°)', deg: 90 },
+                                    { label: 'S (180°)', deg: 180 },
+                                    { label: 'W (270°)', deg: 270 }
+                                ].map(c => (
+                                    <button
+                                        key={c.label}
+                                        onClick={() => handleSetCardinalBearing(c.deg)}
+                                        style={{
+                                            background: 'rgba(15,23,42,0.7)', border: '1px solid rgba(255,255,255,0.08)',
+                                            color: '#cbd5e1', padding: '4px 0', borderRadius: 5, fontSize: 9.5, fontWeight: 700,
+                                            cursor: 'pointer'
+                                        }}
+                                        title={`Orient view towards ${c.label}`}
+                                    >
+                                        {c.label.split(' ')[0]}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Pitch Angle Selector */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4 }}>
+                                <button
+                                    onClick={() => handleSetPitchAngle(0)}
+                                    style={{
+                                        background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
+                                        color: '#94a3b8', padding: '4px 2px', borderRadius: 5, fontSize: 9.5, fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Top-Down Plan View (0°)"
+                                >
+                                    Top (0°)
+                                </button>
+                                <button
+                                    onClick={() => handleSetPitchAngle(58)}
+                                    style={{
+                                        background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
+                                        color: '#94a3b8', padding: '4px 2px', borderRadius: 5, fontSize: 9.5, fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Isometric 3D Angle (58°)"
+                                >
+                                    3D (58°)
+                                </button>
+                                <button
+                                    onClick={() => handleSetPitchAngle(78)}
+                                    style={{
+                                        background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
+                                        color: '#94a3b8', padding: '4px 2px', borderRadius: 5, fontSize: 9.5, fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Deep Subterranean Horizon Angle (78°)"
+                                >
+                                    Deep (78°)
+                                </button>
+                            </div>
+
+                            <div style={{ fontSize: 9, color: 'var(--text-dim)', textAlign: 'center', marginTop: 8, lineHeight: 1.25 }}>
+                                Drag with left mouse, use A/D keys, or click above to orbit 360° freely.
                             </div>
                         </div>
                     )}
