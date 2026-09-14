@@ -191,30 +191,37 @@ def serve_dashboard():
             pointer-events: auto !important;
         }
         .maplibregl-popup-content {
-            background: rgba(10, 17, 34, 0.96) !important;
-            backdrop-filter: blur(18px) !important;
-            -webkit-backdrop-filter: blur(18px) !important;
-            border: 1px solid rgba(0, 229, 255, 0.45) !important;
-            border-radius: 12px !important;
+            background: rgba(11, 19, 38, 0.98) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(0, 229, 255, 0.5) !important;
+            border-radius: 14px !important;
             padding: 14px 16px !important;
             color: #f8fafc !important;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 229, 255, 0.25) !important;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 229, 255, 0.25) !important;
+            width: 320px !important;
+            max-width: 320px !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
         }
         .maplibregl-popup-tip {
-            border-top-color: rgba(10, 17, 34, 0.96) !important;
-            border-bottom-color: rgba(10, 17, 34, 0.96) !important;
+            border-top-color: rgba(11, 19, 38, 0.98) !important;
+            border-bottom-color: rgba(11, 19, 38, 0.98) !important;
         }
         .maplibregl-popup-close-button {
             color: #94a3b8 !important;
-            font-size: 16px !important;
-            padding: 6px 10px !important;
-            right: 4px !important;
-            top: 4px !important;
+            font-size: 18px !important;
+            line-height: 1 !important;
+            padding: 4px 8px !important;
+            right: 8px !important;
+            top: 8px !important;
             border-radius: 6px !important;
+            cursor: pointer !important;
+            z-index: 10 !important;
         }
         .maplibregl-popup-close-button:hover {
             color: #fff !important;
-            background: rgba(255, 255, 255, 0.1) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
         }
     </style>
 </head>
@@ -1154,27 +1161,27 @@ def serve_dashboard():
                 const m = window.mapInstance;
                 if (!m) return;
 
-                const satOpacity = nextMode ? 0.0 : 0.92; // 0.0 completely reveals subterranean excavation bedrock
-                const bldOpacity = nextMode ? 0.12 : 1.0; // Translucent holographic ghost skyline hovering above
+                const satOpacity = nextMode ? 0.0 : 0.92; // 0.0 exposes dark GIS street bed
+                const bldOpacity = nextMode ? 0.88 : 1.0; // Crisp solid white/grey architectural massing matching reference BIM image
                 const utilVis = nextMode ? 'visible' : 'none';
 
-                // 1. Cutaway ground surface & expose deep subterranean bedrock
+                // 1. Expose dark slate GIS ground & street bed
                 if (m.getLayer('satellite-base')) {
                     m.setPaintProperty('satellite-base', 'raster-opacity', satOpacity);
                 }
                 const mapDiv = document.getElementById('map');
                 if (mapDiv) {
-                    mapDiv.style.backgroundColor = nextMode ? '#010308' : '#020816';
+                    mapDiv.style.backgroundColor = nextMode ? '#0b1120' : '#020816';
                 }
 
-                // 2. Translucent ghost architectural buildings hovering above bedrock datum
+                // 2. High-contrast architectural buildings (solid white/grey matching reference image)
                 ['buildings-3d-base-rim', 'buildings-3d-glass', 'buildings-3d-slabs', 'buildings-3d-roofs'].forEach(id => {
                     if (m.getLayer(id)) {
                         m.setPaintProperty(id, 'fill-extrusion-opacity', bldOpacity);
                     }
                 });
 
-                // 3. Subsurface infrastructure layers (Broad physical casing, core, highlights, rails, striping, chambers, hitbox)
+                // 3. Subsurface infrastructure layers (Crisp vector conduits, specular lines, junction nodes)
                 const allSubsurfaceLayers = [
                     'utilities-click-hitbox',
                     'utilities-trench-shadow',
@@ -1201,9 +1208,9 @@ def serve_dashboard():
                     window.utilityPopup.remove();
                 }
 
-                // 4. Ground parcel lines transformed to subtle bedrock fissures
+                // 4. Ground street parcel boundary lines
                 if (m.getLayer('buildings-ground-line')) {
-                    m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.25 : 0.7);
+                    m.setPaintProperty('buildings-ground-line', 'line-opacity', nextMode ? 0.40 : 0.7);
                     m.setPaintProperty('buildings-ground-line', 'line-color', nextMode ? '#334155' : [
                         'case',
                         ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714'], '#f59e0b',
@@ -1212,14 +1219,14 @@ def serve_dashboard():
                     ]);
                 }
 
-                // 5. Steep 78-degree subterranean horizon pitch: Looking beneath the city
+                // 5. Oblique architectural 3D perspective matching reference BIM digital twin
                 if (nextMode) {
                     applyUtilityFilters(activeUtilityCat, showLaterals, showManholes);
                     m.easeTo({
-                        pitch: 78,
-                        bearing: -32,
-                        zoom: 16.85,
-                        duration: 1400
+                        pitch: 58,
+                        bearing: -24,
+                        zoom: 16.45,
+                        duration: 1200
                     });
                 } else {
                     if (m.getLayer('utilities-highlight')) {
@@ -1375,48 +1382,49 @@ def serve_dashboard():
                 const accentColor = p.color || '#00e5ff';
 
                 return `
-                    <div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-width: 250px; max-width: 320px; user-select: text;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 12px; background: ${accentColor}; color: #000;">
+                    <div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; width: 100%; box-sizing: border-box; overflow: hidden; user-select: text;">
+                        <!-- Header with dedicated right clearance for MapLibre close X -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-right: 26px;">
+                            <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 12px; background: ${accentColor}; color: #000; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
                                 ${categoryTitle}
                             </span>
-                            <span style="font-size: 11px; font-weight: 800; color: #38bdf8;">
-                                -${p.depth_msl_m} m MSL
+                            <span style="font-size: 10.5px; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.3); white-space: nowrap; flex-shrink: 0;">
+                                -${p.depth_msl_m}m MSL
                             </span>
                         </div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #fff; margin-bottom: 3px; line-height: 1.35;">
+                        <div style="font-weight: 800; font-size: 13.5px; color: #fff; margin-bottom: 3px; line-height: 1.35; word-break: break-word;">
                             ${p.label || 'Subterranean Asset'}
                         </div>
-                        <div style="font-size: 10.5px; color: #94a3b8; margin-bottom: 10px; line-height: 1.3;">
+                        <div style="font-size: 10.5px; color: #94a3b8; margin-bottom: 10px; line-height: 1.3; word-break: break-word;">
                             ${p.corridor_name || ''}
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: rgba(15,23,42,0.8); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; font-size: 10.5px;">
-                            <div>
-                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">DIAMETER / BORE</div>
-                                <div style="font-weight: 800; color: ${accentColor}; margin-top: 1px;">${diameterStr}</div>
+                        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; background: rgba(15,23,42,0.85); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; font-size: 10.5px; box-sizing: border-box;">
+                            <div style="min-width: 0; overflow: hidden;">
+                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">DIAMETER / BORE</div>
+                                <div style="font-weight: 800; color: ${accentColor}; margin-top: 1px; word-break: break-word;">${diameterStr}</div>
                             </div>
-                            <div>
-                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">CLEARANCE STATUS</div>
-                                <div style="font-weight: 700; color: #10b981; margin-top: 1px;">${p.clearance_status || 'Compliant'}</div>
+                            <div style="min-width: 0; overflow: hidden;">
+                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">CLEARANCE</div>
+                                <div style="font-weight: 700; color: #10b981; margin-top: 1px; word-break: break-word; line-height: 1.25; font-size: 10px;">${p.clearance_status || 'Compliant'}</div>
                             </div>
-                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06);">
-                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">SPECIFICATION & AUTHORITY</div>
-                                <div style="color: #cbd5e1; font-size: 10px; margin-top: 1px;">
+                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); min-width: 0; overflow: hidden;">
+                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">SPECIFICATION & AUTHORITY</div>
+                                <div style="color: #cbd5e1; font-size: 10px; margin-top: 1px; word-break: break-word; line-height: 1.3;">
                                     ${p.material || ''} • <b style="color: #38bdf8;">${p.authority || ''}</b>
                                 </div>
                             </div>
                             ${p.connected_building ? `
-                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06);">
-                                <div style="color: #64748b; font-size: 9px; font-weight: 700;">CONNECTED LANDMARK</div>
-                                <div style="color: #f59e0b; font-size: 10px; font-weight: 700; margin-top: 1px;">
+                            <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); min-width: 0; overflow: hidden;">
+                                <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">CONNECTED LANDMARK</div>
+                                <div style="color: #f59e0b; font-size: 10px; font-weight: 700; margin-top: 1px; word-break: break-word;">
                                     🏢 ${p.connected_building}
                                 </div>
                             </div>
                             ` : ''}
                         </div>
                         <div style="font-size: 9.5px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; padding: 0 2px;">
-                            <span>ULPIN: <b style="font-family: monospace; color: #f59e0b;">${p.utility_ulpin || p.utility_id}</b></span>
-                            <span style="color: #10b981; font-weight: 700;">● Active</span>
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;">ULPIN: <b style="font-family: monospace; color: #f59e0b;">${p.utility_ulpin || p.utility_id}</b></span>
+                            <span style="color: #10b981; font-weight: 700; flex-shrink: 0;">● Active</span>
                         </div>
                     </div>
                 `;
@@ -1489,20 +1497,20 @@ def serve_dashboard():
                     if (utilGeo) {
                         map.addSource('utilities-src', { type: 'geojson', data: utilGeo });
 
-                        // A. Invisible 56px Wide Hitbox Buffer (Ensures 100% effortless clicking precision on all subterranean conduits)
+                        // A. Invisible 40px Wide Hitbox Buffer (Ensures 100% effortless clicking precision on all subterranean conduits)
                         map.addLayer({
                             id: 'utilities-click-hitbox',
                             type: 'line',
                             source: 'utilities-src',
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-width': 56.0,
+                                'line-width': 40.0,
                                 'line-color': '#000000',
                                 'line-opacity': 0.02
                             }
                         });
 
-                        // B. Deep Bedrock Trench Drop Shadow (Creates depth separation beneath the surface)
+                        // B. Subtle Ground Trench Drop Shadow (Crisp depth separation beneath the surface)
                         map.addLayer({
                             id: 'utilities-trench-shadow',
                             type: 'line',
@@ -1510,25 +1518,25 @@ def serve_dashboard():
                             filter: ['all', ['==', 'is_lateral', false], ['==', 'is_manhole', false], ['!=', 'is_station_box', true]],
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': '#000000',
+                                'line-color': '#020617',
                                 'line-width': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 54.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 44.0,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 38.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 34.0,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 32.0,
-                                    ['==', ['get', 'category'], 'water_supply'], 30.0,
-                                    ['==', ['get', 'category'], 'power_best'], 24.0,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 22.0,
-                                    20.0
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 18.0,
+                                    ['==', ['get', 'category'], 'metro_underground'], 15.0,
+                                    ['==', ['get', 'category'], 'vehicular_subway'], 13.0,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 11.5,
+                                    ['==', ['get', 'category'], 'drainage_trunk'], 11.0,
+                                    ['==', ['get', 'category'], 'water_supply'], 11.0,
+                                    ['==', ['get', 'category'], 'power_best'], 9.5,
+                                    ['==', ['get', 'category'], 'gas_mgl'], 9.0,
+                                    8.5
                                 ],
-                                'line-blur': 8.0,
-                                'line-opacity': 0.95
+                                'line-blur': 2.5,
+                                'line-opacity': 0.50
                             }
                         });
 
-                        // C. Outer Pipe Wall / Structural Metallic & Concrete Casing (Volumetric, broad structural boundary)
+                        // C. Outer Pipe Wall / Structural Metallic & Concrete Casing (Clean, crisp structural boundary)
                         map.addLayer({
                             id: 'utilities-pipe-casing',
                             type: 'line',
@@ -1538,33 +1546,33 @@ def serve_dashboard():
                             paint: {
                                 'line-color': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#0b1329',
-                                    ['==', ['get', 'category'], 'metro_underground'], '#082f49',
-                                    ['==', ['get', 'category'], 'vehicular_subway'], '#1e293b',
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#1e293b',
-                                    ['==', ['get', 'category'], 'water_supply'], '#0c4a6e',
-                                    ['==', ['get', 'category'], 'drainage_trunk'], '#134e4a',
-                                    ['==', ['get', 'category'], 'power_best'], '#451a03',
-                                    ['==', ['get', 'category'], 'gas_mgl'], '#422006',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#070d1e',
+                                    ['==', ['get', 'category'], 'metro_underground'], '#0f0926',
+                                    ['==', ['get', 'category'], 'vehicular_subway'], '#1c1917',
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#1c1917',
+                                    ['==', ['get', 'category'], 'drainage_trunk'], '#064e3b',
+                                    ['==', ['get', 'category'], 'water_supply'], '#082f49',
+                                    ['==', ['get', 'category'], 'power_best'], '#450a0a',
+                                    ['==', ['get', 'category'], 'gas_mgl'], '#451a03',
                                     '#1e293b'
                                 ],
                                 'line-width': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 36.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 28.0,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 24.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 20.0,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 19.0,
-                                    ['==', ['get', 'category'], 'water_supply'], 18.0,
-                                    ['==', ['get', 'category'], 'power_best'], 15.0,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 14.0,
-                                    12.0
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 13.5,
+                                    ['==', ['get', 'category'], 'metro_underground'], 11.0,
+                                    ['==', ['get', 'category'], 'vehicular_subway'], 9.0,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 8.0,
+                                    ['==', ['get', 'category'], 'drainage_trunk'], 7.8,
+                                    ['==', ['get', 'category'], 'water_supply'], 7.8,
+                                    ['==', ['get', 'category'], 'power_best'], 6.8,
+                                    ['==', ['get', 'category'], 'gas_mgl'], 6.2,
+                                    6.0
                                 ],
                                 'line-opacity': 1.0
                             }
                         });
 
-                        // D. Physical Pipe Core Body (Broad, heavy, industrial conduit cross-sections)
+                        // D. Physical Pipe Core Body (Vibrant, high-contrast BIM vector conduits matching reference image)
                         map.addLayer({
                             id: 'utilities-trunks-core',
                             type: 'line',
@@ -1574,23 +1582,27 @@ def serve_dashboard():
                             paint: {
                                 'line-color': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#1e293b',
-                                    ['==', ['get', 'category'], 'metro_underground'], '#0284c7',
-                                    ['==', ['get', 'category'], 'vehicular_subway'], '#334155',
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#0f766e',
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], '#0284c7',
+                                    ['==', ['get', 'category'], 'metro_underground'], '#8b5cf6',
+                                    ['==', ['get', 'category'], 'vehicular_subway'], '#f97316',
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], '#eab308',
+                                    ['==', ['get', 'category'], 'drainage_trunk'], '#10b981',
+                                    ['==', ['get', 'category'], 'water_supply'], '#00e5ff',
+                                    ['==', ['get', 'category'], 'power_best'], '#ef4444',
+                                    ['==', ['get', 'category'], 'gas_mgl'], '#f59e0b',
                                     ['get', 'color']
                                 ],
                                 'line-width': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 28.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 20.0,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 17.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 14.5,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 14.0,
-                                    ['==', ['get', 'category'], 'water_supply'], 13.0,
-                                    ['==', ['get', 'category'], 'power_best'], 10.5,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 9.8,
-                                    8.5
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 9.5,
+                                    ['==', ['get', 'category'], 'metro_underground'], 7.5,
+                                    ['==', ['get', 'category'], 'vehicular_subway'], 6.2,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 5.5,
+                                    ['==', ['get', 'category'], 'drainage_trunk'], 5.2,
+                                    ['==', ['get', 'category'], 'water_supply'], 5.2,
+                                    ['==', ['get', 'category'], 'power_best'], 4.5,
+                                    ['==', ['get', 'category'], 'gas_mgl'], 4.2,
+                                    4.0
                                 ],
                                 'line-opacity': 1.0
                             }
@@ -1607,18 +1619,18 @@ def serve_dashboard():
                                 'line-color': '#ffffff',
                                 'line-width': [
                                     'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 5.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 3.8,
-                                    ['==', ['get', 'category'], 'vehicular_subway'], 3.2,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 2.8,
-                                    ['==', ['get', 'category'], 'drainage_trunk'], 2.6,
-                                    ['==', ['get', 'category'], 'water_supply'], 2.5,
-                                    ['==', ['get', 'category'], 'power_best'], 2.0,
-                                    ['==', ['get', 'category'], 'gas_mgl'], 1.8,
-                                    1.6
+                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 2.2,
+                                    ['==', ['get', 'category'], 'metro_underground'], 1.8,
+                                    ['==', ['get', 'category'], 'vehicular_subway'], 1.5,
+                                    ['==', ['get', 'category'], 'pedestrian_subway'], 1.4,
+                                    ['==', ['get', 'category'], 'drainage_trunk'], 1.3,
+                                    ['==', ['get', 'category'], 'water_supply'], 1.3,
+                                    ['==', ['get', 'category'], 'power_best'], 1.2,
+                                    ['==', ['get', 'category'], 'gas_mgl'], 1.1,
+                                    1.0
                                 ],
-                                'line-opacity': 0.70,
-                                'line-blur': 0.5
+                                'line-opacity': 0.75,
+                                'line-blur': 0.2
                             }
                         });
 
@@ -1631,8 +1643,8 @@ def serve_dashboard():
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
                                 'line-color': '#ffffff',
-                                'line-width': 3.6,
-                                'line-dasharray': [5, 4],
+                                'line-width': 2.2,
+                                'line-dasharray': [4, 3],
                                 'line-opacity': 0.95
                             }
                         });
@@ -1643,8 +1655,8 @@ def serve_dashboard():
                             filter: ['==', 'category', 'coastal_road_tunnel'],
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': '#fbbf24',
-                                'line-width': 2.0,
+                                'line-color': '#38bdf8',
+                                'line-width': 1.2,
                                 'line-opacity': 0.85
                             }
                         });
@@ -1657,8 +1669,8 @@ def serve_dashboard():
                             filter: ['==', 'category', 'metro_underground'],
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': '#94a3b8',
-                                'line-width': 3.2,
+                                'line-color': '#e2e8f0',
+                                'line-width': 1.8,
                                 'line-dasharray': [2, 1.5],
                                 'line-opacity': 0.95
                             }
@@ -1672,8 +1684,8 @@ def serve_dashboard():
                             filter: ['==', 'category', 'pedestrian_subway'],
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
-                                'line-color': '#facc15',
-                                'line-width': 3.0,
+                                'line-color': '#fef08a',
+                                'line-width': 1.8,
                                 'line-dasharray': [1.5, 1.5],
                                 'line-opacity': 0.95
                             }
@@ -1688,8 +1700,8 @@ def serve_dashboard():
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
                                 'line-color': ['get', 'color'],
-                                'line-width': 7.5,
-                                'line-dasharray': [2.5, 2],
+                                'line-width': 3.5,
+                                'line-dasharray': [2, 1.5],
                                 'line-opacity': 0.95
                             }
                         });
@@ -1705,13 +1717,13 @@ def serve_dashboard():
                                 'line-color': [
                                     'case',
                                     ['==', ['get', 'category'], 'coastal_road_tunnel'], '#38bdf8',
-                                    ['==', ['get', 'category'], 'metro_underground'], '#38bdf8',
+                                    ['==', ['get', 'category'], 'metro_underground'], '#c084fc',
                                     ['==', ['get', 'category'], 'power_best'], '#fef08a',
                                     ['==', ['get', 'category'], 'gas_mgl'], '#fde047',
                                     ['==', ['get', 'category'], 'water_supply'], '#e0f2fe',
                                     '#ffffff'
                                 ],
-                                'line-width': 4.0,
+                                'line-width': 2.5,
                                 'line-dasharray': [1, 4],
                                 'line-opacity': 0.85
                             }
@@ -1726,9 +1738,9 @@ def serve_dashboard():
                             layout: { 'visibility': 'none' },
                             paint: {
                                 'fill-extrusion-base': 0,
-                                'fill-extrusion-height': 7.5,
-                                'fill-extrusion-color': '#0284c7',
-                                'fill-extrusion-opacity': 0.75
+                                'fill-extrusion-height': 5.5,
+                                'fill-extrusion-color': '#8b5cf6',
+                                'fill-extrusion-opacity': 0.70
                             }
                         });
                         map.addLayer({
@@ -1738,13 +1750,13 @@ def serve_dashboard():
                             filter: ['==', 'is_station_box', true],
                             layout: { 'visibility': 'none' },
                             paint: {
-                                'line-color': '#38bdf8',
-                                'line-width': 3.5,
+                                'line-color': '#c084fc',
+                                'line-width': 2.5,
                                 'line-opacity': 1.0
                             }
                         });
 
-                        // L. Realistic 3D Concentric Cast-Iron Manholes & Portals
+                        // L. Realistic Precision Engineering CAD Inspection Nodes (Sleek junction pins matching reference image)
                         map.addLayer({
                             id: 'utilities-manholes-base',
                             type: 'circle',
@@ -1752,16 +1764,10 @@ def serve_dashboard():
                             filter: ['==', 'is_manhole', true],
                             layout: { 'visibility': 'none' },
                             paint: {
-                                'circle-radius': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 18.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 16.0,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 14.0,
-                                    12.0
-                                ],
+                                'circle-radius': 6.5,
                                 'circle-color': '#020617',
-                                'circle-blur': 0.3,
-                                'circle-opacity': 0.85
+                                'circle-blur': 0.4,
+                                'circle-opacity': 0.55
                             }
                         });
                         map.addLayer({
@@ -1771,15 +1777,9 @@ def serve_dashboard():
                             filter: ['==', 'is_manhole', true],
                             layout: { 'visibility': 'none' },
                             paint: {
-                                'circle-radius': [
-                                    'case',
-                                    ['==', ['get', 'category'], 'coastal_road_tunnel'], 14.0,
-                                    ['==', ['get', 'category'], 'metro_underground'], 12.5,
-                                    ['==', ['get', 'category'], 'pedestrian_subway'], 10.5,
-                                    9.0
-                                ],
+                                'circle-radius': 4.8,
                                 'circle-color': ['get', 'color'],
-                                'circle-stroke-width': 3.2,
+                                'circle-stroke-width': 1.5,
                                 'circle-stroke-color': '#ffffff',
                                 'circle-opacity': 1.0
                             }
@@ -1794,9 +1794,9 @@ def serve_dashboard():
                             layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
                             paint: {
                                 'line-color': '#ffffff',
-                                'line-width': 14.0,
+                                'line-width': 10.0,
                                 'line-opacity': 0.95,
-                                'line-blur': 2.0
+                                'line-blur': 1.2
                             }
                         });
                     }
@@ -2499,52 +2499,6 @@ def serve_dashboard():
 
                             <div style={{ fontSize: 10.5, color: 'var(--text-dim)', textAlign: 'center', marginTop: 10 }}>
                                 💡 Tip: Click any tunnel, station, subway, or pipeline in 3D to inspect cadastral specifications.
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Floating Subterranean Stratum Depth HUD */}
-                    {viewMode === 'map' && undergroundMode && (
-                        <div className="glass-panel" style={{
-                            position: 'absolute', top: 96, right: 24, padding: '14px 18px', borderRadius: 12,
-                            pointerEvents: 'auto', zIndex: 50, border: '1px solid rgba(56,189,248,0.3)',
-                            boxShadow: '0 12px 32px rgba(0,0,0,0.75)', minWidth: 240
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                                <span className="pulsing-dot" style={{ width: 7, height: 7, background: '#38bdf8' }}></span>
-                                <span style={{ fontSize: 10.5, fontWeight: 800, color: '#38bdf8', letterSpacing: '0.05em' }}>
-                                    SUBTERRANEAN STRATA DEPTH
-                                </span>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 10 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94a3b8' }}>
-                                    <span>Surface Datum / Ground Plinth</span>
-                                    <b style={{ color: '#fff' }}>+0.0 m</b>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#fde047' }}>
-                                    <span>BEST 110kV / MGL Gas Ducts</span>
-                                    <b>-2.0 m</b>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#38bdf8' }}>
-                                    <span>MCGM 1800mm Aqueducts & Subways</span>
-                                    <b>-4.5 m</b>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#14b8a6' }}>
-                                    <span>Deep Interceptor Drainage Outfalls</span>
-                                    <b>-12.0 m</b>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f43f5e' }}>
-                                    <span>Metro Line 3 Aqua Line Tunnels</span>
-                                    <b>-22.0 m</b>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0ea5e9' }}>
-                                    <span>Coastal Road Undersea Twin Tubes</span>
-                                    <b>-25.0 m</b>
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
-                                    <span>South Mumbai Basalt Bedrock</span>
-                                    <b>-70.0 m</b>
-                                </div>
                             </div>
                         </div>
                     )}
