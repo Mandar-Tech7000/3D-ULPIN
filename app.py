@@ -1873,11 +1873,6 @@ def serve_dashboard():
                                     {searchResults.map(b => (
                                         <div
                                             key={b.properties.spatial_id}
-                                            onClick={() => {
-                                                handleOpenTwin(b);
-                                                setSearchResults([]);
-                                                setSearchQuery('');
-                                            }}
                                             onClick={() => handleSearchSelect(b)}
                                             style={{
                                                 padding: '8px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 12,
@@ -1945,8 +1940,10 @@ def serve_dashboard():
                                     ← Exit 3D Digital Twin
                                 </button>
                             ) : (
+                                <>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
                                     <span className="pulsing-dot"></span> GIS Live Stream
+                                </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <button
                                         onClick={() => window.cityViewer && window.cityViewer.setPreset('oblique')}
@@ -1979,6 +1976,7 @@ def serve_dashboard():
                                         {engineMode === 'google-3d' ? 'Google 3D Tiles' : '3D Satellite Base'}
                                     </div>
                                 </div>
+                                </>
                             )}
                         </div>
                     </div>
@@ -1996,7 +1994,6 @@ def serve_dashboard():
                                     3D URBAN CADASTRAL ASSET
                                 </span>
                                 <button
-                                    onClick={() => setSelectedBuilding(null)}
                                     onClick={handleClearSelection}
                                     style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 16 }}
                                 >
