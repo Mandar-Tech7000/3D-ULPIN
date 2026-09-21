@@ -118,6 +118,7 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
     filename = f"{record['unit_ulpin'].replace('/', '-')}-property-ownership-details.pdf"
     buffer = BytesIO()
     font_candidates = [
+        (BASE_DIR / "assets" / "NotoSansDevanagari-Regular.ttf", BASE_DIR / "assets" / "NotoSansDevanagari-Bold.ttf"),
         (Path("C:/Windows/Fonts/mangal.ttf"), Path("C:/Windows/Fonts/mangalb.ttf")),
         (Path("C:/Windows/Fonts/kokila.ttf"), Path("C:/Windows/Fonts/kokilab.ttf")),
     ]
