@@ -139,7 +139,7 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
     styles.add(ParagraphStyle(name="DocLabel", parent=styles["Normal"], fontName="Times-Bold", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocValue", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=14, leading=15, alignment=1, textColor=navy))
-    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName="GovernmentDevanagari-Bold", fontSize=13, leading=14, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName="GovernmentDevanagari-Bold", fontSize=16, leading=17, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="DocSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="SectionTitle", parent=styles["Normal"], fontName="Times-Bold", fontSize=11, leading=13, textColor=navy))
     emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=21 * mm, height=29 * mm)
