@@ -141,9 +141,11 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
     styles.add(ParagraphStyle(name="DocHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=14, leading=15, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName="GovernmentDevanagari-Bold", fontSize=16, leading=17, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="DocSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="GovernmentHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=17, leading=18, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="GovernmentSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=11.5, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="SectionTitle", parent=styles["Normal"], fontName="Times-Bold", fontSize=11, leading=13, textColor=navy))
-    emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=21 * mm, height=29 * mm)
-    ministry_mark = Image(str(BASE_DIR / "assets" / "ministry-rural-development-user.jpg"), width=48 * mm, height=22 * mm)
+    emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=27 * mm, height=37 * mm)
+    ministry_mark = Image(str(BASE_DIR / "assets" / "ministry-rural-development-user.jpg"), width=56 * mm, height=26 * mm)
 
     def section(title, rows):
         return [
@@ -168,11 +170,11 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
         Table([[emblem, [
             Paragraph("भारत सरकार", styles["HindiHeader"]),
             Paragraph("ग्रामीण विकास मंत्रालय", styles["HindiHeader"]),
-            Paragraph("Government of India", styles["DocHeader"]),
-            Paragraph("Ministry of Rural Development", styles["DocHeader"]),
-            Paragraph("Department of Land Resources", styles["DocSubheader"]),
-            Paragraph("(Digital India Land Records Modernization Programme)", styles["DocSubheader"]),
-        ], ministry_mark]], colWidths=[26 * mm, 114 * mm, 42 * mm], style=TableStyle([
+            Paragraph("Government of India", styles["GovernmentHeader"]),
+            Paragraph("Ministry of Rural Development", styles["GovernmentHeader"]),
+            Paragraph("Department of Land Resources", styles["GovernmentSubheader"]),
+            Paragraph("(Digital India Land Records Modernization Programme)", styles["GovernmentSubheader"]),
+        ], ministry_mark]], colWidths=[31 * mm, 105 * mm, 46 * mm], style=TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("ALIGN", (2, 0), (2, 0), "RIGHT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0), ("RIGHTPADDING", (0, 0), (-1, -1), 0),
             ("TOPPADDING", (0, 0), (-1, -1), 0), ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
