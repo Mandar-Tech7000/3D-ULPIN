@@ -117,17 +117,28 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
     issued_on = datetime.now(timezone.utc).strftime("%d-%m-%Y")
     filename = f"{record['unit_ulpin'].replace('/', '-')}-property-ownership-details.pdf"
     buffer = BytesIO()
-    hindi_font = "Helvetica"
-    mangal_font = Path("C:/Windows/Fonts/mangal.ttf")
-    if mangal_font.exists():
-        pdfmetrics.registerFont(TTFont("Mangal", str(mangal_font)))
-        hindi_font = "Mangal"
+    font_candidates = [
+        (Path("C:/Windows/Fonts/mangal.ttf"), Path("C:/Windows/Fonts/mangalb.ttf")),
+        (Path("C:/Windows/Fonts/kokila.ttf"), Path("C:/Windows/Fonts/kokilab.ttf")),
+    ]
+    devanagari_font = next(
+        ((regular, bold) for regular, bold in font_candidates if regular.exists() and bold.exists()),
+        None,
+    )
+    if devanagari_font is None:
+        raise HTTPException(
+            status_code=500,
+            detail="A Devanagari font (Mangal or Kokila) is required to render the Hindi government header.",
+        )
+    regular_font, bold_font = devanagari_font
+    pdfmetrics.registerFont(TTFont("GovernmentDevanagari", str(regular_font)))
+    pdfmetrics.registerFont(TTFont("GovernmentDevanagari-Bold", str(bold_font)))
     styles = getSampleStyleSheet()
     navy = colors.HexColor("#17365d")
     styles.add(ParagraphStyle(name="DocLabel", parent=styles["Normal"], fontName="Times-Bold", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocValue", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=14, leading=15, alignment=1, textColor=navy))
-    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName=hindi_font, fontSize=13, leading=14, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName="GovernmentDevanagari-Bold", fontSize=13, leading=14, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="DocSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="SectionTitle", parent=styles["Normal"], fontName="Times-Bold", fontSize=11, leading=13, textColor=navy))
     emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=21 * mm, height=29 * mm)
