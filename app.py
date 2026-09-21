@@ -127,6 +127,10 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
         None,
     )
     hindi_font_name = "GovernmentDevanagari-Bold"
+    serif_hindi_font = BASE_DIR / "assets" / "NotoSerifDevanagari-Bold.ttf"
+    if serif_hindi_font.exists():
+        pdfmetrics.registerFont(TTFont("GovernmentDevanagari-SerifBold", str(serif_hindi_font)))
+        hindi_font_name = "GovernmentDevanagari-SerifBold"
     if devanagari_font is not None:
         regular_font, bold_font = devanagari_font
         pdfmetrics.registerFont(TTFont("GovernmentDevanagari", str(regular_font)))
