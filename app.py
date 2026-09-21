@@ -110,64 +110,63 @@ def serve_dashboard():
 
     <style>
         :root {
-            --bg-dark: #070b14;
-            --bg-card: rgba(13, 20, 36, 0.92);
-            --bg-card-hover: rgba(22, 33, 58, 0.95);
-            --accent-cyan: #00e5ff;
-            --accent-blue: #38bdf8;
+            --bg-dark: #090d16;
+            --bg-card: #0f172a;
+            --bg-card-hover: #1e293b;
+            --bg-card-subtle: #131b2e;
+            --accent-cyan: #38bdf8;
+            --accent-blue: #2563eb;
             --accent-emerald: #10b981;
             --accent-amber: #f59e0b;
-            --border-subtle: rgba(56, 189, 248, 0.18);
-            --border-glow: rgba(0, 229, 255, 0.45);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-medium: rgba(255, 255, 255, 0.15);
+            --border-glow: rgba(37, 99, 235, 0.3);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-dim: #64748b;
+            --shadow-panel: 0 16px 36px -4px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4);
         }
 
         * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-dark); color: var(--text-primary);
             overflow: hidden; user-select: none;
         }
 
         #map, #fallback-map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100%; }
-        #map { display: block; background: #020816; }
+        #map { display: block; background: #090d16; }
         #fallback-map { display: none; }
-        .cesium-viewer { background: #030b18; }
+        .cesium-viewer { background: #090d16; }
 
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: rgba(5, 10, 20, 0.6); }
-        ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         .glass-panel {
-            background: var(--bg-card);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+            background: #0f172a;
             border: 1px solid var(--border-subtle);
-            border-radius: 12px;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: var(--shadow-panel);
         }
 
         .code-font {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
         }
 
         #viewport-tooltip {
             position: absolute; display: none; pointer-events: none; z-index: 50;
-            background: rgba(8, 14, 28, 0.95); border: 1px solid var(--accent-cyan);
-            border-radius: 8px; padding: 8px 12px; font-size: 11px;
-            box-shadow: 0 8px 24px rgba(0, 229, 255, 0.25);
+            background: #0f172a; border: 1px solid var(--border-medium);
+            border-radius: 6px; padding: 8px 12px; font-size: 11px;
+            box-shadow: var(--shadow-panel);
             transform: translate(-50%, -120%); transition: opacity 0.15s;
         }
 
-
-
         #twin-workspace {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(circle at 50% 30%, #0d172e 0%, #060913 100%);
+            background: #090d16;
             z-index: 40; display: none; flex-direction: column;
         }
 
@@ -175,14 +174,37 @@ def serve_dashboard():
             flex: 1; width: 100%; height: 100%; position: relative; overflow: hidden;
         }
 
-        .pulsing-dot {
-            width: 8px; height: 8px; border-radius: 50%; background: #10b981;
-            box-shadow: 0 0 10px #10b981; animation: pulse 2s infinite;
+        /* Clean Engineering Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: #334155;
+            outline: none;
+            cursor: pointer;
         }
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2563eb;
+            border: 2px solid #ffffff;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            transition: transform 0.12s ease, background 0.12s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #3b82f6;
+        }
+
+        .pulsing-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: #10b981;
+            display: inline-block;
         }
 
         #react-root {
@@ -199,22 +221,20 @@ def serve_dashboard():
             pointer-events: auto !important;
         }
         .maplibregl-popup-content {
-            background: rgba(11, 19, 38, 0.98) !important;
-            backdrop-filter: blur(20px) !important;
-            -webkit-backdrop-filter: blur(20px) !important;
-            border: 1px solid rgba(0, 229, 255, 0.5) !important;
-            border-radius: 14px !important;
+            background: #0f172a !important;
+            border: 1px solid var(--border-medium) !important;
+            border-radius: 10px !important;
             padding: 14px 16px !important;
             color: #f8fafc !important;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 229, 255, 0.25) !important;
+            box-shadow: var(--shadow-panel) !important;
             width: 320px !important;
             max-width: 320px !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
         }
         .maplibregl-popup-tip {
-            border-top-color: rgba(11, 19, 38, 0.98) !important;
-            border-bottom-color: rgba(11, 19, 38, 0.98) !important;
+            border-top-color: #0f172a !important;
+            border-bottom-color: #0f172a !important;
         }
         .maplibregl-popup-close-button {
             color: #94a3b8 !important;
@@ -229,7 +249,7 @@ def serve_dashboard():
         }
         .maplibregl-popup-close-button:hover {
             color: #fff !important;
-            background: rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
         }
     </style>
 </head>
@@ -337,7 +357,7 @@ def serve_dashboard():
                         color: 0x475569, roughness: 0.85, metalness: 0.1
                     }),
                     balconyGlassRailing: new THREE.MeshPhysicalMaterial({
-                        color: 0x00e5ff, roughness: 0.15, transmission: 0.9, opacity: 0.65,
+                        color: 0x38bdf8, roughness: 0.15, transmission: 0.9, opacity: 0.5,
                         transparent: true, reflectivity: 0.85
                     }),
                     metalRailing: new THREE.MeshStandardMaterial({
@@ -351,8 +371,8 @@ def serve_dashboard():
                         color: 0x4b5563, roughness: 0.65, metalness: 0.7
                     }),
                     flatFloorSelected: new THREE.MeshStandardMaterial({
-                        color: 0x00e5ff, emissive: 0x0088aa, emissiveIntensity: 0.75,
-                        roughness: 0.3, metalness: 0.5
+                        color: 0x2563eb, emissive: 0x1d4ed8, emissiveIntensity: 0.35,
+                        roughness: 0.3, metalness: 0.2
                     }),
                     ghostedMaterial: new THREE.MeshPhysicalMaterial({
                         color: 0x0f172a, roughness: 0.2, transmission: 0.85, opacity: 0.18,
@@ -366,7 +386,7 @@ def serve_dashboard():
                 const h = this.container.clientHeight || window.innerHeight;
 
                 this.scene = new THREE.Scene();
-                this.scene.background = new THREE.Color(0x060913);
+                this.scene.background = new THREE.Color(0x090d16);
 
                 this.camera = new THREE.PerspectiveCamera(42, w / h, 0.5, 3000);
 
@@ -403,14 +423,14 @@ def serve_dashboard():
             }
 
             setupLighting() {
-                const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+                const ambient = new THREE.AmbientLight(0xffffff, 0.9);
                 this.scene.add(ambient);
 
-                const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x090d16, 0.95);
+                const hemiLight = new THREE.HemisphereLight(0xf1f5f9, 0x0f172a, 0.85);
                 hemiLight.position.set(0, 200, 0);
                 this.scene.add(hemiLight);
 
-                const sun = new THREE.DirectionalLight(0xfffbeb, 1.9);
+                const sun = new THREE.DirectionalLight(0xfffbeb, 1.8);
                 sun.position.set(120, 220, 140);
                 sun.castShadow = true;
                 sun.shadow.mapSize.width = 2048;
@@ -425,21 +445,21 @@ def serve_dashboard():
                 sun.shadow.bias = -0.0004;
                 this.scene.add(sun);
 
-                const rimLight = new THREE.DirectionalLight(0x00e5ff, 1.25);
+                const rimLight = new THREE.DirectionalLight(0x94a3b8, 0.65);
                 rimLight.position.set(-140, 90, -140);
                 this.scene.add(rimLight);
             }
 
             setupGround() {
-                const gridHelper = new THREE.GridHelper(260, 52, 0x00e5ff, 0x1e293b);
+                const gridHelper = new THREE.GridHelper(260, 52, 0x475569, 0x1e293b);
                 gridHelper.position.y = -0.05;
-                gridHelper.material.opacity = 0.45;
+                gridHelper.material.opacity = 0.5;
                 gridHelper.material.transparent = true;
                 this.scene.add(gridHelper);
 
-                const groundGeo = new THREE.PlaneGeometry(320, 320);
+                const groundGeo = new THREE.PlaneGeometry(360, 360);
                 const groundMat = new THREE.MeshStandardMaterial({
-                    color: 0x060913, roughness: 0.9, metalness: 0.1
+                    color: 0x090d16, roughness: 0.95, metalness: 0.05
                 });
                 const ground = new THREE.Mesh(groundGeo, groundMat);
                 ground.rotation.x = -Math.PI / 2;
@@ -604,7 +624,7 @@ def serve_dashboard():
 
                     const slabEdgeGeom = new THREE.EdgesGeometry(slabGeom, 35);
                     const slabEdge = new THREE.LineSegments(slabEdgeGeom, new THREE.LineBasicMaterial({
-                        color: 0x00e5ff, transparent: true, opacity: 0.45
+                        color: 0x94a3b8, transparent: true, opacity: 0.35
                     }));
                     floorGroup.add(slabEdge);
 
@@ -665,7 +685,7 @@ def serve_dashboard():
 
                         const flatEdgeGeom = new THREE.EdgesGeometry(wallGeom, 30);
                         const flatOutline = new THREE.LineSegments(flatEdgeGeom, new THREE.LineBasicMaterial({
-                            color: 0x00e5ff, transparent: true, opacity: 0.0, linewidth: 2
+                            color: 0x3b82f6, transparent: true, opacity: 0.0, linewidth: 2
                         }));
                         flatGroup.add(flatOutline);
 
@@ -778,7 +798,7 @@ def serve_dashboard():
                 entranceGroup.add(canopy);
 
                 const edgeGeo = new THREE.EdgesGeometry(canopyGeo);
-                const line = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: 0x00e5ff, opacity: 0.8, transparent: true }));
+                const line = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: 0x38bdf8, opacity: 0.5, transparent: true }));
                 line.position.copy(canopy.position);
                 entranceGroup.add(line);
 
@@ -1034,6 +1054,96 @@ def serve_dashboard():
             }
         }
 
+        // Professional Engineering Inline SVG Icons
+        const IconEmblem = () => (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/>
+                <path d="M12 7v8"/>
+                <path d="M8 11h8"/>
+            </svg>
+        );
+
+        const IconIsometric = () => (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/>
+                <path d="m3 8 9 5 9-5"/>
+                <path d="M12 13v8"/>
+            </svg>
+        );
+
+        const IconElevation = () => (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2"/>
+                <path d="M4 10h16"/>
+                <path d="M4 16h16"/>
+                <path d="M10 4v16"/>
+            </svg>
+        );
+
+        const IconTopPlan = () => (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M3 9h18"/>
+                <path d="M9 21V9"/>
+            </svg>
+        );
+
+        const IconBuilding = () => (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <path d="M9 22v-4h6v4"/>
+                <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/>
+            </svg>
+        );
+
+        const IconOrbit = () => (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="m16 8-4-4-4 4"/>
+                <path d="M12 4v7"/>
+                <path d="m8 16 4 4 4-4"/>
+                <path d="M12 20v-7"/>
+            </svg>
+        );
+
+        const IconUnderground = () => (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 8h18"/>
+                <path d="M4 14h16"/>
+                <path d="M6 20h12"/>
+                <circle cx="8" cy="14" r="2" fill="currentColor"/>
+                <circle cx="16" cy="14" r="2" fill="currentColor"/>
+            </svg>
+        );
+
+        const IconExplode = () => (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m12 2 10 5-10 5-10-5 10-5Z"/>
+                <path d="m2 12 10 5 10-5"/>
+                <path d="m2 17 10 5 10-5"/>
+            </svg>
+        );
+
+        const IconCopy = () => (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+        );
+
+        const IconCheck = () => (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        );
+
+        const IconSearch = () => (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+            </svg>
+        );
+
         function App() {
             const [viewMode, setViewMode] = useState('map');
             const [buildingsData, setBuildingsData] = useState(null);
@@ -1043,6 +1153,7 @@ def serve_dashboard():
             const [selectedFloor, setSelectedFloor] = useState(null);
             const [selectedFlat, setSelectedFlat] = useState(null);
             const [explodeRatio, setExplodeRatio] = useState(0);
+            const [copiedCode, setCopiedCode] = useState(false);
             const [searchQuery, setSearchQuery] = useState('');
             const [searchResults, setSearchResults] = useState([]);
             const [twinPreset, setTwinPreset] = useState('iso');
@@ -1486,23 +1597,24 @@ def serve_dashboard():
                     <div style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif; width: 100%; box-sizing: border-box; overflow: hidden; user-select: text;">
                         <!-- Header with dedicated right clearance for MapLibre close X -->
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding-right: 26px;">
-                            <span style="font-size: 9px; font-weight: 800; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 12px; background: ${accentColor}; color: #000; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;">
+                            <span style="font-size: 9px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.06); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.12); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; display: inline-flex; align-items: center; gap: 5px;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: ${accentColor}; flex-shrink: 0;"></span>
                                 ${categoryTitle}
                             </span>
-                            <span style="font-size: 10.5px; font-weight: 800; color: #38bdf8; background: rgba(56,189,248,0.12); padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.3); white-space: nowrap; flex-shrink: 0;">
+                            <span style="font-size: 10.5px; font-weight: 700; color: #38bdf8; background: rgba(56,189,248,0.1); padding: 2px 7px; border-radius: 4px; border: 1px solid rgba(56,189,248,0.25); white-space: nowrap; flex-shrink: 0;">
                                 -${p.depth_msl_m}m MSL
                             </span>
                         </div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #fff; margin-bottom: 3px; line-height: 1.35; word-break: break-word;">
+                        <div style="font-weight: 700; font-size: 13.5px; color: #fff; margin-bottom: 3px; line-height: 1.35; word-break: break-word;">
                             ${p.label || 'Subterranean Asset'}
                         </div>
                         <div style="font-size: 10.5px; color: #94a3b8; margin-bottom: 10px; line-height: 1.3; word-break: break-word;">
                             ${p.corridor_name || ''}
                         </div>
-                        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; background: rgba(15,23,42,0.85); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; font-size: 10.5px; box-sizing: border-box;">
+                        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; background: #131b2e; padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 8px; font-size: 10.5px; box-sizing: border-box;">
                             <div style="min-width: 0; overflow: hidden;">
                                 <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">DIAMETER / BORE</div>
-                                <div style="font-weight: 800; color: ${accentColor}; margin-top: 1px; word-break: break-word;">${diameterStr}</div>
+                                <div style="font-weight: 700; color: ${accentColor}; margin-top: 1px; word-break: break-word;">${diameterStr}</div>
                             </div>
                             <div style="min-width: 0; overflow: hidden;">
                                 <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">CLEARANCE</div>
@@ -1518,7 +1630,7 @@ def serve_dashboard():
                             <div style="grid-column: span 2; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); min-width: 0; overflow: hidden;">
                                 <div style="color: #64748b; font-size: 8.5px; font-weight: 700; text-transform: uppercase;">CONNECTED LANDMARK</div>
                                 <div style="color: #f59e0b; font-size: 10px; font-weight: 700; margin-top: 1px; word-break: break-word;">
-                                    🏢 ${p.connected_building}
+                                    ${p.connected_building}
                                 </div>
                             </div>
                             ` : ''}
@@ -2277,49 +2389,53 @@ def serve_dashboard():
             return (
                 <div style={{ width: '100%', height: '100%', position: 'relative', pointerEvents: 'none' }}>
                     <div className="glass-panel" style={{
-                        position: 'absolute', top: 16, left: 16, right: 16, height: 64,
-                        padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        zIndex: 60, pointerEvents: 'auto'
+                        position: 'absolute', top: 16, left: 16, right: 16, height: 60,
+                        padding: '0 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        zIndex: 60, pointerEvents: 'auto', background: '#0f172a', border: '1px solid var(--border-medium)'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                             <div style={{
-                                width: 38, height: 38, borderRadius: 8, background: 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 0 16px rgba(0,229,255,0.5)'
+                                width: 34, height: 34, borderRadius: 7, background: '#1e293b',
+                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6'
                             }}>
-                                🏛️
+                                <IconEmblem />
                             </div>
                             <div>
-                                <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '0.02em', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <div style={{ fontWeight: 700, fontSize: 14.5, letterSpacing: '-0.01em', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
                                     SOUTH MUMBAI 3D DIGITAL TWIN
-                                    <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: 'rgba(0,229,255,0.15)', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)' }}>
-                                        BHU-AADHAAR 3D CADASTRE
+                                    <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)', letterSpacing: '0.04em' }}>
+                                        BHU-AADHAAR CADASTRE
                                     </span>
                                 </div>
-                                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 1 }}>
                                     {cadastre ? (
                                         <span>
-                                             <b style={{ color: '#fff' }}>{cadastre.name}</b> • {cadastre.land_ulpin} • {cadastre.cts_no}
+                                            <b style={{ color: '#fff' }}>{cadastre.name}</b> • <span className="code-font" style={{ color: '#94a3b8' }}>{cadastre.land_ulpin}</span> • {cadastre.cts_no}
                                         </span>
-                                    ) : "Cadastral Land Parcel & Vertical Property Identification System"}
+                                    ) : "Department of Land Resources • 3D Cadastral Property Twin"}
                                 </div>
                             </div>
                         </div>
 
-                        <div style={{ position: 'relative', width: 340 }}>
+                        <div style={{ position: 'relative', width: 320 }}>
+                            <div style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none', display: 'flex' }}>
+                                <IconSearch />
+                            </div>
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                placeholder="🔍 Search by ULPIN, Building or Street..."
+                                placeholder="Search by ULPIN, Building or Street..."
                                 style={{
-                                    width: '100%', background: 'rgba(15, 23, 42, 0.8)', border: '1px solid var(--border-subtle)',
-                                    borderRadius: 8, padding: '8px 14px', color: '#fff', fontSize: 12, outline: 'none'
+                                    width: '100%', background: '#131b2e', border: '1px solid var(--border-subtle)',
+                                    borderRadius: 6, padding: '7px 12px 7px 32px', color: '#fff', fontSize: 11.5, outline: 'none'
                                 }}
                             />
                             {searchResults.length > 0 && (
                                 <div className="glass-panel" style={{
-                                    position: 'absolute', top: 42, left: 0, right: 0, maxHeight: 280, overflowY: 'auto',
-                                    zIndex: 100, padding: 8
+                                    position: 'absolute', top: 38, left: 0, right: 0, maxHeight: 280, overflowY: 'auto',
+                                    zIndex: 100, padding: 6, background: '#0f172a', border: '1px solid var(--border-medium)'
                                 }}>
                                     {searchResults.map(b => (
                                         <div
@@ -2330,15 +2446,15 @@ def serve_dashboard():
                                                 setSearchQuery('');
                                             }}
                                             style={{
-                                                padding: '8px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 12,
-                                                marginBottom: 4, background: 'rgba(30, 41, 59, 0.5)', transition: 'background 0.15s'
+                                                padding: '7px 9px', borderRadius: 5, cursor: 'pointer', fontSize: 11.5,
+                                                marginBottom: 3, background: '#131b2e', transition: 'background 0.15s'
                                             }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 229, 255, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(30, 41, 59, 0.5)'}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = '#1e293b'}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = '#131b2e'}
                                         >
-                                            <div style={{ fontWeight: 700, color: 'var(--accent-cyan)' }}>{b.properties.name}</div>
-                                            <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
-                                                {b.properties.land_ulpin} • {b.properties.street}
+                                            <div style={{ fontWeight: 600, color: '#60a5fa' }}>{b.properties.name}</div>
+                                            <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 2 }}>
+                                                <span className="code-font">{b.properties.land_ulpin}</span> • {b.properties.street}
                                             </div>
                                         </div>
                                     ))}
@@ -2348,36 +2464,42 @@ def serve_dashboard():
 
                         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                             {viewMode === 'twin' && (
-                                <div style={{ display: 'flex', background: 'rgba(15,23,42,0.8)', borderRadius: 8, padding: 3, border: '1px solid var(--border-subtle)' }}>
+                                <div style={{ display: 'flex', background: '#131b2e', borderRadius: 7, padding: 3, border: '1px solid var(--border-subtle)' }}>
                                     <button
                                         onClick={() => handleCameraPreset('iso')}
                                         style={{
-                                            background: twinPreset === 'iso' ? 'var(--accent-cyan)' : 'transparent',
-                                            color: twinPreset === 'iso' ? '#000' : 'var(--text-secondary)',
-                                            border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer'
+                                            background: twinPreset === 'iso' ? '#2563eb' : 'transparent',
+                                            color: twinPreset === 'iso' ? '#ffffff' : 'var(--text-secondary)',
+                                            border: 'none', padding: '6px 12px', borderRadius: 5, fontSize: 11, fontWeight: 600,
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                         }}
                                     >
-                                        🏙️ 3D Isometric
+                                        <IconIsometric />
+                                        <span>3D Isometric</span>
                                     </button>
                                     <button
                                         onClick={() => handleCameraPreset('elevation')}
                                         style={{
-                                            background: twinPreset === 'elevation' ? 'var(--accent-cyan)' : 'transparent',
-                                            color: twinPreset === 'elevation' ? '#000' : 'var(--text-secondary)',
-                                            border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer'
+                                            background: twinPreset === 'elevation' ? '#2563eb' : 'transparent',
+                                            color: twinPreset === 'elevation' ? '#ffffff' : 'var(--text-secondary)',
+                                            border: 'none', padding: '6px 12px', borderRadius: 5, fontSize: 11, fontWeight: 600,
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                         }}
                                     >
-                                        📐 Elevation
+                                        <IconElevation />
+                                        <span>Elevation</span>
                                     </button>
                                     <button
                                         onClick={() => handleCameraPreset('plan')}
                                         style={{
-                                            background: twinPreset === 'plan' ? 'var(--accent-cyan)' : 'transparent',
-                                            color: twinPreset === 'plan' ? '#000' : 'var(--text-secondary)',
-                                            border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer'
+                                            background: twinPreset === 'plan' ? '#2563eb' : 'transparent',
+                                            color: twinPreset === 'plan' ? '#ffffff' : 'var(--text-secondary)',
+                                            border: 'none', padding: '6px 12px', borderRadius: 5, fontSize: 11, fontWeight: 600,
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                         }}
                                     >
-                                        🗺️ Top Plan
+                                        <IconTopPlan />
+                                        <span>Top Plan</span>
                                     </button>
                                 </div>
                             )}
@@ -2386,57 +2508,59 @@ def serve_dashboard():
                                 <button
                                     onClick={handleCloseTwin}
                                     style={{
-                                        background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.4)',
-                                        padding: '8px 16px', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', transition: 'all 0.2s'
+                                        background: 'rgba(255, 255, 255, 0.05)', color: '#cbd5e1', border: '1px solid var(--border-subtle)',
+                                        padding: '7px 14px', borderRadius: 7, fontWeight: 600, fontSize: 11.5, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                     }}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.4)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.color = '#fff'; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#cbd5e1'; }}
                                 >
-                                    ← Exit 3D Digital Twin
+                                    <span>← Exit 3D Digital Twin</span>
                                 </button>
                             ) : (
                                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                                    {/* 3D Map Feature Toggles */}
                                     <button
                                         onClick={toggleStoreys}
                                         style={{
-                                            background: showStoreys ? 'rgba(0, 229, 255, 0.18)' : 'rgba(15,23,42,0.8)',
-                                            color: showStoreys ? 'var(--accent-cyan)' : 'var(--text-dim)',
-                                            border: `1px solid ${showStoreys ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
-                                            padding: '6px 11px', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: 5
+                                            background: showStoreys ? 'rgba(59, 130, 246, 0.15)' : '#131b2e',
+                                            color: showStoreys ? '#60a5fa' : 'var(--text-dim)',
+                                            border: `1px solid ${showStoreys ? 'rgba(59, 130, 246, 0.4)' : 'var(--border-subtle)'}`,
+                                            padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                         }}
                                         title="Toggle 3D Multi-Storey Architecture"
                                     >
-                                        🏢 3D Storeys
+                                        <IconBuilding />
+                                        <span>3D Storeys</span>
                                     </button>
                                     <button
                                         onClick={toggleOrbit}
                                         style={{
-                                            background: isOrbiting ? 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)' : 'rgba(15,23,42,0.8)',
-                                            color: isOrbiting ? '#000' : 'var(--text-secondary)',
-                                            border: '1px solid var(--border-subtle)',
-                                            padding: '6px 11px', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: 5
+                                            background: isOrbiting ? '#2563eb' : '#131b2e',
+                                            color: isOrbiting ? '#ffffff' : 'var(--text-secondary)',
+                                            border: `1px solid ${isOrbiting ? '#3b82f6' : 'var(--border-subtle)'}`,
+                                            padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                         }}
                                         title="Toggle Continuous 3D Aerial Orbit"
                                     >
-                                        {isOrbiting ? "⏸️ Pause" : "🎥 3D Orbit"}
+                                        <IconOrbit />
+                                        <span>{isOrbiting ? "Pause Orbit" : "3D Orbit"}</span>
                                     </button>
                                     <button
                                         onClick={handleToggleUnderground}
                                         style={{
-                                            background: undergroundMode ? 'linear-gradient(135deg, #00e5ff 0%, #10b981 100%)' : 'rgba(15,23,42,0.8)',
-                                            color: undergroundMode ? '#000' : 'var(--text-secondary)',
-                                            border: `1px solid ${undergroundMode ? 'var(--accent-cyan)' : 'var(--border-subtle)'}`,
-                                            boxShadow: undergroundMode ? '0 0 16px rgba(0, 229, 255, 0.45)' : 'none',
-                                            padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 800, cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.2s'
+                                            background: undergroundMode ? '#1e293b' : '#131b2e',
+                                            color: undergroundMode ? '#38bdf8' : 'var(--text-secondary)',
+                                            border: `1px solid ${undergroundMode ? '#38bdf8' : 'var(--border-subtle)'}`,
+                                            padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                         }}
                                         title="Toggle Subsurface 3D Cutaway & Pipeline Network Filter"
                                     >
-                                        <span>🚇 Underground 3D</span>
-                                        {undergroundMode && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#000', animation: 'pulse 1.5s infinite' }} />}
+                                        <IconUnderground />
+                                        <span>Underground 3D</span>
+                                        {undergroundMode && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38bdf8' }} />}
                                     </button>
                                 </div>
                             )}
@@ -2476,49 +2600,50 @@ def serve_dashboard():
                         </div>
                     )}
 
-                    {/* Left-Hand 3D Integrated Pipe Network Analytical Panel (Matching Reference Image) */}
+                    {/* Left-Hand 3D Integrated Pipe Network Analytical Panel */}
                     {viewMode === 'map' && undergroundMode && (
                         <div className="glass-panel" style={{
-                            position: 'absolute', top: 96, left: 16, width: 340, maxHeight: 'calc(100vh - 130px)',
-                            display: 'flex', flexDirection: 'column', padding: 18, zIndex: 60, pointerEvents: 'auto',
-                            overflowY: 'auto', boxShadow: '0 20px 48px rgba(0,0,0,0.75)', border: '1px solid rgba(0, 229, 255, 0.35)'
+                            position: 'absolute', top: 88, left: 16, width: 330, maxHeight: 'calc(100vh - 120px)',
+                            display: 'flex', flexDirection: 'column', padding: 16, zIndex: 60, pointerEvents: 'auto',
+                            overflowY: 'auto', background: '#0f172a', border: '1px solid var(--border-medium)'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                                 <span style={{
-                                    fontSize: 9.5, fontWeight: 800, padding: '3px 8px', borderRadius: 20,
-                                    background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)', border: '1px solid var(--accent-cyan)'
+                                    fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
+                                    background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)',
+                                    letterSpacing: '0.04em'
                                 }}>
                                     3D SUBTERRANEAN INFRASTRUCTURE
                                 </span>
-                                <span style={{ fontSize: 10, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700 }}>
+                                <span style={{ fontSize: 10, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
                                     <span className="pulsing-dot" style={{ width: 6, height: 6 }}></span> Active
                                 </span>
                             </div>
 
-                            <h3 style={{ margin: '0 0 4px 0', fontSize: 15, color: '#fff', fontWeight: 800 }}>
+                            <h3 style={{ margin: '0 0 2px 0', fontSize: 14.5, color: '#fff', fontWeight: 700 }}>
                                 Subterranean 3D Cadastre
                             </h3>
-                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.4 }}>
-                                Tunnels, Metro 3, Subways, Underpasses & Utility Networks across South Mumbai.
+                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12, lineHeight: 1.4 }}>
+                                Tunnels, Metro 3, subways, and utility infrastructure networks.
                             </div>
 
                             {/* Subterranean Category Filters */}
-                            <div style={{ marginBottom: 14 }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8 }}>
+                            <div style={{ marginBottom: 12 }}>
+                                <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 7, letterSpacing: '0.04em' }}>
                                     Subterranean Network Layers
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                                     {[
-                                        { id: 'all', label: 'All Subterranean Networks', color: '#00e5ff', count: '134 Assets' },
-                                        { id: 'coastal_road_tunnel', label: '🌊 Coastal Road Undersea Tunnel', color: '#38bdf8', count: 'Twin 12.2m Tubes' },
-                                        { id: 'metro_underground', label: '🚇 Metro 3 Aqua Line Railway', color: '#f43f5e', count: '8 Stations + Tunnels' },
-                                        { id: 'vehicular_subway', label: '🚗 Vehicular Roads & Underpasses', color: '#fb923c', count: '3 Road Tunnels' },
-                                        { id: 'pedestrian_subway', label: '🚶 Pedestrian Subway Networks', color: '#10b981', count: 'CSMT & Churchgate' },
-                                        { id: 'water_supply', label: '💧 Potable Water Transmission', color: '#00e5ff', count: '1800mm - 600mm' },
-                                        { id: 'power_best', label: '⚡ BEST 110kV / 33kV Grid', color: '#ef4444', count: 'High-Voltage Conduits' },
-                                        { id: 'gas_mgl', label: '🔥 MGL City Gas Pipeline', color: '#f59e0b', count: 'Steel & MDPE Grid' },
-                                        { id: 'drainage_trunk', label: '🌿 Deep Sewer & Storm Drainage', color: '#14b8a6', count: '2400mm Box Outfalls' },
-                                        { id: 'telecom', label: '📡 Telecom Optical Fiber Banks', color: '#a855f7', count: '4-Way Duct Banks' }
+                                        { id: 'all', label: 'All Subterranean Networks', color: '#38bdf8', count: '134 Assets' },
+                                        { id: 'coastal_road_tunnel', label: 'Coastal Road Undersea Tunnel', color: '#38bdf8', count: 'Twin 12.2m Tubes' },
+                                        { id: 'metro_underground', label: 'Metro 3 Aqua Line Railway', color: '#f43f5e', count: '8 Stations + Tunnels' },
+                                        { id: 'vehicular_subway', label: 'Vehicular Roads & Underpasses', color: '#fb923c', count: '3 Road Tunnels' },
+                                        { id: 'pedestrian_subway', label: 'Pedestrian Subway Networks', color: '#10b981', count: 'CSMT & Churchgate' },
+                                        { id: 'water_supply', label: 'Potable Water Transmission', color: '#0284c7', count: '1800mm - 600mm' },
+                                        { id: 'power_best', label: 'BEST 110kV / 33kV Grid', color: '#ef4444', count: 'High-Voltage Conduits' },
+                                        { id: 'gas_mgl', label: 'MGL City Gas Pipeline', color: '#f59e0b', count: 'Steel & MDPE Grid' },
+                                        { id: 'drainage_trunk', label: 'Deep Sewer & Storm Drainage', color: '#14b8a6', count: '2400mm Box Outfalls' },
+                                        { id: 'telecom', label: 'Telecom Optical Fiber Banks', color: '#a855f7', count: '4-Way Duct Banks' }
                                     ].map(cat => {
                                         const isActive = (activeUtilityCat === cat.id);
                                         return (
@@ -2527,17 +2652,17 @@ def serve_dashboard():
                                                 onClick={() => handleUtilityCategoryChange(cat.id)}
                                                 style={{
                                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                                    padding: '7px 10px', borderRadius: 6, cursor: 'pointer', fontSize: 11,
-                                                    background: isActive ? 'rgba(0, 229, 255, 0.15)' : 'rgba(15, 23, 42, 0.6)',
-                                                    border: isActive ? `1px solid ${cat.color}` : '1px solid var(--border-subtle)',
+                                                    padding: '6px 9px', borderRadius: 5, cursor: 'pointer', fontSize: 11,
+                                                    background: isActive ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                                    border: isActive ? '1px solid #3b82f6' : '1px solid var(--border-subtle)',
                                                     transition: 'all 0.15s'
                                                 }}
                                                 onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                                                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(15, 23, 42, 0.6)'; }}
+                                                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = isActive ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.03)'; }}
                                             >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, boxShadow: `0 0 6px ${cat.color}` }} />
-                                                    <span style={{ fontWeight: isActive ? 700 : 500, color: isActive ? '#fff' : 'var(--text-secondary)' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: cat.color }} />
+                                                    <span style={{ fontWeight: isActive ? 600 : 400, color: isActive ? '#fff' : 'var(--text-secondary)' }}>
                                                         {cat.label}
                                                     </span>
                                                 </div>
@@ -2552,10 +2677,10 @@ def serve_dashboard():
 
                             {/* Subsurface Component Toggles */}
                             <div style={{
-                                background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 12,
-                                border: '1px solid var(--border-subtle)', marginBottom: 14
+                                background: '#131b2e', borderRadius: 7, padding: 10,
+                                border: '1px solid var(--border-subtle)', marginBottom: 12
                             }}>
-                                <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8 }}>
+                                <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.04em' }}>
                                     Cadastral Sub-Components
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -2563,60 +2688,60 @@ def serve_dashboard():
                                         onClick={handleToggleLaterals}
                                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
                                     >
-                                        <div style={{ fontSize: 11, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <span>🏢 Building Feeder Laterals (21 Basements)</span>
+                                        <div style={{ fontSize: 11, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <span>Building Feeder Laterals (21 Basements)</span>
                                         </div>
                                         <div style={{
-                                            width: 34, height: 18, borderRadius: 10, padding: 2,
-                                            background: showLaterals ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.15)',
+                                            width: 32, height: 18, borderRadius: 9, padding: 2,
+                                            background: showLaterals ? '#2563eb' : 'rgba(255,255,255,0.15)',
                                             display: 'flex', alignItems: 'center', justifyContent: showLaterals ? 'flex-end' : 'flex-start',
                                             transition: 'background 0.2s'
                                         }}>
-                                            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#000' }} />
+                                            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#fff' }} />
                                         </div>
                                     </div>
                                     <div
                                         onClick={handleToggleManholes}
                                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
                                     >
-                                        <div style={{ fontSize: 11, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <span>⭕ Shafts, Portals & Chambers (20 Nodes)</span>
+                                        <div style={{ fontSize: 11, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <span>Shafts, Portals & Chambers (20 Nodes)</span>
                                         </div>
                                         <div style={{
-                                            width: 34, height: 18, borderRadius: 10, padding: 2,
-                                            background: showManholes ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.15)',
+                                            width: 32, height: 18, borderRadius: 9, padding: 2,
+                                            background: showManholes ? '#2563eb' : 'rgba(255,255,255,0.15)',
                                             display: 'flex', alignItems: 'center', justifyContent: showManholes ? 'flex-end' : 'flex-start',
                                             transition: 'background 0.2s'
                                         }}>
-                                            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#000' }} />
+                                            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#fff' }} />
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Subsurface Engineering Statistics */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 14 }}>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>SPATIAL CLEARANCE</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-emerald)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9, color: 'var(--text-dim)', fontWeight: 600 }}>SPATIAL CLEARANCE</div>
+                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-emerald)', marginTop: 2 }}>
                                         0 Clashes (100%)
                                     </div>
                                 </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>DEPTH RANGE</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-cyan)' }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9, color: 'var(--text-dim)', fontWeight: 600 }}>DEPTH RANGE</div>
+                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: '#38bdf8', marginTop: 2 }}>
                                         -1.0m to -70.0m
                                     </div>
                                 </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>TOTAL ASSETS</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9, color: 'var(--text-dim)', fontWeight: 600 }}>TOTAL ASSETS</div>
+                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: '#fff', marginTop: 2 }}>
                                         134 Features
                                     </div>
                                 </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)' }}>METRO STATIONS</div>
-                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-amber)' }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9, color: 'var(--text-dim)', fontWeight: 600 }}>METRO STATIONS</div>
+                                    <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-amber)', marginTop: 2 }}>
                                         8 Aqua Boxes
                                     </div>
                                 </div>
@@ -2624,13 +2749,13 @@ def serve_dashboard():
 
                             {/* Subsurface Depth Strata Guide */}
                             <div style={{
-                                background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 10,
-                                border: '1px solid var(--border-subtle)', fontSize: 10.5
+                                background: '#131b2e', borderRadius: 7, padding: 9,
+                                border: '1px solid var(--border-subtle)', fontSize: 10
                             }}>
-                                <div style={{ fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 6 }}>
+                                <div style={{ fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.04em' }}>
                                     Subterranean Depth Strata
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 3.5 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#a855f7' }}>
                                         <span>• -1.0m to -1.2m</span>
                                         <span>Telecom Optical Ducts</span>
@@ -2643,7 +2768,7 @@ def serve_dashboard():
                                         <span>• -2.1m to -2.5m</span>
                                         <span>MGL City Gas Steel Network</span>
                                     </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#00e5ff' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#38bdf8' }}>
                                         <span>• -2.8m to -3.8m</span>
                                         <span>MCGM Potable Water Aqueducts</span>
                                     </div>
@@ -2672,48 +2797,49 @@ def serve_dashboard():
 
                             {/* Subterranean 360° View Quick Controls */}
                             <div style={{
-                                background: 'rgba(15,23,42,0.85)', borderRadius: 8, padding: 10,
-                                border: '1px solid rgba(0,229,255,0.25)', marginTop: 12
+                                background: '#131b2e', borderRadius: 7, padding: 9,
+                                border: '1px solid var(--border-subtle)', marginTop: 10
                             }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                    <span style={{ fontSize: 9.5, fontWeight: 800, color: 'var(--accent-cyan)', letterSpacing: '0.04em' }}>
-                                        360° VIEW & ROTATION ACCESS
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                    <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>
+                                        360° VIEW & ROTATION
                                     </span>
-                                    <span style={{ fontSize: 9.5, color: '#94a3b8' }}>
+                                    <span className="code-font" style={{ fontSize: 9.5, color: '#94a3b8' }}>
                                         {Math.round(((currentBearing % 360) + 360) % 360)}° {getCardinal(currentBearing)}
                                     </span>
                                 </div>
-                                <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                                <div style={{ display: 'flex', gap: 5, marginBottom: 5 }}>
                                     <button
                                         onClick={() => handleRotateStep(-45)}
                                         style={{
-                                            flex: 1, padding: '6px 4px', background: 'rgba(30,41,59,0.7)',
-                                            border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 6,
-                                            fontSize: 10, fontWeight: 700, cursor: 'pointer'
+                                            flex: 1, padding: '5px 4px', background: 'rgba(255,255,255,0.05)',
+                                            border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: 4,
+                                            fontSize: 10, fontWeight: 600, cursor: 'pointer'
                                         }}
                                     >
-                                        ↺ -45° Left
+                                        -45°
                                     </button>
                                     <button
                                         onClick={toggleOrbit}
                                         style={{
-                                            flex: 1.4, padding: '6px 4px',
-                                            background: isOrbiting ? 'linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%)' : 'rgba(0,229,255,0.15)',
-                                            border: '1px solid rgba(0,229,255,0.3)', color: isOrbiting ? '#000' : 'var(--accent-cyan)',
-                                            borderRadius: 6, fontSize: 10, fontWeight: 800, cursor: 'pointer'
+                                            flex: 1.3, padding: '5px 4px',
+                                            background: isOrbiting ? '#2563eb' : 'rgba(255,255,255,0.05)',
+                                            border: `1px solid ${isOrbiting ? '#3b82f6' : 'var(--border-subtle)'}`,
+                                            color: isOrbiting ? '#fff' : 'var(--text-secondary)',
+                                            borderRadius: 4, fontSize: 10, fontWeight: 600, cursor: 'pointer'
                                         }}
                                     >
-                                        {isOrbiting ? "⏸️ Pause" : "🔄 360° Orbit"}
+                                        {isOrbiting ? "Pause" : "360° Orbit"}
                                     </button>
                                     <button
                                         onClick={() => handleRotateStep(45)}
                                         style={{
-                                            flex: 1, padding: '6px 4px', background: 'rgba(30,41,59,0.7)',
-                                            border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 6,
-                                            fontSize: 10, fontWeight: 700, cursor: 'pointer'
+                                            flex: 1, padding: '5px 4px', background: 'rgba(255,255,255,0.05)',
+                                            border: '1px solid var(--border-subtle)', color: '#fff', borderRadius: 4,
+                                            fontSize: 10, fontWeight: 600, cursor: 'pointer'
                                         }}
                                     >
-                                        ↻ +45° Right
+                                        +45°
                                     </button>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4 }}>
@@ -2727,8 +2853,8 @@ def serve_dashboard():
                                             key={dir.label}
                                             onClick={() => handleSetCardinalBearing(dir.deg)}
                                             style={{
-                                                padding: '4px 2px', background: 'rgba(15,23,42,0.8)',
-                                                border: '1px solid rgba(255,255,255,0.08)', color: '#cbd5e1', borderRadius: 4,
+                                                padding: '3px 2px', background: 'rgba(255,255,255,0.03)',
+                                                border: '1px solid var(--border-subtle)', color: '#cbd5e1', borderRadius: 4,
                                                 fontSize: 9.5, fontWeight: 600, cursor: 'pointer'
                                             }}
                                         >
@@ -2738,8 +2864,8 @@ def serve_dashboard():
                                 </div>
                             </div>
 
-                            <div style={{ fontSize: 10.5, color: 'var(--text-dim)', textAlign: 'center', marginTop: 10 }}>
-                                💡 Tip: Click any tunnel, station, subway, or pipeline in 3D to inspect cadastral specifications.
+                            <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center', marginTop: 8 }}>
+                                Select any subterranean conduit or structure in 3D to inspect cadastral records.
                             </div>
                         </div>
                     )}
@@ -2994,7 +3120,7 @@ def serve_dashboard():
                                 {selectedUtility.connected_building && (
                                     <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                                         <span style={{ color: 'var(--text-dim)' }}>Connected Landmark: </span>
-                                        <b style={{ color: 'var(--accent-amber)' }}>🏢 {selectedUtility.connected_building}</b>
+                                        <b style={{ color: 'var(--accent-amber)' }}>{selectedUtility.connected_building}</b>
                                     </div>
                                 )}
                             </div>
@@ -3004,13 +3130,15 @@ def serve_dashboard():
                                 <button
                                     onClick={() => handleFlyToUtility(selectedUtility)}
                                     style={{
-                                        width: '100%', background: `linear-gradient(135deg, ${selectedUtility.color || '#00e5ff'} 0%, #0284c7 100%)`,
-                                        color: '#000', border: 'none', padding: '12px', borderRadius: 8, fontWeight: 800,
-                                        fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        gap: 8, boxShadow: `0 0 20px ${selectedUtility.color ? selectedUtility.color + '66' : 'rgba(0,229,255,0.4)'}`, transition: 'all 0.2s'
+                                        width: '100%', background: '#2563eb',
+                                        color: '#fff', border: 'none', padding: '10px', borderRadius: 6, fontWeight: 600,
+                                        fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        gap: 6, transition: 'background 0.15s'
                                     }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#1d4ed8'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = '#2563eb'}
                                 >
-                                    🎯 Focus 3D Camera on Subterranean Conduit
+                                    <span>Focus View on Subterranean Conduit</span>
                                 </button>
 
                                 {selectedUtility.building_spatial_id && (
@@ -3020,13 +3148,16 @@ def serve_dashboard():
                                             if (bld) handleOpenTwin(bld);
                                         }}
                                         style={{
-                                            width: '100%', background: 'rgba(255,255,255,0.08)',
-                                            color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '10px', borderRadius: 8, fontWeight: 700,
-                                            fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            gap: 8
+                                            width: '100%', background: 'rgba(255,255,255,0.05)',
+                                            color: '#cbd5e1', border: '1px solid var(--border-subtle)', padding: '9px', borderRadius: 6, fontWeight: 600,
+                                            fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            gap: 8, transition: 'all 0.15s'
                                         }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#cbd5e1'; }}
                                     >
-                                        🏢 Launch Connected Building 3D Digital Twin
+                                        <IconBuilding />
+                                        <span>Launch Connected Building Digital Twin</span>
                                     </button>
                                 )}
                             </div>
@@ -3035,13 +3166,14 @@ def serve_dashboard():
 
                     {viewMode === 'map' && selectedBuilding && !selectedUtility && (
                         <div className="glass-panel" style={{
-                            position: 'absolute', bottom: 30, right: 30, width: 380, padding: 22,
-                            pointerEvents: 'auto', zIndex: 60
+                            position: 'absolute', bottom: 30, right: 30, width: 370, padding: 20,
+                            pointerEvents: 'auto', zIndex: 60, background: '#0f172a', border: '1px solid var(--border-medium)'
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{
-                                    fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20,
-                                    background: 'var(--accent-cyan)', color: '#000'
+                                    fontSize: 9.5, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
+                                    background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.3)',
+                                    letterSpacing: '0.03em'
                                 }}>
                                     3D URBAN CADASTRAL ASSET
                                 </span>
@@ -3052,7 +3184,7 @@ def serve_dashboard():
                                     ✕
                                 </button>
                             </div>
-                            <h3 style={{ margin: '12px 0 4px 0', fontSize: 17, color: '#fff' }}>
+                            <h3 style={{ margin: '12px 0 4px 0', fontSize: 16, color: '#fff', fontWeight: 700 }}>
                                 {selectedBuilding.properties.name}
                             </h3>
                             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 14 }}>
@@ -3060,27 +3192,27 @@ def serve_dashboard():
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>LAND ULPIN</div>
-                                    <div className="code-font" style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-amber)' }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600 }}>LAND ULPIN</div>
+                                    <div className="code-font" style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-amber)', marginTop: 2 }}>
                                         {selectedBuilding.properties.land_ulpin || "27010482910472"}
                                     </div>
                                 </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>TOTAL HEIGHT</div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent-cyan)' }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600 }}>TOTAL HEIGHT</div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#38bdf8', marginTop: 2 }}>
                                         {selectedBuilding.properties.height_m}m ({selectedBuilding.properties.floors} Floors)
                                     </div>
                                 </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>FOOTPRINT AREA</div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600 }}>FOOTPRINT AREA</div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', marginTop: 2 }}>
                                         {selectedBuilding.properties.area_sqm} m²
                                     </div>
                                 </div>
-                                <div style={{ background: 'rgba(15,23,42,0.6)', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>CTS SURVEY NO</div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>
+                                <div style={{ background: '#131b2e', padding: 8, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                    <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600 }}>CTS SURVEY NO</div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#fff', marginTop: 2 }}>
                                         {selectedBuilding.properties.cts_no || "CTS 418/A"}
                                     </div>
                                 </div>
@@ -3089,38 +3221,55 @@ def serve_dashboard():
                             <button
                                 onClick={() => handleOpenTwin(selectedBuilding)}
                                 style={{
-                                    width: '100%', background: 'linear-gradient(135deg, #00e5ff 0%, #0284c7 100%)',
-                                    color: '#000', border: 'none', padding: '12px', borderRadius: 8, fontWeight: 800,
-                                    fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    gap: 8, boxShadow: '0 0 20px rgba(0,229,255,0.4)', transition: 'all 0.2s'
+                                    width: '100%', background: '#2563eb',
+                                    color: '#fff', border: 'none', padding: '11px', borderRadius: 6, fontWeight: 600,
+                                    fontSize: 12.5, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    gap: 8, transition: 'background 0.15s'
                                 }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#1d4ed8'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = '#2563eb'}
                             >
-                                🏢 Launch 3D Architectural Digital Twin
+                                <IconBuilding />
+                                <span>Launch 3D Architectural Digital Twin</span>
                             </button>
                         </div>
                     )}
 
                     {viewMode === 'twin' && cadastre && (
                         <React.Fragment>
+                            {/* Left Panel: BIM Floor & Unit Hierarchy Inspector */}
                             <div className="glass-panel" style={{
-                                position: 'absolute', top: 96, left: 16, bottom: 24, width: 340,
-                                display: 'flex', flexDirection: 'column', padding: 18, zIndex: 60,
-                                pointerEvents: 'auto'
+                                position: 'absolute', top: 88, left: 16, bottom: 20, width: 330,
+                                display: 'flex', flexDirection: 'column', padding: 16, zIndex: 60,
+                                pointerEvents: 'auto', background: '#0f172a', border: '1px solid var(--border-medium)'
                             }}>
-                                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                                    <span style={{ color: 'var(--accent-cyan)' }}>South Mumbai</span> ›
-                                    <span>{cadastre.cadastral_division.split(' ')[0]}</span> ›
-                                    <b style={{ color: '#fff' }}>Floor {selectedFloor !== null ? selectedFloor + 1 : 'All'}</b>
-                                    {selectedFlat && <span style={{ color: 'var(--accent-amber)' }}>› Flat {selectedFlat.unit_number}</span>}
+                                <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                    <span style={{ color: '#38bdf8', fontWeight: 600 }}>South Mumbai</span>
+                                    <span style={{ color: '#475569' }}>/</span>
+                                    <span style={{ color: '#cbd5e1' }}>{cadastre.cadastral_division.split(' ')[0]}</span>
+                                    <span style={{ color: '#475569' }}>/</span>
+                                    <span style={{ color: '#fff', fontWeight: 600 }}>Floor {selectedFloor !== null ? selectedFloor + 1 : 'All'}</span>
+                                    {selectedFlat && (
+                                        <React.Fragment>
+                                            <span style={{ color: '#475569' }}>/</span>
+                                            <span style={{ color: '#fbbf24', fontWeight: 600 }}>Flat {selectedFlat.unit_number}</span>
+                                        </React.Fragment>
+                                    )}
                                 </div>
 
+                                {/* Vertical Separation Slider */}
                                 <div style={{
-                                    background: 'rgba(15,23,42,0.7)', borderRadius: 10, padding: 14,
-                                    border: '1px solid var(--border-subtle)', marginBottom: 16
+                                    background: '#131b2e', borderRadius: 8, padding: 12,
+                                    border: '1px solid var(--border-subtle)', marginBottom: 12
                                 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
-                                        <span style={{ color: 'var(--accent-cyan)' }}>💥 Explode Floors</span>
-                                        <span className="code-font" style={{ color: '#fff' }}>{Math.round(explodeRatio * 100)}%</span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#f1f5f9' }}>
+                                            <span style={{ color: '#3b82f6', display: 'flex' }}><IconExplode /></span>
+                                            <span>Floor Separation</span>
+                                        </div>
+                                        <span className="code-font" style={{ fontSize: 11, fontWeight: 700, color: '#60a5fa', background: 'rgba(59, 130, 246, 0.12)', padding: '1px 6px', borderRadius: 4 }}>
+                                            {Math.round(explodeRatio * 100)}%
+                                        </span>
                                     </div>
                                     <input
                                         type="range"
@@ -3129,38 +3278,43 @@ def serve_dashboard():
                                         step="0.01"
                                         value={explodeRatio}
                                         onChange={(e) => handleExplodeChange(e.target.value)}
-                                        style={{ width: '100%', accentColor: 'var(--accent-cyan)', cursor: 'pointer' }}
+                                        style={{ width: '100%', marginBottom: 10 }}
                                     />
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                                        <button
-                                            onClick={() => handleExplodeChange(0)}
-                                            style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-dim)', padding: '3px 8px', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}
-                                        >
-                                            Stack (0%)
-                                        </button>
-                                        <button
-                                            onClick={() => handleExplodeChange(0.5)}
-                                            style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-dim)', padding: '3px 8px', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}
-                                        >
-                                            Inspect (50%)
-                                        </button>
-                                        <button
-                                            onClick={() => handleExplodeChange(1.0)}
-                                            style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-dim)', padding: '3px 8px', borderRadius: 4, fontSize: 10, cursor: 'pointer' }}
-                                        >
-                                            Explode (100%)
-                                        </button>
+                                    <div style={{ display: 'flex', gap: 6 }}>
+                                        {[
+                                            { val: 0, label: 'Stack (0%)' },
+                                            { val: 0.5, label: 'Inspect (50%)' },
+                                            { val: 1.0, label: 'Explode (100%)' }
+                                        ].map(btn => {
+                                            const isCurrent = Math.abs(explodeRatio - btn.val) < 0.05;
+                                            return (
+                                                <button
+                                                    key={btn.val}
+                                                    onClick={() => handleExplodeChange(btn.val)}
+                                                    style={{
+                                                        flex: 1, background: isCurrent ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                                                        border: isCurrent ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid var(--border-subtle)',
+                                                        color: isCurrent ? '#60a5fa' : 'var(--text-secondary)',
+                                                        padding: '4px 0', borderRadius: 4, fontSize: 10, fontWeight: 600, cursor: 'pointer',
+                                                        transition: 'all 0.15s'
+                                                    }}
+                                                >
+                                                    {btn.label}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                                {/* Wing Selector Segmented Control */}
+                                <div style={{ display: 'flex', background: '#131b2e', borderRadius: 6, padding: 3, border: '1px solid var(--border-subtle)', marginBottom: 12 }}>
                                     <button
                                         onClick={() => setSelectedWing('all')}
                                         style={{
-                                            flex: 1, padding: '7px 0', borderRadius: 6, fontSize: 11, fontWeight: 700,
-                                            background: selectedWing === 'all' ? 'var(--accent-cyan)' : 'rgba(15,23,42,0.8)',
-                                            color: selectedWing === 'all' ? '#000' : 'var(--text-secondary)',
-                                            border: '1px solid var(--border-subtle)', cursor: 'pointer'
+                                            flex: 1, padding: '5px 0', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                            background: selectedWing === 'all' ? '#2563eb' : 'transparent',
+                                            color: selectedWing === 'all' ? '#fff' : 'var(--text-secondary)',
+                                            border: 'none', cursor: 'pointer', transition: 'all 0.15s'
                                         }}
                                     >
                                         All Wings
@@ -3170,10 +3324,10 @@ def serve_dashboard():
                                             key={w.wing_id}
                                             onClick={() => setSelectedWing(w.wing_id)}
                                             style={{
-                                                flex: 1, padding: '7px 0', borderRadius: 6, fontSize: 11, fontWeight: 700,
-                                                background: selectedWing === w.wing_id ? 'var(--accent-cyan)' : 'rgba(15,23,42,0.8)',
-                                                color: selectedWing === w.wing_id ? '#000' : 'var(--text-secondary)',
-                                                border: '1px solid var(--border-subtle)', cursor: 'pointer'
+                                                flex: 1, padding: '5px 0', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                                background: selectedWing === w.wing_id ? '#2563eb' : 'transparent',
+                                                color: selectedWing === w.wing_id ? '#fff' : 'var(--text-secondary)',
+                                                border: 'none', cursor: 'pointer', transition: 'all 0.15s'
                                             }}
                                         >
                                             {w.wing_id}
@@ -3182,13 +3336,13 @@ def serve_dashboard():
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-                                        Vertical Slices ({cadastre.floors_count} Levels)
+                                    <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                        Storey Levels ({cadastre.floors_count})
                                     </span>
                                     {selectedFloor !== null && (
                                         <button
                                             onClick={() => handleFloorClick(selectedFloor)}
-                                            style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}
+                                            style={{ background: 'none', border: 'none', color: '#60a5fa', fontSize: 10.5, cursor: 'pointer', fontWeight: 600, padding: 0 }}
                                         >
                                             Reset Isolation
                                         </button>
@@ -3202,27 +3356,33 @@ def serve_dashboard():
                                             <div
                                                 key={fl.floor_index}
                                                 style={{
-                                                    background: isFlActive ? 'rgba(0, 229, 255, 0.12)' : 'rgba(15, 23, 42, 0.6)',
-                                                    border: isFlActive ? '1px solid var(--accent-cyan)' : '1px solid var(--border-subtle)',
-                                                    borderRadius: 8, padding: 10, marginBottom: 8, transition: 'all 0.15s'
+                                                    background: isFlActive ? '#1e293b' : '#131b2e',
+                                                    border: isFlActive ? '1px solid #3b82f6' : '1px solid var(--border-subtle)',
+                                                    borderLeft: isFlActive ? '3px solid #3b82f6' : '1px solid var(--border-subtle)',
+                                                    borderRadius: 6, padding: '9px 12px', marginBottom: 6, transition: 'all 0.15s'
                                                 }}
                                             >
                                                 <div
                                                     onClick={() => handleFloorClick(fl.floor_index)}
                                                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
                                                 >
-                                                    <span style={{ fontWeight: 700, fontSize: 12, color: isFlActive ? 'var(--accent-cyan)' : '#fff' }}>
+                                                    <span style={{ fontWeight: 600, fontSize: 12, color: isFlActive ? '#fff' : '#e2e8f0' }}>
                                                         {fl.floor_label}
                                                     </span>
-                                                    <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>
-                                                        +{fl.elevation_base_m}m • {fl.units_count} Units
-                                                    </span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                        <span className="code-font" style={{ fontSize: 10, color: 'var(--text-dim)' }}>
+                                                            +{fl.elevation_base_m}m
+                                                        </span>
+                                                        <span style={{ fontSize: 9.5, padding: '1px 6px', borderRadius: 4, background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-secondary)' }}>
+                                                            {fl.units_count} Units
+                                                        </span>
+                                                    </div>
                                                 </div>
 
                                                 {isFlActive && (
                                                     <div style={{ marginTop: 10, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 8 }}>
-                                                        <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 6 }}>
-                                                            SELECT UNIT TO INSPECT ULPIN:
+                                                        <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 6, letterSpacing: '0.04em' }}>
+                                                            Select Unit to Inspect Cadastre:
                                                         </div>
                                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                                                             {fl.units.map(u => {
@@ -3232,14 +3392,14 @@ def serve_dashboard():
                                                                         key={u.unit_id}
                                                                         onClick={() => handleFlatClick(u)}
                                                                         style={{
-                                                                            background: isUActive ? 'var(--accent-cyan)' : 'rgba(30, 41, 59, 0.8)',
-                                                                            color: isUActive ? '#000' : '#fff',
-                                                                            border: isUActive ? '1px solid #fff' : '1px solid rgba(255,255,255,0.05)',
-                                                                            padding: '6px 8px', borderRadius: 6, cursor: 'pointer', transition: 'all 0.15s'
+                                                                            background: isUActive ? '#2563eb' : 'rgba(255, 255, 255, 0.04)',
+                                                                            color: isUActive ? '#ffffff' : '#e2e8f0',
+                                                                            border: isUActive ? '1px solid #60a5fa' : '1px solid var(--border-subtle)',
+                                                                            padding: '6px 8px', borderRadius: 5, cursor: 'pointer', transition: 'all 0.15s'
                                                                         }}
                                                                     >
-                                                                        <div style={{ fontWeight: 800, fontSize: 11 }}>Flat {u.unit_number}</div>
-                                                                        <div style={{ fontSize: 9, opacity: 0.8 }}>{u.carpet_area_sqm} m²</div>
+                                                                        <div style={{ fontWeight: 700, fontSize: 11 }}>Flat {u.unit_number}</div>
+                                                                        <div style={{ fontSize: 9.5, opacity: isUActive ? 0.9 : 0.6 }}>{u.carpet_area_sqm} m²</div>
                                                                     </div>
                                                                 );
                                                             })}
@@ -3252,170 +3412,172 @@ def serve_dashboard():
                                 </div>
                             </div>
 
+                            {/* Right Panel: Cadastral Ownership & Property Title Deed */}
                             <div className="glass-panel" style={{
-                                position: 'absolute', top: 96, right: 16, bottom: 24, width: 380,
-                                display: 'flex', flexDirection: 'column', padding: 22, zIndex: 60,
-                                pointerEvents: 'auto', overflowY: 'auto'
+                                position: 'absolute', top: 88, right: 16, bottom: 20, width: 370,
+                                display: 'flex', flexDirection: 'column', padding: 20, zIndex: 60,
+                                pointerEvents: 'auto', overflowY: 'auto', background: '#0f172a', border: '1px solid var(--border-medium)'
                             }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                                     <span style={{
-                                        fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20,
-                                        background: selectedFlat ? 'var(--accent-amber)' : 'var(--accent-cyan)',
-                                        color: '#000'
+                                        fontSize: 9.5, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
+                                        background: selectedFlat ? 'rgba(245, 158, 11, 0.12)' : 'rgba(59, 130, 246, 0.12)',
+                                        color: selectedFlat ? '#fbbf24' : '#60a5fa',
+                                        border: `1px solid ${selectedFlat ? 'rgba(245, 158, 11, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`,
+                                        letterSpacing: '0.04em'
                                     }}>
                                         {selectedFlat ? "VERTICAL UNIT 3D ULPIN" : "BUILDING BASE PARCEL"}
                                     </span>
-                                    <span style={{ fontSize: 11, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                                    <span style={{ fontSize: 10.5, color: '#10b981', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
                                         <span className="pulsing-dot" style={{ width: 6, height: 6 }}></span> MahaBhumi Verified
                                     </span>
                                 </div>
 
                                 {selectedFlat ? (
                                     <React.Fragment>
-                                        <h3 style={{ margin: '0 0 2px 0', fontSize: 18, color: '#fff' }}>
+                                        <h3 style={{ margin: '0 0 2px 0', fontSize: 17, color: '#fff', fontWeight: 700 }}>
                                             Unit {selectedFlat.unit_number} ({selectedFlat.wing_name})
                                         </h3>
-                                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>
+                                        <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginBottom: 14 }}>
                                             {selectedFlat.unit_type} • Level {selectedFlat.floor_number}
                                         </div>
 
                                         <div style={{
-                                            background: 'rgba(0, 229, 255, 0.08)', border: '1px solid var(--accent-cyan)',
-                                            borderRadius: 8, padding: 12, marginBottom: 16
+                                            background: '#131b2e', border: '1px solid var(--border-subtle)',
+                                            borderRadius: 7, padding: 12, marginBottom: 14
                                         }}>
-                                            <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase' }}>3D VERTICAL ULPIN (BHU-AADHAAR)</div>
-                                            <div className="code-font" style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-cyan)', margin: '4px 0' }}>
+                                            <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                                3D Vertical ULPIN (Bhu-Aadhaar)
+                                            </div>
+                                            <div className="code-font" style={{ fontSize: 12.5, fontWeight: 700, color: '#60a5fa', margin: '4px 0', letterSpacing: '0.02em' }}>
                                                 {selectedFlat.unit_ulpin}
                                             </div>
                                             <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
-                                                Base Parcel: <span className="code-font" style={{ color: '#fff' }}>{cadastre.land_ulpin}</span>
+                                                Base Land Parcel: <span className="code-font" style={{ color: '#fff' }}>{cadastre.land_ulpin}</span>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>RERA CARPET AREA</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>
-                                                    {selectedFlat.carpet_area_sqm} m²
-                                                </div>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>{selectedFlat.carpet_area_sqft} sq.ft</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>RERA Carpet Area</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', marginTop: 2 }}>{selectedFlat.carpet_area_sqm} m²</div>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>{selectedFlat.carpet_area_sqft} sq.ft</div>
                                             </div>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>BUILT-UP AREA</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>
-                                                    {selectedFlat.built_up_area_sqm} m²
-                                                </div>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Gross Enclosed</div>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>Built-Up Area</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', marginTop: 2 }}>{selectedFlat.built_up_area_sqm} m²</div>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>Gross Enclosed</div>
                                             </div>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>UDS (LAND SHARE)</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-amber)' }}>
-                                                    {selectedFlat.uds_percentage}
-                                                </div>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Undivided Share</div>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>UDS (Land Share)</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fbbf24', marginTop: 2 }}>{selectedFlat.uds_percentage}</div>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>Undivided Share</div>
                                             </div>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>ELEVATION (MSL)</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-cyan)' }}>
-                                                    +{selectedFlat.elevation_base_m}m
-                                                </div>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Base datum</div>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>Elevation (MSL)</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#38bdf8', marginTop: 2 }}>+{selectedFlat.elevation_base_m}m</div>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>Base datum</div>
                                             </div>
                                         </div>
 
-                                        <div style={{ background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 12, border: '1px solid var(--border-subtle)', marginBottom: 16 }}>
-                                            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent-cyan)', marginBottom: 8, textTransform: 'uppercase' }}>
+                                        <div style={{ background: '#131b2e', borderRadius: 8, padding: 12, border: '1px solid var(--border-subtle)', marginBottom: 14 }}>
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                                 Cadastral Ownership & Title
                                             </div>
-                                            <div style={{ fontSize: 12, marginBottom: 6 }}>
-                                                <span style={{ color: 'var(--text-dim)' }}>Titleholder: </span>
-                                                <b style={{ color: '#fff' }}>{selectedFlat.owner_name}</b>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 11.5 }}>
+                                                <span style={{ color: 'var(--text-dim)' }}>Titleholder</span>
+                                                <span style={{ fontWeight: 600, color: '#fff', textAlign: 'right' }}>{selectedFlat.owner_name}</span>
                                             </div>
-                                            <div style={{ fontSize: 12, marginBottom: 6 }}>
-                                                <span style={{ color: 'var(--text-dim)' }}>Property Card: </span>
-                                                <span className="code-font" style={{ color: 'var(--accent-amber)' }}>{selectedFlat.property_card_no}</span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 11.5 }}>
+                                                <span style={{ color: 'var(--text-dim)' }}>Property Card</span>
+                                                <span className="code-font" style={{ color: '#fbbf24' }}>{selectedFlat.property_card_no}</span>
                                             </div>
-                                            <div style={{ fontSize: 12, marginBottom: 6 }}>
-                                                <span style={{ color: 'var(--text-dim)' }}>CTS Survey No: </span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 11.5 }}>
+                                                <span style={{ color: 'var(--text-dim)' }}>CTS Survey No</span>
                                                 <span style={{ color: '#fff' }}>{selectedFlat.cts_no}</span>
                                             </div>
-                                            <div style={{ fontSize: 12, marginBottom: 6 }}>
-                                                <span style={{ color: 'var(--text-dim)' }}>Tax SAC Assessment: </span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 11.5 }}>
+                                                <span style={{ color: 'var(--text-dim)' }}>Tax SAC Assessment</span>
                                                 <span className="code-font" style={{ color: '#fff' }}>{selectedFlat.tax_assessment_sac}</span>
                                             </div>
-                                            <div style={{ fontSize: 12 }}>
-                                                <span style={{ color: 'var(--text-dim)' }}>Title Status: </span>
-                                                <span style={{ color: 'var(--accent-emerald)' }}>Freehold • Clear Title (MahaRERA Registered)</span>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', fontSize: 11.5 }}>
+                                                <span style={{ color: 'var(--text-dim)' }}>Title Status</span>
+                                                <span style={{ color: '#10b981', fontWeight: 600 }}>Freehold • Clear Title (MahaRERA Registered)</span>
                                             </div>
                                         </div>
 
                                         <button
                                             onClick={() => {
                                                 navigator.clipboard.writeText(selectedFlat.unit_ulpin);
-                                                alert(`Copied 3D ULPIN to Clipboard:\n${selectedFlat.unit_ulpin}`);
+                                                setCopiedCode(true);
+                                                setTimeout(() => setCopiedCode(false), 2200);
                                             }}
                                             style={{
-                                                width: '100%', background: 'rgba(0, 229, 255, 0.15)', color: 'var(--accent-cyan)',
-                                                border: '1px solid var(--accent-cyan)', padding: '10px', borderRadius: 8,
-                                                fontWeight: 700, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center',
-                                                justifyContent: 'center', gap: 6, transition: 'all 0.2s'
+                                                width: '100%', background: copiedCode ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                                color: copiedCode ? '#10b981' : '#cbd5e1',
+                                                border: copiedCode ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--border-subtle)',
+                                                padding: '9px 12px', borderRadius: 6, fontWeight: 600, fontSize: 11.5, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, transition: 'all 0.15s'
                                             }}
                                         >
-                                            📋 Copy 3D ULPIN Code
+                                            {copiedCode ? <IconCheck /> : <IconCopy />}
+                                            <span>{copiedCode ? "Copied 3D ULPIN to Clipboard" : "Copy 3D ULPIN Code"}</span>
                                         </button>
                                     </React.Fragment>
                                 ) : (
                                     <React.Fragment>
-                                        <h3 style={{ margin: '0 0 4px 0', fontSize: 18, color: '#fff' }}>
+                                        <h3 style={{ margin: '0 0 3px 0', fontSize: 17, color: '#fff', fontWeight: 700 }}>
                                             {cadastre.name}
                                         </h3>
-                                        <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 16 }}>
+                                        <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginBottom: 14 }}>
                                             {cadastre.street} • {cadastre.cadastral_division}
                                         </div>
 
                                         <div style={{
-                                            background: 'rgba(0, 229, 255, 0.08)', border: '1px solid var(--accent-cyan)',
-                                            borderRadius: 8, padding: 12, marginBottom: 16
+                                            background: '#131b2e', border: '1px solid var(--border-subtle)',
+                                            borderRadius: 7, padding: 12, marginBottom: 14
                                         }}>
-                                            <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>LAND PARCEL ULPIN (BHU-AADHAAR)</div>
-                                            <div className="code-font" style={{ fontSize: 14, fontWeight: 700, color: 'var(--accent-cyan)', margin: '4px 0' }}>
+                                            <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                                Land Parcel ULPIN (Bhu-Aadhaar)
+                                            </div>
+                                            <div className="code-font" style={{ fontSize: 13, fontWeight: 700, color: '#60a5fa', margin: '4px 0' }}>
                                                 {cadastre.land_ulpin}
                                             </div>
-                                            <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-                                                Survey: <b>{cadastre.cts_no}</b>
+                                            <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
+                                                CTS Survey: <b>{cadastre.cts_no}</b>
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>TOTAL HEIGHT</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{cadastre.height_m} m</div>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>{cadastre.floors_count} Storeys</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>TOTAL HEIGHT</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', marginTop: 2 }}>{cadastre.height_m} m</div>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>{cadastre.floors_count} Storeys</div>
                                             </div>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>VERTICAL UNITS</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-amber)' }}>{cadastre.total_units} Units</div>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>{cadastre.wings.length} Wings</div>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>VERTICAL UNITS</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fbbf24', marginTop: 2 }}>{cadastre.total_units} Units</div>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>{cadastre.wings.length} Wings</div>
                                             </div>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>FOOTPRINT AREA</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{cadastre.footprint_area_sqm} m²</div>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>FOOTPRINT AREA</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', marginTop: 2 }}>{cadastre.footprint_area_sqm} m²</div>
                                             </div>
-                                            <div style={{ background: 'rgba(15,23,42,0.6)', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
-                                                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>TYPICAL FLOOR PLATE</div>
-                                                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-cyan)' }}>{cadastre.floor_plate_sqm} m²</div>
+                                            <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
+                                                <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>TYPICAL FLOOR PLATE</div>
+                                                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#38bdf8', marginTop: 2 }}>{cadastre.floor_plate_sqm} m²</div>
                                             </div>
                                         </div>
 
                                         <div style={{
-                                            background: 'rgba(15,23,42,0.7)', borderRadius: 8, padding: 14,
+                                            background: '#131b2e', borderRadius: 7, padding: 12,
                                             border: '1px solid var(--border-subtle)', textAlign: 'center', marginTop: 'auto'
                                         }}>
-                                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-cyan)', marginBottom: 4 }}>
-                                                👉 Click Any Flat or Floor
+                                            <div style={{ fontSize: 11.5, fontWeight: 600, color: '#94a3b8', marginBottom: 3 }}>
+                                                Inspect Vertical Property Units
                                             </div>
-                                            <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                                                Click an individual unit or floor in 3D to isolate and inspect its specific 3D ULPIN, carpet area, titleholder, and registration records.
+                                            <div style={{ fontSize: 10.5, color: 'var(--text-dim)', lineHeight: 1.4 }}>
+                                                Select any floor slab or residential unit in the 3D model to inspect its vertical boundary deed and titleholder registry.
                                             </div>
                                         </div>
                                     </React.Fragment>
