@@ -304,7 +304,7 @@ def serve_dashboard():
 
         #twin-workspace {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #EAF0F6;
+            background: #CBD7E3;
             z-index: 40; display: none; flex-direction: column;
         }
 
@@ -474,55 +474,54 @@ def serve_dashboard():
             initMaterials() {
                 return {
                     slabConcrete: new THREE.MeshStandardMaterial({
-                        color: 0xf8fafc, roughness: 0.55, metalness: 0.1
+                        color: 0xd8e2ec, roughness: 0.55, metalness: 0.08
                     }),
                     slabEdge: new THREE.MeshStandardMaterial({
-                        color: 0xe2e8f0, roughness: 0.45, metalness: 0.15
+                        color: 0x8295a8, roughness: 0.45, metalness: 0.15
                     }),
                     roofSlate: new THREE.MeshStandardMaterial({
-                        color: 0x94a3b8, roughness: 0.65, metalness: 0.25
+                        color: 0x475569, roughness: 0.65, metalness: 0.25
                     }),
                     exteriorStone: new THREE.MeshStandardMaterial({
-                        color: 0xecf0f4, roughness: 0.65, metalness: 0.1
+                        color: 0xbac7d5, roughness: 0.6, metalness: 0.1
                     }),
                     exteriorAccent: new THREE.MeshStandardMaterial({
-                        color: 0x334155, roughness: 0.5, metalness: 0.25
+                        color: 0x1e293b, roughness: 0.4, metalness: 0.35
                     }),
-                    windowGlass: new THREE.MeshPhysicalMaterial({
-                        color: 0x38bdf8, roughness: 0.08, transmission: 0.78, opacity: 0.68,
-                        transparent: true, reflectivity: 0.9, clearcoat: 0.9, clearcoatRoughness: 0.1
+                    windowGlass: new THREE.MeshStandardMaterial({
+                        color: 0x2b6cb0, roughness: 0.12, metalness: 0.35,
+                        transparent: true, opacity: 0.72
                     }),
-                    windowGlassWarm: new THREE.MeshPhysicalMaterial({
-                        color: 0x60a5fa, roughness: 0.1, transmission: 0.78, opacity: 0.68,
-                        transparent: true, reflectivity: 0.85, clearcoat: 0.9
+                    windowGlassWarm: new THREE.MeshStandardMaterial({
+                        color: 0x3182ce, roughness: 0.15, metalness: 0.3,
+                        transparent: true, opacity: 0.72
                     }),
                     aluminumFrame: new THREE.MeshStandardMaterial({
-                        color: 0x475569, roughness: 0.4, metalness: 0.75
+                        color: 0x1e293b, roughness: 0.35, metalness: 0.85
                     }),
                     balconyDeck: new THREE.MeshStandardMaterial({
-                        color: 0xe2e8f0, roughness: 0.7, metalness: 0.1
+                        color: 0x94a3b8, roughness: 0.7, metalness: 0.1
                     }),
-                    balconyGlassRailing: new THREE.MeshPhysicalMaterial({
-                        color: 0x93c5fd, roughness: 0.15, transmission: 0.85, opacity: 0.5,
-                        transparent: true, reflectivity: 0.8
+                    balconyGlassRailing: new THREE.MeshStandardMaterial({
+                        color: 0x60a5fa, roughness: 0.2, metalness: 0.2,
+                        transparent: true, opacity: 0.65
                     }),
                     metalRailing: new THREE.MeshStandardMaterial({
-                        color: 0x64748b, roughness: 0.35, metalness: 0.8
+                        color: 0x334155, roughness: 0.35, metalness: 0.8
                     }),
-                    entranceDoor: new THREE.MeshPhysicalMaterial({
-                        color: 0x2563a6, roughness: 0.1, transmission: 0.85, opacity: 0.7,
-                        transparent: true
+                    entranceDoor: new THREE.MeshStandardMaterial({
+                        color: 0x1e40af, roughness: 0.15, metalness: 0.3,
+                        transparent: true, opacity: 0.8
                     }),
                     roofHVAC: new THREE.MeshStandardMaterial({
-                        color: 0x94a3b8, roughness: 0.6, metalness: 0.5
+                        color: 0x64748b, roughness: 0.55, metalness: 0.6
                     }),
                     flatFloorSelected: new THREE.MeshStandardMaterial({
-                        color: 0x2563a6, emissive: 0x1d4ed8, emissiveIntensity: 0.25,
-                        roughness: 0.35, metalness: 0.2
+                        color: 0x1d4ed8, emissive: 0x1e40af, emissiveIntensity: 0.5,
+                        roughness: 0.2, metalness: 0.2, transparent: true, opacity: 0.94
                     }),
-                    ghostedMaterial: new THREE.MeshPhysicalMaterial({
-                        color: 0xdbeafe, roughness: 0.2, transmission: 0.88, opacity: 0.22,
-                        transparent: true, reflectivity: 0.6
+                    ghostedMaterial: new THREE.MeshStandardMaterial({
+                        color: 0x94a3b8, roughness: 0.3, transparent: true, opacity: 0.18
                     })
                 };
             }
@@ -532,7 +531,18 @@ def serve_dashboard():
                 const h = this.container.clientHeight || window.innerHeight;
 
                 this.scene = new THREE.Scene();
-                this.scene.background = new THREE.Color(0xeaf0f6);
+                // Professional Architectural Studio Viewport Canvas (Soft Slate Gradient)
+                const bgCanvas = document.createElement('canvas');
+                bgCanvas.width = 2;
+                bgCanvas.height = 512;
+                const ctx = bgCanvas.getContext('2d');
+                const grad = ctx.createLinearGradient(0, 0, 0, 512);
+                grad.addColorStop(0.0, '#AEC0D2');    // Soft atmospheric slate-blue sky
+                grad.addColorStop(0.55, '#C6D4E2');   // Subtle horizon depth
+                grad.addColorStop(1.0, '#DDE5EE');   // Clean ground blend
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 2, 512);
+                this.scene.background = new THREE.CanvasTexture(bgCanvas);
 
                 this.camera = new THREE.PerspectiveCamera(42, w / h, 0.5, 3000);
 
@@ -542,7 +552,7 @@ def serve_dashboard():
                 this.renderer.shadowMap.enabled = true;
                 this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
                 this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-                this.renderer.toneMappingExposure = 1.15;
+                this.renderer.toneMappingExposure = 1.0;
                 this.container.appendChild(this.renderer.domElement);
 
                 if (typeof THREE.OrbitControls !== 'undefined') {
@@ -569,14 +579,17 @@ def serve_dashboard():
             }
 
             setupLighting() {
-                const ambient = new THREE.AmbientLight(0xffffff, 0.95);
+                // Soft ambient sky illumination (calibrated to prevent bleaching)
+                const ambient = new THREE.AmbientLight(0xdbeafe, 0.35);
                 this.scene.add(ambient);
 
-                const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0xcfd8dc, 0.7);
+                // Balanced hemisphere light (sky reflection vs ground bounce)
+                const hemiLight = new THREE.HemisphereLight(0xf1f5f9, 0x475569, 0.35);
                 hemiLight.position.set(0, 200, 0);
                 this.scene.add(hemiLight);
 
-                const sun = new THREE.DirectionalLight(0xffffff, 1.25);
+                // Key architectural directional sunlight casting crisp shadows
+                const sun = new THREE.DirectionalLight(0xfffaf0, 1.15);
                 sun.position.set(120, 220, 140);
                 sun.castShadow = true;
                 sun.shadow.mapSize.width = 2048;
@@ -591,21 +604,22 @@ def serve_dashboard():
                 sun.shadow.bias = -0.0004;
                 this.scene.add(sun);
 
-                const rimLight = new THREE.DirectionalLight(0xbfdbfe, 0.45);
+                // Cool fill / rim light on opposite side for silhouette depth
+                const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.45);
                 rimLight.position.set(-140, 90, -140);
                 this.scene.add(rimLight);
             }
 
             setupGround() {
-                const gridHelper = new THREE.GridHelper(260, 52, 0x94a3b8, 0xd5dce3);
+                const gridHelper = new THREE.GridHelper(260, 52, 0x475569, 0x94a3b8);
                 gridHelper.position.y = -0.05;
-                gridHelper.material.opacity = 0.65;
+                gridHelper.material.opacity = 0.7;
                 gridHelper.material.transparent = true;
                 this.scene.add(gridHelper);
 
                 const groundGeo = new THREE.PlaneGeometry(360, 360);
                 const groundMat = new THREE.MeshStandardMaterial({
-                    color: 0xf4f6f8, roughness: 0.95, metalness: 0.05
+                    color: 0xb4c2d0, roughness: 0.9, metalness: 0.08
                 });
                 const ground = new THREE.Mesh(groundGeo, groundMat);
                 ground.rotation.x = -Math.PI / 2;
@@ -787,7 +801,7 @@ def serve_dashboard():
 
                     const slabEdgeGeom = new THREE.EdgesGeometry(slabGeom, 35);
                     const slabEdge = new THREE.LineSegments(slabEdgeGeom, new THREE.LineBasicMaterial({
-                        color: 0x94a3b8, transparent: true, opacity: 0.35
+                        color: 0x334155, transparent: true, opacity: 0.75
                     }));
                     floorGroup.add(slabEdge);
 
@@ -814,43 +828,38 @@ def serve_dashboard():
                         flatPlateMesh.userData = { isFlatClickable: true, unitId: unit.unit_id, unitData: unit };
                         flatGroup.add(flatPlateMesh);
 
+                        // Architectural Glazed Curtain Wall Facade (Primary visible envelope)
                         const wallGeom = new THREE.ExtrudeGeometry(flatShape, { depth: hWall, bevelEnabled: false });
                         wallGeom.rotateX(-Math.PI / 2);
-                        const wallMesh = new THREE.Mesh(wallGeom, this.materials.exteriorStone.clone());
+                        const initialGlassMat = (uIdx % 2 === 0 ? this.materials.windowGlass : this.materials.windowGlassWarm).clone();
+                        const wallMesh = new THREE.Mesh(wallGeom, initialGlassMat);
                         wallMesh.castShadow = true;
                         wallMesh.receiveShadow = true;
                         wallMesh.userData = { isFlatClickable: true, unitId: unit.unit_id, unitData: unit };
                         flatGroup.add(wallMesh);
 
-                        const glassInsetShape = this.createInsetShape(flatShape, 0.35);
-                        if (glassInsetShape) {
-                            const glassGeom = new THREE.ExtrudeGeometry(glassInsetShape, { depth: hWall * 0.82, bevelEnabled: false });
-                            glassGeom.rotateX(-Math.PI / 2);
-                            const glassMat = (uIdx % 2 === 0 ? this.materials.windowGlass : this.materials.windowGlassWarm).clone();
-                            const glassMesh = new THREE.Mesh(glassGeom, glassMat);
-                            glassMesh.position.y = hWall * 0.12;
-                            glassMesh.userData = { isFlatClickable: true, unitId: unit.unit_id, unitData: unit };
-                            flatGroup.add(glassMesh);
+                        // Window Mullions & Architectural Frame Lines
+                        const flatEdgeGeom = new THREE.EdgesGeometry(wallGeom, 25);
+                        const flatOutline = new THREE.LineSegments(flatEdgeGeom, new THREE.LineBasicMaterial({
+                            color: 0x1e293b, transparent: true, opacity: 0.55, linewidth: 1.5
+                        }));
+                        flatGroup.add(flatOutline);
 
-                            const frameEdges = new THREE.EdgesGeometry(glassGeom);
-                            const frameLine = new THREE.LineSegments(frameEdges, new THREE.LineBasicMaterial({
-                                color: 0x94a3b8, transparent: true, opacity: 0.65
-                            }));
-                            frameLine.position.y = hWall * 0.12;
-                            flatGroup.add(frameLine);
-                        }
+                        // Internal Structural Column at Quadrant Core
+                        const colSize = Math.max(0.6, Math.min(bboxSize.x, bboxSize.y) * 0.045);
+                        const colGeo = new THREE.BoxGeometry(colSize, hWall, colSize);
+                        const colMesh = new THREE.Mesh(colGeo, this.materials.exteriorStone);
+                        const colOffset = 0.85;
+                        const signX = (unit.quadrant === 0 || unit.quadrant === 3 ? 1 : -1);
+                        const signZ = (unit.quadrant === 0 || unit.quadrant === 1 ? 1 : -1);
+                        colMesh.position.set(signX * colOffset, hWall / 2, signZ * colOffset);
+                        flatGroup.add(colMesh);
 
                         const balconyMesh = this.createBalcony(unit.quadrant, bboxSize, hWall);
                         if (balconyMesh) {
                             balconyMesh.userData = { isFlatClickable: true, unitId: unit.unit_id, unitData: unit };
                             flatGroup.add(balconyMesh);
                         }
-
-                        const flatEdgeGeom = new THREE.EdgesGeometry(wallGeom, 30);
-                        const flatOutline = new THREE.LineSegments(flatEdgeGeom, new THREE.LineBasicMaterial({
-                            color: 0x3b82f6, transparent: true, opacity: 0.0, linewidth: 2
-                        }));
-                        flatGroup.add(flatOutline);
 
                         flatGroup.userData.wallMesh = wallMesh;
                         flatGroup.userData.plateMesh = flatPlateMesh;
@@ -995,7 +1004,7 @@ def serve_dashboard():
                 const coreD = Math.min(bboxSize.y * 0.32, 10);
                 const coreH = 3.8;
                 const coreGeo = new THREE.BoxGeometry(coreW, coreH, coreD);
-                const core = new THREE.Mesh(coreGeo, this.materials.exteriorStone);
+                const core = new THREE.Mesh(coreGeo, this.materials.roofSlate);
                 core.position.set(0, coreH / 2, 0);
                 core.castShadow = true;
                 crownGroup.add(core);
@@ -1059,31 +1068,32 @@ def serve_dashboard():
                     const isSameFloor = (this.selectedFloorIndex !== null && fg.userData.floorIndex === this.selectedFloorIndex);
 
                     if (unitId === null) {
-                        fg.userData.wallMesh.material = this.materials.exteriorStone;
+                        fg.userData.wallMesh.material = this.materials.windowGlass;
                         fg.userData.plateMesh.material = this.materials.exteriorAccent;
-                        fg.userData.outline.material.opacity = 0.0;
+                        fg.userData.outline.material.color.set(0x1e293b);
+                        fg.userData.outline.material.opacity = 0.55;
                     } else if (isTarget) {
-                        fg.userData.wallMesh.material = new THREE.MeshPhysicalMaterial({
-                            color: 0x2563a6,
-                            roughness: 0.35,
-                            transmission: 0.6,
-                            opacity: 0.7,
+                        fg.userData.wallMesh.material = new THREE.MeshStandardMaterial({
+                            color: 0x1d4ed8,
+                            emissive: 0x1e40af,
+                            emissiveIntensity: 0.5,
+                            roughness: 0.2,
+                            metalness: 0.2,
                             transparent: true,
-                            reflectivity: 0.6,
-                            emissive: 0x1d4ed8,
-                            emissiveIntensity: 0.22
+                            opacity: 0.94
                         });
                         fg.userData.plateMesh.material = new THREE.MeshStandardMaterial({
                             color: 0x1d4ed8,
-                            emissive: 0x1e40af,
-                            emissiveIntensity: 0.25
+                            emissive: 0x2563a6,
+                            emissiveIntensity: 0.4
                         });
-                        fg.userData.outline.material.color.set(0x3b82f6);
-                        fg.userData.outline.material.opacity = 0.9;
+                        fg.userData.outline.material.color.set(0x60a5fa);
+                        fg.userData.outline.material.opacity = 1.0;
                     } else {
-                        fg.userData.wallMesh.material = this.materials.exteriorStone;
+                        fg.userData.wallMesh.material = this.materials.windowGlass;
                         fg.userData.plateMesh.material = this.materials.exteriorAccent;
-                        fg.userData.outline.material.opacity = isSameFloor ? 0.35 : 0.08;
+                        fg.userData.outline.material.color.set(0x1e293b);
+                        fg.userData.outline.material.opacity = isSameFloor ? 0.7 : 0.4;
                     }
                 });
 
@@ -1109,7 +1119,7 @@ def serve_dashboard():
                     fg.traverse(child => {
                         if (child.isMesh && child.userData.isFlatClickable) {
                             if (floorIndex === null || isSelected) {
-                                child.material = this.materials.exteriorStone;
+                                child.material = this.materials.windowGlass;
                             } else {
                                 child.material = this.materials.ghostedMaterial;
                             }
