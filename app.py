@@ -126,20 +126,24 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
         ((regular, bold) for regular, bold in font_candidates if regular.exists() and bold.exists()),
         None,
     )
-    if devanagari_font is None:
-        raise HTTPException(
-            status_code=500,
-            detail="A Devanagari font (Mangal or Kokila) is required to render the Hindi government header.",
-        )
-    regular_font, bold_font = devanagari_font
-    pdfmetrics.registerFont(TTFont("GovernmentDevanagari", str(regular_font)))
-    pdfmetrics.registerFont(TTFont("GovernmentDevanagari-Bold", str(bold_font)))
+    hindi_font_name = "GovernmentDevanagari-Bold"
+    if devanagari_font is not None:
+        regular_font, bold_font = devanagari_font
+        pdfmetrics.registerFont(TTFont("GovernmentDevanagari", str(regular_font)))
+        pdfmetrics.registerFont(TTFont("GovernmentDevanagari-Bold", str(bold_font)))
+    else:
+        nirmala_path = Path("C:/Windows/Fonts/Nirmala.ttc")
+        if nirmala_path.exists():
+            pdfmetrics.registerFont(TTFont("GovernmentDevanagari", str(nirmala_path), subfontIndex=0))
+            pdfmetrics.registerFont(TTFont("GovernmentDevanagari-Bold", str(nirmala_path), subfontIndex=1))
+        else:
+            hindi_font_name = "Helvetica-Bold"
     styles = getSampleStyleSheet()
     navy = colors.HexColor("#17365d")
     styles.add(ParagraphStyle(name="DocLabel", parent=styles["Normal"], fontName="Times-Bold", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocValue", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=14, leading=15, alignment=1, textColor=navy))
-    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName="GovernmentDevanagari-Bold", fontSize=16, leading=17, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName=hindi_font_name, fontSize=16, leading=17, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="DocSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="GovernmentHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=17, leading=18, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="GovernmentSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=11.5, alignment=1, textColor=navy))
