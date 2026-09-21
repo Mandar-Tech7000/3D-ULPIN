@@ -124,33 +124,32 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
         hindi_font = "Mangal"
     styles = getSampleStyleSheet()
     navy = colors.HexColor("#17365d")
-    styles.add(ParagraphStyle(name="DocLabel", parent=styles["Normal"], fontName="Times-Bold", fontSize=8.5, leading=9.2, textColor=navy))
-    styles.add(ParagraphStyle(name="DocValue", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, textColor=navy))
+    styles.add(ParagraphStyle(name="DocLabel", parent=styles["Normal"], fontName="Times-Bold", fontSize=10.5, leading=12, textColor=navy))
+    styles.add(ParagraphStyle(name="DocValue", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=14, leading=15, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName=hindi_font, fontSize=13, leading=14, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="DocSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, alignment=1, textColor=navy))
-    styles.add(ParagraphStyle(name="SectionTitle", parent=styles["Normal"], fontName="Times-Bold", fontSize=9, leading=9.5, textColor=navy))
+    styles.add(ParagraphStyle(name="SectionTitle", parent=styles["Normal"], fontName="Times-Bold", fontSize=11, leading=13, textColor=navy))
     emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=21 * mm, height=29 * mm)
     ministry_mark = Image(str(BASE_DIR / "assets" / "ministry-rural-development-user.jpg"), width=48 * mm, height=22 * mm)
 
     def section(title, rows):
         return [
             Table([[Paragraph(title, styles["SectionTitle"])]], colWidths=[182 * mm], style=TableStyle([
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#dcecf8")),
-                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#7aa2c2")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 0), (-1, -1), 1.5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+                ("LINEBELOW", (0, 0), (-1, -1), 1, navy),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
             ])),
             Table([[Paragraph(label, styles["DocLabel"]), Paragraph(str(value), styles["DocValue"])] for label, value in rows],
                   colWidths=[51 * mm, 131 * mm], style=TableStyle([
-                      ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fbfd")),
-                      ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#9ab5ca")),
-                      ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#c7d8e5")),
+                      ("LINEBELOW", (0, 0), (-1, -1), 0.35, colors.HexColor("#b8c5d1")),
                       ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 6),
                       ("RIGHTPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 0), (-1, -1), 2.5),
-                      ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+                      ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
                   ])),
-            Spacer(1, 1.5 * mm),
+            Spacer(1, 3 * mm),
         ]
 
     story = [
@@ -182,16 +181,21 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
         ("Building Name", cadastre["name"]), ("Location / Address", cadastre["street"]),
         ("Land ULPIN", cadastre["land_ulpin"]), ("CTS No.", cadastre["cts_no"]),
         ("District", "Mumbai"), ("State", "Maharashtra"),
+        ("Cadastral Division", cadastre["cadastral_division"]),
     ]))
     story.extend(section("2. UNIT DETAILS", [
         ("Unit No.", f"Flat {record['unit_number']}, {record['wing_name']}, {record.get('floor_label', 'Selected floor')}"),
         ("Vertical ULPIN", record["unit_ulpin"]), ("Unit Type", record["unit_type"]),
+        ("Floor", record.get("floor_label", "Selected floor")),
         ("Carpet Area", f"{record['carpet_area_sqm']} sq.m"),
+        ("Built-up Area", f"{record.get('built_up_area_sqm', 'N/A')} sq.m"),
+        ("Undivided Share", str(record.get("uds_percentage", "N/A"))),
     ]))
     story.extend(section("3. OWNER DETAILS", [
         ("Owner Name", record["owner_name"]), ("Ownership Type", "Registered titleholder / cadastral owner"),
         ("Address", f"{cadastre['street']}, Mumbai - 400 001"), ("Property Card No.", record["property_card_no"]),
         ("Registration No.", record["tax_assessment_sac"]),
+        ("Tax Assessment / SAC", record["tax_assessment_sac"]),
     ]))
     story.extend(section("4. ULPIN SUMMARY", [
         ("Base Parcel ULPIN", cadastre["land_ulpin"]), ("Vertical Unit ULPIN", record["unit_ulpin"]),
