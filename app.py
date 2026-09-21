@@ -143,13 +143,13 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
     styles.add(ParagraphStyle(name="DocLabel", parent=styles["Normal"], fontName="Times-Bold", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocValue", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=12, textColor=navy))
     styles.add(ParagraphStyle(name="DocHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=14, leading=15, alignment=1, textColor=navy))
-    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName=hindi_font_name, fontSize=16, leading=17, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName=hindi_font_name, fontSize=18, leading=19, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="DocSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, alignment=1, textColor=navy))
-    styles.add(ParagraphStyle(name="GovernmentHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=17, leading=18, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="GovernmentHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=18, leading=19, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="GovernmentSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=10.5, leading=11.5, alignment=1, textColor=navy))
     styles.add(ParagraphStyle(name="SectionTitle", parent=styles["Normal"], fontName="Times-Bold", fontSize=11, leading=13, textColor=navy))
-    emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=27 * mm, height=37 * mm)
-    ministry_mark = Image(str(BASE_DIR / "assets" / "ministry-rural-development-user.jpg"), width=56 * mm, height=26 * mm)
+    emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=31 * mm, height=42 * mm)
+    ministry_mark = Image(str(BASE_DIR / "assets" / "ministry-rural-development-user.jpg"), width=59 * mm, height=28 * mm)
 
     def section(title, rows):
         return [
@@ -165,9 +165,9 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
                       ("LINEBELOW", (0, 0), (-1, -1), 0.35, colors.HexColor("#b8c5d1")),
                       ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 6),
                       ("RIGHTPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 0), (-1, -1), 2.5),
-                      ("BOTTOMPADDING", (0, 0), (-1, -1), 4.5),
+                      ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
                   ])),
-            Spacer(1, 3 * mm),
+            Spacer(1, 1.5 * mm),
         ]
 
     story = [
@@ -178,7 +178,7 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
             Paragraph("Ministry of Rural Development", styles["GovernmentHeader"]),
             Paragraph("Department of Land Resources", styles["GovernmentSubheader"]),
             Paragraph("(Digital India Land Records Modernization Programme)", styles["GovernmentSubheader"]),
-        ], ministry_mark]], colWidths=[31 * mm, 105 * mm, 46 * mm], style=TableStyle([
+        ], ministry_mark]], colWidths=[35 * mm, 100 * mm, 47 * mm], style=TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("ALIGN", (2, 0), (2, 0), "RIGHT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0), ("RIGHTPADDING", (0, 0), (-1, -1), 0),
             ("TOPPADDING", (0, 0), (-1, -1), 0), ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
@@ -187,7 +187,7 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
         Table([[""]], colWidths=[182 * mm], rowHeights=[0.6 * mm], style=TableStyle([
             ("BACKGROUND", (0, 0), (-1, -1), navy),
         ])),
-        Spacer(1, 3.5 * mm),
+        Spacer(1, 2 * mm),
         Paragraph("PROPERTY OWNERSHIP DETAILS", styles["DocHeader"]),
         Paragraph("(ULPIN BASED LAND & BUILDING INFORMATION)", styles["DocSubheader"]),
         Paragraph("Issued under the authority of the Ministry of Rural Development, Government of India", styles["DocSubheader"]),
@@ -222,7 +222,7 @@ def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> 
     ]))
     story.append(Spacer(1, 2 * mm))
     story.append(Paragraph("This digitally generated preview is based on the cadastral data available in this application. It is not a legal title deed and must be verified against the department's official records.", styles["DocSubheader"]))
-    document = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=10 * mm, leftMargin=10 * mm, topMargin=5 * mm, bottomMargin=5 * mm, title="Property Ownership Details")
+    document = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=10 * mm, leftMargin=10 * mm, topMargin=3 * mm, bottomMargin=3 * mm, title="Property Ownership Details")
     document.build(story)
     return buffer.getvalue(), filename
 
