@@ -1,12 +1,21 @@
 import json
 import os
+from datetime import datetime, timezone
+from io import BytesIO
 from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Response
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 import uvicorn
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -80,6 +89,130 @@ def get_building_cadastre_endpoint(spatial_id: str):
     cadastre = generate_building_cadastre(props)
     cadastre["geometry"] = feat.get("geometry", {})
     return JSONResponse(content=cadastre)
+
+def _find_cadastre_unit(cadastre, unit_id: Optional[str]):
+    if not unit_id:
+        return None
+    return next(
+        (unit for floor in cadastre["floors"] for unit in floor["units"] if unit["unit_id"] == unit_id),
+        None,
+    )
+
+def _build_property_document(spatial_id: str, unit_id: Optional[str] = None) -> tuple[bytes, str]:
+    feat = CACHED_BUILDINGS_INDEX.get(spatial_id)
+    if not feat:
+        raise HTTPException(status_code=404, detail="Building not found in South Mumbai cadastral registry.")
+    cadastre = generate_building_cadastre(feat.get("properties", {}))
+    unit = _find_cadastre_unit(cadastre, unit_id)
+    if unit_id and unit is None:
+        raise HTTPException(status_code=404, detail="Vertical unit not found in cadastral registry.")
+    record = unit or {
+        "unit_number": "Land Parcel", "wing_name": "", "floor_label": "Land record",
+        "unit_ulpin": cadastre["land_ulpin"], "unit_type": cadastre["category"],
+        "carpet_area_sqm": cadastre["footprint_area_sqm"],
+        "owner_name": "Registered ownership details held in the land parcel record",
+        "property_card_no": "See CTS / property card register",
+        "tax_assessment_sac": "N/A",
+    }
+    issued_on = datetime.now(timezone.utc).strftime("%d-%m-%Y")
+    filename = f"{record['unit_ulpin'].replace('/', '-')}-property-ownership-details.pdf"
+    buffer = BytesIO()
+    hindi_font = "Helvetica"
+    mangal_font = Path("C:/Windows/Fonts/mangal.ttf")
+    if mangal_font.exists():
+        pdfmetrics.registerFont(TTFont("Mangal", str(mangal_font)))
+        hindi_font = "Mangal"
+    styles = getSampleStyleSheet()
+    navy = colors.HexColor("#17365d")
+    styles.add(ParagraphStyle(name="DocLabel", parent=styles["Normal"], fontName="Times-Bold", fontSize=8.5, leading=9.2, textColor=navy))
+    styles.add(ParagraphStyle(name="DocValue", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, textColor=navy))
+    styles.add(ParagraphStyle(name="DocHeader", parent=styles["Normal"], fontName="Times-Bold", fontSize=14, leading=15, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="HindiHeader", parent=styles["Normal"], fontName=hindi_font, fontSize=13, leading=14, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="DocSubheader", parent=styles["Normal"], fontName="Times-Roman", fontSize=8.5, leading=9.2, alignment=1, textColor=navy))
+    styles.add(ParagraphStyle(name="SectionTitle", parent=styles["Normal"], fontName="Times-Bold", fontSize=9, leading=9.5, textColor=navy))
+    emblem = Image(str(BASE_DIR / "assets" / "emblem-of-india-user.png"), width=21 * mm, height=29 * mm)
+    ministry_mark = Image(str(BASE_DIR / "assets" / "ministry-rural-development-user.jpg"), width=48 * mm, height=22 * mm)
+
+    def section(title, rows):
+        return [
+            Table([[Paragraph(title, styles["SectionTitle"])]], colWidths=[182 * mm], style=TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#dcecf8")),
+                ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#7aa2c2")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 0), (-1, -1), 1.5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+            ])),
+            Table([[Paragraph(label, styles["DocLabel"]), Paragraph(str(value), styles["DocValue"])] for label, value in rows],
+                  colWidths=[51 * mm, 131 * mm], style=TableStyle([
+                      ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f8fbfd")),
+                      ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#9ab5ca")),
+                      ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#c7d8e5")),
+                      ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                      ("RIGHTPADDING", (0, 0), (-1, -1), 6), ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+                      ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5),
+                  ])),
+            Spacer(1, 1.5 * mm),
+        ]
+
+    story = [
+        Table([[emblem, [
+            Paragraph("भारत सरकार", styles["HindiHeader"]),
+            Paragraph("ग्रामीण विकास मंत्रालय", styles["HindiHeader"]),
+            Paragraph("Government of India", styles["DocHeader"]),
+            Paragraph("Ministry of Rural Development", styles["DocHeader"]),
+            Paragraph("Department of Land Resources", styles["DocSubheader"]),
+            Paragraph("(Digital India Land Records Modernization Programme)", styles["DocSubheader"]),
+        ], ministry_mark]], colWidths=[26 * mm, 114 * mm, 42 * mm], style=TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("ALIGN", (2, 0), (2, 0), "RIGHT"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0), ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 0), ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ])),
+        Spacer(1, 1.5 * mm),
+        Table([[""]], colWidths=[182 * mm], rowHeights=[0.6 * mm], style=TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), navy),
+        ])),
+        Spacer(1, 3.5 * mm),
+        Paragraph("PROPERTY OWNERSHIP DETAILS", styles["DocHeader"]),
+        Paragraph("(ULPIN BASED LAND & BUILDING INFORMATION)", styles["DocSubheader"]),
+        Paragraph("Issued under the authority of the Ministry of Rural Development, Government of India", styles["DocSubheader"]),
+        Spacer(1, 2 * mm),
+        Table([["", Paragraph(f"Document No.: MRD/ULPIN/{datetime.now(timezone.utc).year}/{spatial_id[-6:]}<br/>Date of Issue: {issued_on}", styles["DocValue"])]
+               ], colWidths=[105 * mm, 67 * mm], style=TableStyle([("ALIGN", (1, 0), (1, 0), "RIGHT")])),
+    ]
+    story.extend(section("1. PROPERTY / BUILDING DETAILS", [
+        ("Building Name", cadastre["name"]), ("Location / Address", cadastre["street"]),
+        ("Land ULPIN", cadastre["land_ulpin"]), ("CTS No.", cadastre["cts_no"]),
+        ("District", "Mumbai"), ("State", "Maharashtra"),
+    ]))
+    story.extend(section("2. UNIT DETAILS", [
+        ("Unit No.", f"Flat {record['unit_number']}, {record['wing_name']}, {record.get('floor_label', 'Selected floor')}"),
+        ("Vertical ULPIN", record["unit_ulpin"]), ("Unit Type", record["unit_type"]),
+        ("Carpet Area", f"{record['carpet_area_sqm']} sq.m"),
+    ]))
+    story.extend(section("3. OWNER DETAILS", [
+        ("Owner Name", record["owner_name"]), ("Ownership Type", "Registered titleholder / cadastral owner"),
+        ("Address", f"{cadastre['street']}, Mumbai - 400 001"), ("Property Card No.", record["property_card_no"]),
+        ("Registration No.", record["tax_assessment_sac"]),
+    ]))
+    story.extend(section("4. ULPIN SUMMARY", [
+        ("Base Parcel ULPIN", cadastre["land_ulpin"]), ("Vertical Unit ULPIN", record["unit_ulpin"]),
+        ("Cadastral Division", cadastre["cadastral_division"]),
+        ("Title Status", "Freehold / Clear title - MahaBhumi 3D Cadastre Verified"),
+    ]))
+    story.append(Spacer(1, 2 * mm))
+    story.append(Paragraph("This digitally generated preview is based on the cadastral data available in this application. It is not a legal title deed and must be verified against the department's official records.", styles["DocSubheader"]))
+    document = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=10 * mm, leftMargin=10 * mm, topMargin=5 * mm, bottomMargin=5 * mm, title="Property Ownership Details")
+    document.build(story)
+    return buffer.getvalue(), filename
+
+@app.get("/api/building/{spatial_id}/document")
+def preview_property_document(spatial_id: str, unit_id: Optional[str] = None):
+    content, filename = _build_property_document(spatial_id, unit_id)
+    return Response(content=content, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{filename}"'})
+
+@app.get("/api/building/{spatial_id}/document/download")
+def download_property_document(spatial_id: str, unit_id: Optional[str] = None):
+    content, filename = _build_property_document(spatial_id, unit_id)
+    return Response(content=content, media_type="application/pdf", headers={"Content-Disposition": f'attachment; filename="{filename}"'})
 
 @app.get("/", response_class=HTMLResponse)
 def serve_dashboard():
@@ -4414,9 +4547,13 @@ def serve_dashboard():
 
                                             <button
                                                 onClick={() => {
-                                                    setCopiedCode(true);
-                                                    navigator.clipboard && navigator.clipboard.writeText(selectedFlat ? selectedFlat.unit_ulpin : cadastre.land_ulpin);
-                                                    setTimeout(() => setCopiedCode(false), 2200);
+                                                    const spatialId = selectedBuilding && selectedBuilding.properties
+                                                        ? selectedBuilding.properties.spatial_id
+                                                        : '';
+                                                    const unitId = selectedFlat ? selectedFlat.unit_id : '';
+                                                    if (spatialId) {
+                                                        window.open(`/api/building/${encodeURIComponent(spatialId)}/document?unit_id=${encodeURIComponent(unitId)}`, '_blank');
+                                                    }
                                                 }}
                                                 style={{
                                                     width: '100%', background: '#2563A6', border: 'none',
@@ -4426,8 +4563,8 @@ def serve_dashboard():
                                                 }}
                                             >
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                    {copiedCode ? <IconCheck /> : <IconDoc size={12} color="#ffffff" />}
-                                                    <span>{copiedCode ? "Copied 3D ULPIN to Clipboard" : "View Full Property Report"}</span>
+                                                    <IconDoc size={12} color="#ffffff" />
+                                                    <span>Open Ownership Document Preview</span>
                                                 </div>
                                                 <IconDownload size={12} color="#ffffff" />
                                             </button>
