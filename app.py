@@ -264,6 +264,17 @@ def serve_dashboard():
                 <div id="tt-title" style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 2px;"></div>
                 <div id="tt-sub" style="color: var(--text-secondary);"></div>
                 <div id="tt-ulpin" class="code-font" style="color: var(--accent-amber); font-size: 10px; margin-top: 4px;"></div>
+                <div id="tt-title" style="font-weight: 700; color: #38bdf8; margin-bottom: 2px;"></div>
+                <div id="tt-sub" style="color: #94a3b8;"></div>
+                <div id="tt-ulpin" class="code-font" style="color: #fbbf24; font-size: 10px; margin-top: 4px;"></div>
+            </div>
+            <!-- 3D Real-time Projected Unit Callout Pin -->
+            <div id="unit-3d-pin" style="position: absolute; pointer-events: none; transform: translate(-50%, -100%); z-index: 55; display: none;">
+                <div id="unit-3d-pin-label" style="background: #0f172a; color: #ffffff; border: 1.5px solid #38bdf8; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,0.5); white-space: nowrap; display: inline-block;">
+                    Flat 504
+                </div>
+                <div style="width: 2px; height: 26px; background: #38bdf8; margin: 0 auto;"></div>
+                <div style="width: 8px; height: 8px; background: #38bdf8; border: 2px solid #ffffff; border-radius: 50%; margin: -4px auto 0; box-shadow: 0 0 8px #38bdf8;"></div>
             </div>
         </div>
     </div>
@@ -523,6 +534,10 @@ def serve_dashboard():
                     this.scene.remove(this.buildingGroup);
                     this.buildingGroup = null;
                 }
+                if (this.contextGroup) {
+                    this.scene.remove(this.contextGroup);
+                    this.contextGroup = null;
+                }
                 this.floorGroups = [];
                 this.flatMeshes = [];
                 this.allInteractiveMeshes = [];
@@ -530,6 +545,8 @@ def serve_dashboard():
                 this.selectedFloorIndex = null;
                 this.explodeRatio = 0.0;
                 this.targetExplodeRatio = 0.0;
+                const pinEl = document.getElementById('unit-3d-pin');
+                if (pinEl) pinEl.style.display = 'none';
             }
 
             loadBuilding(buildingFeature, cadastre) {
@@ -588,10 +605,105 @@ def serve_dashboard():
                 const floorHeight = cadastre.floor_height_m || (p.height_m / floors);
                 const maxDim = Math.max(size.x, size.y, p.height_m || 50);
 
+                // 1. Build Central High-Detail BIM Building
                 this.buildArchitecturalFloors(centeredShape, centeredPoints, cadastre, floorHeight, size);
                 this.buildGroundEntrance(size, floorHeight);
                 this.buildRooftopCrown(centeredShape, floors * floorHeight, size);
+
+                // 2. Build Surrounding Contextual 3D Buildings & Roads
+                this.buildContextualSurroundings(avgLon, avgLat, SCALE_M, cosLat, center, (p.spatial_id || ''));
+
+                // 3. Reset Camera
                 this.resetCameraToFraming(maxDim, p.height_m || 50);
+            }
+
+            buildContextualSurroundings(avgLon, avgLat, scaleM, cosLat, centerOffset, currentId) {
+                if (this.contextGroup) {
+                    this.scene.remove(this.contextGroup);
+                    this.contextGroup = null;
+                }
+                const contextGroup = new THREE.Group();
+
+                // Asphalt Ground Plane with Cadastral Grid
+                const groundGeom = new THREE.PlaneGeometry(800, 800);
+                groundGeom.rotateX(-Math.PI / 2);
+                const groundMat = new THREE.MeshStandardMaterial({
+                    color: 0x0f172a, roughness: 0.95, metalness: 0.1
+                });
+                const groundMesh = new THREE.Mesh(groundGeom, groundMat);
+                groundMesh.position.y = -0.05;
+                groundMesh.receiveShadow = true;
+                contextGroup.add(groundMesh);
+
+                const gridHelper = new THREE.GridHelper(800, 80, 0x334155, 0x1e293b);
+                gridHelper.position.y = 0.01;
+                contextGroup.add(gridHelper);
+
+                // Surrounding 3D Buildings from window.buildingsData
+                const bldData = window.buildingsData;
+                if (bldData && Array.isArray(bldData.features)) {
+                    const radiusDeg = 0.0028;
+                    const nearby = bldData.features.filter(f => {
+                        if (!f.geometry || !f.properties) return false;
+                        if (f.properties.spatial_id === currentId) return false;
+                        let coords = null;
+                        if (f.geometry.type === 'Polygon' && f.geometry.coordinates && f.geometry.coordinates[0]) {
+                            coords = f.geometry.coordinates[0][0];
+                        } else if (f.geometry.type === 'MultiPolygon' && f.geometry.coordinates && f.geometry.coordinates[0] && f.geometry.coordinates[0][0]) {
+                            coords = f.geometry.coordinates[0][0][0];
+                        }
+                        if (!coords) return false;
+                        return Math.abs(coords[0] - avgLon) < radiusDeg && Math.abs(coords[1] - avgLat) < radiusDeg;
+                    }).slice(0, 50);
+
+                    const contextMat = new THREE.MeshStandardMaterial({
+                        color: 0x1e293b, roughness: 0.85, metalness: 0.15
+                    });
+                    const contextRoofMat = new THREE.MeshStandardMaterial({
+                        color: 0x334155, roughness: 0.7, metalness: 0.25
+                    });
+
+                    nearby.forEach(b => {
+                        let polyRing = null;
+                        if (b.geometry.type === 'Polygon' && b.geometry.coordinates && b.geometry.coordinates[0]) {
+                            polyRing = b.geometry.coordinates[0];
+                        } else if (b.geometry.type === 'MultiPolygon' && b.geometry.coordinates && b.geometry.coordinates[0] && b.geometry.coordinates[0][0]) {
+                            polyRing = b.geometry.coordinates[0][0];
+                        }
+                        if (!polyRing || polyRing.length < 3) return;
+
+                        const bPoints = polyRing.map(pt => new THREE.Vector2(
+                            (pt[0] - avgLon) * scaleM * cosLat - centerOffset.x,
+                            -(pt[1] - avgLat) * scaleM - centerOffset.y
+                        ));
+
+                        const bShape = new THREE.Shape(bPoints);
+                        const bHeight = Math.max(10, Math.min(85, b.properties.height_m || (b.properties.floors ? b.properties.floors * 3.4 : 22)));
+
+                        const bGeom = new THREE.ExtrudeGeometry(bShape, { depth: bHeight, bevelEnabled: false });
+                        bGeom.rotateX(-Math.PI / 2);
+
+                        const bMesh = new THREE.Mesh(bGeom, contextMat);
+                        bMesh.castShadow = true;
+                        bMesh.receiveShadow = true;
+                        contextGroup.add(bMesh);
+
+                        const roofShapeGeom = new THREE.ShapeGeometry(bShape);
+                        roofShapeGeom.rotateX(-Math.PI / 2);
+                        const roofMesh = new THREE.Mesh(roofShapeGeom, contextRoofMat);
+                        roofMesh.position.y = bHeight + 0.05;
+                        contextGroup.add(roofMesh);
+
+                        const edges = new THREE.EdgesGeometry(bGeom, 40);
+                        const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+                            color: 0x475569, transparent: true, opacity: 0.35
+                        }));
+                        contextGroup.add(edgeLines);
+                    });
+                }
+
+                this.contextGroup = contextGroup;
+                this.scene.add(this.contextGroup);
             }
 
             buildArchitecturalFloors(centeredShape, points, cadastre, floorHeight, bboxSize) {
@@ -902,10 +1014,29 @@ def serve_dashboard():
                     } else if (isTarget) {
                         fg.userData.wallMesh.material = this.materials.flatFloorSelected;
                         fg.userData.plateMesh.material = this.materials.flatFloorSelected;
+                        fg.userData.wallMesh.material = new THREE.MeshPhysicalMaterial({
+                            color: 0x38bdf8,
+                            roughness: 0.15,
+                            transmission: 0.75,
+                            opacity: 0.65,
+                            transparent: true,
+                            reflectivity: 0.9,
+                            clearcoat: 1.0,
+                            emissive: 0x0284c7,
+                            emissiveIntensity: 0.45
+                        });
+                        fg.userData.plateMesh.material = new THREE.MeshStandardMaterial({
+                            color: 0x0284c7,
+                            emissive: 0x0369a1,
+                            emissiveIntensity: 0.5
+                        });
+                        fg.userData.outline.material.color.set(0x60a5fa);
                         fg.userData.outline.material.opacity = 1.0;
                     } else {
                         fg.userData.wallMesh.material = this.materials.ghostedMaterial;
                         fg.userData.plateMesh.material = this.materials.ghostedMaterial;
+                        fg.userData.wallMesh.material = this.materials.exteriorStone;
+                        fg.userData.plateMesh.material = this.materials.exteriorAccent;
                         fg.userData.outline.material.opacity = isSameFloor ? 0.35 : 0.08;
                     }
                 });
@@ -982,6 +1113,7 @@ def serve_dashboard():
                 const maxDim = Math.max(size.x, size.y, size.z);
 
                 if (preset === 'iso') {
+                if (preset === '3d' || preset === 'iso') {
                     this.tweenCameraTo(
                         new THREE.Vector3(center.x + maxDim * 1.4, center.y + maxDim * 1.1, center.z + maxDim * 1.4),
                         center
@@ -996,7 +1128,31 @@ def serve_dashboard():
                         new THREE.Vector3(center.x, center.y + maxDim * 2.5, center.z + 0.1),
                         center
                     );
+                } else if (preset === 'exploded') {
+                    this.setExplode(0.8);
+                    this.tweenCameraTo(
+                        new THREE.Vector3(center.x + maxDim * 1.5, center.y + maxDim * 1.3, center.z + maxDim * 1.5),
+                        center
+                    );
                 }
+            }
+
+            alignNorth() {
+                if (!this.camera || !this.controls) return;
+                const target = this.controls.target;
+                const dist = this.camera.position.distanceTo(target);
+                this.tweenCameraTo(
+                    new THREE.Vector3(target.x, target.y + dist * 0.52, target.z + dist * 0.85),
+                    target
+                );
+            }
+
+            zoom(factor) {
+                if (!this.camera || !this.controls) return;
+                const dir = new THREE.Vector3().subVectors(this.camera.position, this.controls.target);
+                const newDist = Math.max(8, Math.min(500, dir.length() * factor));
+                dir.setLength(newDist);
+                this.camera.position.copy(this.controls.target).add(dir);
             }
 
             resetCameraToFraming(maxDim, height) {
@@ -1045,11 +1201,46 @@ def serve_dashboard():
                 }
             }
 
+            updatePinPosition() {
+                const pinEl = document.getElementById('unit-3d-pin');
+                if (!pinEl) return;
+                if (!this.selectedFlatId) {
+                    pinEl.style.display = 'none';
+                    return;
+                }
+                const targetFlat = this.flatMeshes.find(f => f.userData.unitId === this.selectedFlatId);
+                if (!targetFlat) {
+                    pinEl.style.display = 'none';
+                    return;
+                }
+                const worldPos = new THREE.Vector3();
+                targetFlat.getWorldPosition(worldPos);
+                worldPos.y += 2.0;
+                const projected = worldPos.clone().project(this.camera);
+                if (projected.z < 1.0) {
+                    const w = this.container.clientWidth;
+                    const h = this.container.clientHeight;
+                    const screenX = (projected.x * 0.5 + 0.5) * w;
+                    const screenY = (-(projected.y * 0.5) + 0.5) * h;
+                    pinEl.style.display = 'block';
+                    pinEl.style.left = `${screenX}px`;
+                    pinEl.style.top = `${screenY}px`;
+                    const labelEl = document.getElementById('unit-3d-pin-label');
+                    if (labelEl && targetFlat.userData.unitData) {
+                        labelEl.textContent = `Flat ${targetFlat.userData.unitData.unit_number}`;
+                    }
+                } else {
+                    pinEl.style.display = 'none';
+                }
+            }
+
             animate() {
                 this.animId = requestAnimationFrame(this.animate);
                 this.controls.update();
+                if (this.controls && this.controls.update) this.controls.update();
                 this.updateExplodeAnimation();
                 this.updateCameraTween();
+                this.updatePinPosition();
                 this.renderer.render(this.scene, this.camera);
             }
         }
@@ -1144,6 +1335,202 @@ def serve_dashboard():
             </svg>
         );
 
+        const IconLogoStack = () => (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" fill="rgba(56, 189, 248, 0.15)" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+            </svg>
+        );
+
+        const IconMap = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                <line x1="8" y1="2" x2="8" y2="18"/>
+                <line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+        );
+
+        const IconProperty = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2"/>
+                <path d="M9 22v-4h6v4"/>
+                <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/>
+            </svg>
+        );
+
+        const IconLayers = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                <polyline points="2 17 12 22 22 17"/>
+                <polyline points="2 12 12 17 22 12"/>
+            </svg>
+        );
+
+        const IconTools = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+        );
+
+        const IconReports = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+        );
+
+        const IconBack = ({ size = 13 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+            </svg>
+        );
+
+        const IconFolder = ({ size = 13, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+        );
+
+        const IconFolderOpen = ({ size = 13, color = "#2563eb" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 14l1.45-6.53A2 2 0 0 1 9.4 6H20a2 2 0 0 1 2 2v2"/>
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+        );
+
+        const IconChevronRight = ({ size = 10 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+            </svg>
+        );
+
+        const IconChevronDown = ({ size = 10 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+            </svg>
+        );
+
+        const IconUnit = ({ size = 12, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18" />
+            </svg>
+        );
+
+        const IconSelect = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+                <path d="m13 13 6 6"/>
+            </svg>
+        );
+
+        const IconMeasure = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.3 8.7 8.7 21.3c-1 1-2.6 1-3.6 0l-2.4-2.4c-1-1-1-2.6 0-3.6L15.3 2.7c1-1 2.6-1 3.6 0l2.4 2.4c1 1 1 2.6 0 3.6z"/>
+                <path d="m7.5 10.5 2 2"/>
+                <path d="m10.5 7.5 2 2"/>
+                <path d="m13.5 4.5 2 2"/>
+            </svg>
+        );
+
+        const IconSection = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="3" y1="12" x2="21" y2="12" strokeDasharray="3 3"/>
+            </svg>
+        );
+
+        const IconReset = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+        );
+
+        const IconCompassRose = ({ size = 16 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polygon points="12 2 15 12 12 10" fill="#ef4444" stroke="#ef4444"/>
+                <polygon points="12 2 9 12 12 10" fill="#dc2626" stroke="#dc2626"/>
+                <polygon points="12 22 15 12 12 14" fill="#94a3b8" stroke="#94a3b8"/>
+                <polygon points="12 22 9 12 12 14" fill="#cbd5e1" stroke="#cbd5e1"/>
+            </svg>
+        );
+
+        const IconPerspective = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m2 9 10-5 10 5-10 5L2 9Z"/>
+                <path d="m2 9v6l10 5 10-5V9"/>
+            </svg>
+        );
+
+        const IconWater = ({ size = 12, color = "#0ea5e9" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+            </svg>
+        );
+
+        const IconSewer = ({ size = 12, color = "#10b981" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 14h6v6h4v-6h6V10h-6V4h-4v6H4z"/>
+            </svg>
+        );
+
+        const IconPower = ({ size = 12, color = "#f59e0b" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill={color} fillOpacity="0.3"/>
+            </svg>
+        );
+
+        const IconRain = ({ size = 12, color = "#6366f1" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 16.2A4.5 4.5 0 0 0 17.5 8h-1.8A7 7 0 1 0 4 14.9"/>
+                <path d="M8 19v2M12 19v2M16 19v2"/>
+            </svg>
+        );
+
+        const IconDownload = ({ size = 13, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+        );
+
+        const IconDoc = ({ size = 13, color = "currentColor" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+        );
+
+        const IconMore = ({ size = 14 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="1.5"/>
+                <circle cx="19" cy="12" r="1.5"/>
+                <circle cx="5" cy="12" r="1.5"/>
+            </svg>
+        );
+
+        const IconThumbnail = () => (
+            <svg width="48" height="48" viewBox="0 0 60 60" fill="none">
+                <rect width="60" height="60" fill="#0f172a" />
+                <rect x="8" y="14" width="20" height="42" fill="#1e293b" stroke="#334155" strokeWidth="1" />
+                <rect x="24" y="8" width="28" height="48" fill="#1e293b" stroke="#475569" strokeWidth="1" />
+                <rect x="28" y="12" width="20" height="12" fill="#38bdf8" fillOpacity="0.4" stroke="#38bdf8" strokeWidth="1" />
+                <line x1="24" y1="26" x2="52" y2="26" stroke="#ffffff" strokeWidth="1.5" />
+                <line x1="24" y1="34" x2="52" y2="34" stroke="#ffffff" strokeWidth="1.5" />
+                <line x1="24" y1="42" x2="52" y2="42" stroke="#ffffff" strokeWidth="1.5" />
+                <line x1="8" y1="24" x2="28" y2="24" stroke="#ffffff" strokeWidth="1.2" />
+                <line x1="8" y1="34" x2="28" y2="34" stroke="#ffffff" strokeWidth="1.2" />
+                <line x1="8" y1="44" x2="28" y2="44" stroke="#ffffff" strokeWidth="1.2" />
+            </svg>
+        );
+
         function App() {
             const [viewMode, setViewMode] = useState('map');
             const [buildingsData, setBuildingsData] = useState(null);
@@ -1169,6 +1556,12 @@ def serve_dashboard():
             const [currentBearing, setCurrentBearing] = useState(-24);
             const [currentPitch, setCurrentPitch] = useState(58);
 
+            // Digital Twin Workstation state matching reference mockup
+            const [activeTab, setActiveTab] = useState('overview');
+            const [expandedFloors, setExpandedFloors] = useState({ 4: true });
+            const [activeTool, setActiveTool] = useState('select');
+            const [twinViewMode, setTwinViewMode] = useState('3d');
+
             const twinRef = useRef(null);
             const undergroundModeRef = useRef(false);
             const undergroundOrbitModeRef = useRef(true);
@@ -1188,6 +1581,7 @@ def serve_dashboard():
                     fetch(`/api/buildings/architectural?t=${ts}`).then(r => r.json()),
                     fetch(`/api/utilities?t=${ts}`).then(r => r.json())
                 ]).then(([bldData, archData, utilData]) => {
+                    window.buildingsData = bldData;
                     setBuildingsData(bldData);
                     setUtilitiesData(utilData);
                     initMapLibre(bldData, archData, utilData);
@@ -1207,6 +1601,7 @@ def serve_dashboard():
                 window.appBridge.selectFlat = (unitData) => {
                     setSelectedFlat(unitData);
                     setSelectedFloor(unitData.floor_index);
+                    setExpandedFloors(prev => ({ ...prev, [unitData.floor_index]: true }));
                     if (twinRef.current) twinRef.current.selectFlat(unitData.unit_id);
                 };
             }, []);
@@ -1232,6 +1627,8 @@ def serve_dashboard():
                 setSelectedFloor(null);
                 setSelectedFlat(null);
                 setExplodeRatio(0);
+                setActiveTab('overview');
+                setTwinViewMode('3d');
                 setViewMode('twin');
 
                 const workspaceEl = document.getElementById('twin-workspace');
@@ -1245,6 +1642,22 @@ def serve_dashboard():
                     setCadastre(cad);
 
                     // Ensure renderer instance exists and loads the building
+                    // Pick default expanded floor & flat matching reference layout (e.g. Floor 5, Flat 504)
+                    let defFlIdx = 0;
+                    let defFlat = null;
+                    if (cad.floors && cad.floors.length > 0) {
+                        defFlIdx = Math.min(4, cad.floors.length - 1);
+                        const fl = cad.floors[defFlIdx];
+                        if (fl && fl.units && fl.units.length > 0) {
+                            defFlat = fl.units.find(u => u.unit_number === 504 || u.unit_number === '504') || fl.units[fl.units.length - 1];
+                        }
+                    }
+                    setExpandedFloors({ [defFlIdx]: true });
+                    if (defFlat) {
+                        setSelectedFloor(defFlIdx);
+                        setSelectedFlat(defFlat);
+                    }
+
                     if (!twinRef.current) {
                         twinRef.current = new ArchitecturalDigitalTwinRenderer('twin-canvas-container');
                     }
@@ -1252,6 +1665,9 @@ def serve_dashboard():
                         if (twinRef.current) {
                             twinRef.current.onResize();
                             twinRef.current.loadBuilding(master, cad);
+                            if (defFlat) {
+                                twinRef.current.selectFlat(defFlat.unit_id);
+                            }
                         }
                     }, 60);
                 } catch (err) {
@@ -1262,10 +1678,34 @@ def serve_dashboard():
             const handleCloseTwin = () => {
                 setViewMode('map');
                 document.getElementById('twin-workspace').style.display = 'none';
+                const workspaceEl = document.getElementById('twin-workspace');
+                if (workspaceEl) workspaceEl.style.display = 'none';
+                const pinEl = document.getElementById('unit-3d-pin');
+                if (pinEl) pinEl.style.display = 'none';
                 if (twinRef.current) {
                     twinRef.current.clearBuilding();
                 }
             };
+
+            const toggleFloorExpanded = (flIdx, e) => {
+                if (e) e.stopPropagation();
+                setExpandedFloors(prev => ({ ...prev, [flIdx]: !prev[flIdx] }));
+            };
+
+            const handleTreeFloorClick = (flIdx) => {
+                setSelectedFloor(flIdx);
+                setSelectedFlat(null);
+                setExpandedFloors(prev => ({ ...prev, [flIdx]: true }));
+                if (twinRef.current) twinRef.current.selectFloor(flIdx);
+            };
+
+            const handleTreeFlatClick = (unit) => {
+                setSelectedFlat(unit);
+                setSelectedFloor(unit.floor_index);
+                setExpandedFloors(prev => ({ ...prev, [unit.floor_index]: true }));
+                if (twinRef.current) twinRef.current.selectFlat(unit.unit_id);
+            };
+
 
             const handleExplodeChange = (val) => {
                 const num = parseFloat(val);
@@ -2407,13 +2847,35 @@ def serve_dashboard():
                                     <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)', letterSpacing: '0.04em' }}>
                                         BHU-AADHAAR CADASTRE
                                     </span>
+                    {viewMode === 'map' && (
+                        <div className="glass-panel" style={{
+                            position: 'absolute', top: 16, left: 16, right: 16, height: 60,
+                            padding: '0 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            zIndex: 60, pointerEvents: 'auto', background: '#0f172a', border: '1px solid var(--border-medium)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{
+                                    width: 34, height: 34, borderRadius: 7, background: '#1e293b',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6'
+                                }}>
+                                    <IconEmblem />
                                 </div>
                                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 1 }}>
                                     {cadastre ? (
                                         <span>
                                             <b style={{ color: '#fff' }}>{cadastre.name}</b> • <span className="code-font" style={{ color: '#94a3b8' }}>{cadastre.land_ulpin}</span> • {cadastre.cts_no}
+                                <div>
+                                    <div style={{ fontWeight: 700, fontSize: 14.5, letterSpacing: '-0.01em', color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        SOUTH MUMBAI 3D DIGITAL TWIN
+                                        <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa', border: '1px solid rgba(59, 130, 246, 0.25)', letterSpacing: '0.04em' }}>
+                                            BHU-AADHAAR CADASTRE
                                         </span>
                                     ) : "Department of Land Resources • 3D Cadastral Property Twin"}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 1 }}>
+                                        Department of Land Resources • 3D Cadastral Property Twin
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2421,6 +2883,48 @@ def serve_dashboard():
                         <div style={{ position: 'relative', width: 320 }}>
                             <div style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none', display: 'flex' }}>
                                 <IconSearch />
+                            <div style={{ position: 'relative', width: 320 }}>
+                                <div style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', pointerEvents: 'none', display: 'flex' }}>
+                                    <IconSearch />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearch(e.target.value)}
+                                    placeholder="Search by ULPIN, Building or Street..."
+                                    style={{
+                                        width: '100%', background: '#131b2e', border: '1px solid var(--border-subtle)',
+                                        borderRadius: 6, padding: '7px 12px 7px 32px', color: '#fff', fontSize: 11.5, outline: 'none'
+                                    }}
+                                />
+                                {searchResults.length > 0 && (
+                                    <div className="glass-panel" style={{
+                                        position: 'absolute', top: 38, left: 0, right: 0, maxHeight: 280, overflowY: 'auto',
+                                        zIndex: 100, padding: 6, background: '#0f172a', border: '1px solid var(--border-medium)'
+                                    }}>
+                                        {searchResults.map(b => (
+                                            <div
+                                                key={b.properties.spatial_id}
+                                                onClick={() => {
+                                                    handleOpenTwin(b);
+                                                    setSearchResults([]);
+                                                    setSearchQuery('');
+                                                }}
+                                                style={{
+                                                    padding: '7px 9px', borderRadius: 5, cursor: 'pointer', fontSize: 11.5,
+                                                    marginBottom: 3, background: '#131b2e', transition: 'background 0.15s'
+                                                }}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = '#1e293b'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = '#131b2e'}
+                                            >
+                                                <div style={{ fontWeight: 600, color: '#60a5fa' }}>{b.properties.name}</div>
+                                                <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 2 }}>
+                                                    <span className="code-font">{b.properties.land_ulpin}</span> • {b.properties.street}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <input
                                 type="text"
@@ -2505,17 +3009,26 @@ def serve_dashboard():
                             )}
 
                             {viewMode === 'twin' ? (
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                                 <button
                                     onClick={handleCloseTwin}
+                                    onClick={toggleStoreys}
                                     style={{
                                         background: 'rgba(255, 255, 255, 0.05)', color: '#cbd5e1', border: '1px solid var(--border-subtle)',
                                         padding: '7px 14px', borderRadius: 7, fontWeight: 600, fontSize: 11.5, cursor: 'pointer',
+                                        background: showStoreys ? 'rgba(59, 130, 246, 0.15)' : '#131b2e',
+                                        color: showStoreys ? '#60a5fa' : 'var(--text-dim)',
+                                        border: `1px solid ${showStoreys ? 'rgba(59, 130, 246, 0.4)' : 'var(--border-subtle)'}`,
+                                        padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer',
                                         display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
                                     }}
                                     onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; e.currentTarget.style.color = '#fff'; }}
                                     onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; e.currentTarget.style.color = '#cbd5e1'; }}
+                                    title="Toggle 3D Multi-Storey Architecture"
                                 >
                                     <span>← Exit 3D Digital Twin</span>
+                                    <IconBuilding />
+                                    <span>3D Storeys</span>
                                 </button>
                             ) : (
                                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -2564,8 +3077,39 @@ def serve_dashboard():
                                     </button>
                                 </div>
                             )}
+                                <button
+                                    onClick={toggleOrbit}
+                                    style={{
+                                        background: isOrbiting ? '#2563eb' : '#131b2e',
+                                        color: isOrbiting ? '#ffffff' : 'var(--text-secondary)',
+                                        border: `1px solid ${isOrbiting ? '#3b82f6' : 'var(--border-subtle)'}`,
+                                        padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
+                                    }}
+                                    title="Toggle Continuous 3D Aerial Orbit"
+                                >
+                                    <IconOrbit />
+                                    <span>{isOrbiting ? "Pause Orbit" : "3D Orbit"}</span>
+                                </button>
+                                <button
+                                    onClick={handleToggleUnderground}
+                                    style={{
+                                        background: undergroundMode ? '#1e293b' : '#131b2e',
+                                        color: undergroundMode ? '#38bdf8' : 'var(--text-secondary)',
+                                        border: `1px solid ${undergroundMode ? '#38bdf8' : 'var(--border-subtle)'}`,
+                                        padding: '6px 12px', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s'
+                                    }}
+                                    title="Toggle Subsurface 3D Cutaway & Pipeline Network Filter"
+                                >
+                                    <IconUnderground />
+                                    <span>Underground 3D</span>
+                                    {undergroundMode && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#38bdf8' }} />}
+                                </button>
+                            </div>
                         </div>
                     </div>
+                    )}
 
                     {/* Keyboard 3D Navigation HUD */}
                     {viewMode === 'map' && (
@@ -3242,6 +3786,12 @@ def serve_dashboard():
                                 position: 'absolute', top: 88, left: 16, bottom: 20, width: 330,
                                 display: 'flex', flexDirection: 'column', padding: 16, zIndex: 60,
                                 pointerEvents: 'auto', background: '#0f172a', border: '1px solid var(--border-medium)'
+                            {/* 1. Full-width Top Navigation Bar */}
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, right: 0, height: 52,
+                                background: '#0f172a', borderBottom: '1px solid rgba(255,255,255,0.08)',
+                                padding: '0 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                zIndex: 70, pointerEvents: 'auto'
                             }}>
                                 <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                                     <span style={{ color: '#38bdf8', fontWeight: 600 }}>South Mumbai</span>
@@ -3249,28 +3799,566 @@ def serve_dashboard():
                                     <span style={{ color: '#cbd5e1' }}>{cadastre.cadastral_division.split(' ')[0]}</span>
                                     <span style={{ color: '#475569' }}>/</span>
                                     <span style={{ color: '#fff', fontWeight: 600 }}>Floor {selectedFloor !== null ? selectedFloor + 1 : 'All'}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <IconLogoStack />
+                                    <div>
+                                        <div style={{ fontWeight: 700, fontSize: 14.5, color: '#ffffff', letterSpacing: '-0.01em', lineHeight: 1.15 }}>
+                                            3D ULPIN
+                                        </div>
+                                        <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.1 }}>
+                                            South Mumbai Property & Infrastructure Cadastre
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ position: 'relative', width: 360 }}>
+                                    <div style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', display: 'flex', pointerEvents: 'none' }}>
+                                        <IconSearch />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => handleSearch(e.target.value)}
+                                        placeholder="Search ULPIN / Property / Building / Street..."
+                                        style={{
+                                            width: '100%', background: 'rgba(255, 255, 255, 0.08)',
+                                            border: '1px solid rgba(255, 255, 255, 0.14)', borderRadius: 6,
+                                            padding: '6px 12px 6px 32px', color: '#fff', fontSize: 11.5, outline: 'none'
+                                        }}
+                                    />
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <button
+                                        onClick={handleCloseTwin}
+                                        style={{
+                                            background: 'none', border: 'none', color: '#cbd5e1', padding: '6px 10px',
+                                            borderRadius: 5, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                        }}
+                                    >
+                                        <IconMap size={13} />
+                                        <span>Map</span>
+                                    </button>
+                                    <button
+                                        style={{
+                                            background: '#334155', border: 'none', color: '#ffffff', padding: '6px 12px',
+                                            borderRadius: 5, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                        }}
+                                    >
+                                        <IconProperty size={13} />
+                                        <span>Property</span>
+                                    </button>
+                                    <button
+                                        style={{
+                                            background: 'none', border: 'none', color: '#cbd5e1', padding: '6px 10px',
+                                            borderRadius: 5, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                        }}
+                                    >
+                                        <IconLayers size={13} />
+                                        <span>Layers</span>
+                                    </button>
+                                    <button
+                                        style={{
+                                            background: 'none', border: 'none', color: '#cbd5e1', padding: '6px 10px',
+                                            borderRadius: 5, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                        }}
+                                    >
+                                        <IconTools size={13} />
+                                        <span>Tools</span>
+                                    </button>
+                                    <button
+                                        style={{
+                                            background: 'none', border: 'none', color: '#cbd5e1', padding: '6px 10px',
+                                            borderRadius: 5, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                        }}
+                                    >
+                                        <IconReports size={13} />
+                                        <span>Reports</span>
+                                    </button>
+
+                                    <div style={{ height: 18, width: 1, background: 'rgba(255,255,255,0.15)', margin: '0 6px' }} />
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' }}>
+                                        <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#2563eb', color: '#fff', fontSize: 11.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            N
+                                        </div>
+                                        <span style={{ fontSize: 11.5, color: '#f1f5f9', fontWeight: 600 }}>Nisarg</span>
+                                        <IconChevronDown size={10} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 2. Sub-header Bar: Back to Map & Clickable Breadcrumbs */}
+                            <div style={{
+                                position: 'absolute', top: 52, left: 0, right: 0, height: 36,
+                                background: '#ffffff', borderBottom: '1px solid #e2e8f0',
+                                padding: '0 18px', display: 'flex', alignItems: 'center',
+                                zIndex: 65, pointerEvents: 'auto'
+                            }}>
+                                <button
+                                    onClick={handleCloseTwin}
+                                    style={{
+                                        background: 'none', border: 'none', color: '#334155', fontWeight: 600,
+                                        fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                                        padding: '4px 6px', borderRadius: 4
+                                    }}
+                                >
+                                    <IconBack size={12} />
+                                    <span>Back to Map</span>
+                                </button>
+
+                                <div style={{ height: 14, width: 1, background: '#cbd5e1', margin: '0 12px' }} />
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: '#64748b' }}>
+                                    <span style={{ cursor: 'pointer' }}>South Mumbai</span>
+                                    <IconChevronRight size={10} />
+                                    <span style={{ cursor: 'pointer' }}>{cadastre.cadastral_division.replace(' Division', '')}</span>
+                                    <IconChevronRight size={10} />
+                                    <span
+                                        onClick={() => {
+                                            setSelectedFloor(null);
+                                            setSelectedFlat(null);
+                                            if (twinRef.current) twinRef.current.selectFlat(null);
+                                        }}
+                                        style={{ cursor: 'pointer', fontWeight: 600, color: '#334155' }}
+                                    >
+                                        CTS {cadastre.cts_no}
+                                    </span>
+                                    <IconChevronRight size={10} />
+                                    <span
+                                        onClick={() => {
+                                            setSelectedFloor(null);
+                                            setSelectedFlat(null);
+                                            if (twinRef.current) twinRef.current.selectFlat(null);
+                                        }}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        Building
+                                    </span>
+                                    {selectedFloor !== null && (
+                                        <React.Fragment>
+                                            <IconChevronRight size={10} />
+                                            <span style={{ cursor: 'pointer', fontWeight: 600, color: '#334155' }}>
+                                                Floor {selectedFloor + 1}
+                                            </span>
+                                        </React.Fragment>
+                                    )}
                                     {selectedFlat && (
                                         <React.Fragment>
                                             <span style={{ color: '#475569' }}>/</span>
                                             <span style={{ color: '#fbbf24', fontWeight: 600 }}>Flat {selectedFlat.unit_number}</span>
+                                            <IconChevronRight size={10} />
+                                            <span style={{ fontWeight: 700, color: '#2563eb' }}>
+                                                Flat {selectedFlat.unit_number}
+                                            </span>
                                         </React.Fragment>
                                     )}
                                 </div>
+                            </div>
 
                                 {/* Vertical Separation Slider */}
+                            {/* 3. Left Sidebar: Property Explorer Tree & Quick Actions */}
+                            <div style={{
+                                position: 'absolute', top: 98, left: 16, bottom: 34, width: 280,
+                                background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column',
+                                zIndex: 60, pointerEvents: 'auto', overflow: 'hidden'
+                            }}>
                                 <div style={{
                                     background: '#131b2e', borderRadius: 8, padding: 12,
                                     border: '1px solid var(--border-subtle)', marginBottom: 12
+                                    padding: '10px 14px', borderBottom: '1px solid #f1f5f9',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                                 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#f1f5f9' }}>
                                             <span style={{ color: '#3b82f6', display: 'flex' }}><IconExplode /></span>
                                             <span>Floor Separation</span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>
+                                        <IconFolder size={14} color="#2563eb" />
+                                        <span>Property Explorer</span>
+                                    </div>
+                                    <button style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 12 }}>
+                                        «
+                                    </button>
+                                </div>
+
+                                <div style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px', fontSize: 11.5, color: '#0f172a', fontWeight: 600 }}>
+                                        <IconChevronDown size={10} />
+                                        <IconFolder size={13} color="#64748b" />
+                                        <span>South Mumbai</span>
+                                    </div>
+
+                                    <div style={{ paddingLeft: 16 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px', fontSize: 11, color: '#334155', fontWeight: 600 }}>
+                                            <IconChevronDown size={10} />
+                                            <IconFolder size={13} color="#64748b" />
+                                            <span>{cadastre.cadastral_division.replace(' Division', '')}</span>
                                         </div>
                                         <span className="code-font" style={{ fontSize: 11, fontWeight: 700, color: '#60a5fa', background: 'rgba(59, 130, 246, 0.12)', padding: '1px 6px', borderRadius: 4 }}>
                                             {Math.round(explodeRatio * 100)}%
                                         </span>
+
+                                        <div style={{ paddingLeft: 16 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px', fontSize: 11, color: '#334155' }}>
+                                                <IconChevronDown size={10} />
+                                                <IconFolder size={13} color="#64748b" />
+                                                <span>CTS {cadastre.cts_no}</span>
+                                            </div>
+
+                                            <div style={{ paddingLeft: 16 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 6px', fontSize: 11, color: '#334155', fontWeight: 600 }}>
+                                                    <IconChevronDown size={10} />
+                                                    <IconBuilding size={13} color="#64748b" />
+                                                    <span>Building</span>
+                                                </div>
+
+                                                <div style={{ paddingLeft: 16 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 6px', fontSize: 11, color: '#64748b' }}>
+                                                        <IconChevronRight size={9} />
+                                                        <IconFolder size={12} color="#94a3b8" />
+                                                        <span>Terrace</span>
+                                                    </div>
+
+                                                    {cadastre.floors.slice().reverse().map(fl => {
+                                                        const isExpanded = !!expandedFloors[fl.floor_index];
+                                                        const isFloorSelected = (selectedFloor === fl.floor_index);
+                                                        return (
+                                                            <div key={fl.floor_index}>
+                                                                <div
+                                                                    onClick={() => handleTreeFloorClick(fl.floor_index)}
+                                                                    style={{
+                                                                        display: 'flex', alignItems: 'center', gap: 6, padding: '3px 6px',
+                                                                        fontSize: 11, color: isFloorSelected ? '#0f172a' : '#475569',
+                                                                        fontWeight: isFloorSelected ? 700 : 500, cursor: 'pointer',
+                                                                        borderRadius: 4, background: isFloorSelected ? '#f1f5f9' : 'transparent'
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        onClick={(e) => toggleFloorExpanded(fl.floor_index, e)}
+                                                                        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: 2 }}
+                                                                    >
+                                                                        {isExpanded ? <IconChevronDown size={9} /> : <IconChevronRight size={9} />}
+                                                                    </span>
+                                                                    {isExpanded ? <IconFolderOpen size={12} color="#2563eb" /> : <IconFolder size={12} color="#94a3b8" />}
+                                                                    <span>{fl.floor_label}</span>
+                                                                </div>
+
+                                                                {isExpanded && fl.units && (
+                                                                    <div style={{ paddingLeft: 18, margin: '2px 0' }}>
+                                                                        {fl.units.map(u => {
+                                                                            const isFlatActive = (selectedFlat && selectedFlat.unit_id === u.unit_id);
+                                                                            return (
+                                                                                <div
+                                                                                    key={u.unit_id}
+                                                                                    onClick={() => handleTreeFlatClick(u)}
+                                                                                    style={{
+                                                                                        display: 'flex', alignItems: 'center', gap: 6,
+                                                                                        padding: '4px 8px', borderRadius: 5, fontSize: 10.5,
+                                                                                        cursor: 'pointer', marginBottom: 2, transition: 'all 0.12s',
+                                                                                        background: isFlatActive ? '#eff6ff' : 'transparent',
+                                                                                        color: isFlatActive ? '#2563eb' : '#475569',
+                                                                                        fontWeight: isFlatActive ? 700 : 500,
+                                                                                        border: isFlatActive ? '1px solid #bfdbfe' : '1px solid transparent'
+                                                                                    }}
+                                                                                >
+                                                                                    <IconUnit size={11} color={isFlatActive ? '#2563eb' : '#94a3b8'} />
+                                                                                    <span>Flat {u.unit_number}</span>
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div style={{ borderTop: '1px solid #f1f5f9', padding: '10px 14px', background: '#fafbfc' }}>
+                                    <div style={{ fontSize: 10.5, fontWeight: 700, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                        Quick Actions
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                                        <button
+                                            onClick={() => setActiveTool('select')}
+                                            style={{
+                                                background: activeTool === 'select' ? '#eff6ff' : 'transparent',
+                                                border: activeTool === 'select' ? '1px solid #bfdbfe' : '1px solid transparent',
+                                                color: activeTool === 'select' ? '#2563eb' : '#334155',
+                                                borderRadius: 5, padding: '5px 8px', fontSize: 11, fontWeight: 500,
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left'
+                                            }}
+                                        >
+                                            <IconSelect size={12} />
+                                            <span>Select</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTool('measure')}
+                                            style={{
+                                                background: activeTool === 'measure' ? '#eff6ff' : 'transparent',
+                                                border: activeTool === 'measure' ? '1px solid #bfdbfe' : '1px solid transparent',
+                                                color: activeTool === 'measure' ? '#2563eb' : '#334155',
+                                                borderRadius: 5, padding: '5px 8px', fontSize: 11, fontWeight: 500,
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left'
+                                            }}
+                                        >
+                                            <IconMeasure size={12} />
+                                            <span>Measure</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleExplodeChange(explodeRatio > 0.1 ? 0 : 0.8)}
+                                            style={{
+                                                background: explodeRatio > 0.1 ? '#eff6ff' : 'transparent',
+                                                border: explodeRatio > 0.1 ? '1px solid #bfdbfe' : '1px solid transparent',
+                                                color: explodeRatio > 0.1 ? '#2563eb' : '#334155',
+                                                borderRadius: 5, padding: '5px 8px', fontSize: 11, fontWeight: 500,
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left'
+                                            }}
+                                        >
+                                            <IconExplode size={12} />
+                                            <span>Explode Floors</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTool('section')}
+                                            style={{
+                                                background: activeTool === 'section' ? '#eff6ff' : 'transparent',
+                                                border: activeTool === 'section' ? '1px solid #bfdbfe' : '1px solid transparent',
+                                                color: activeTool === 'section' ? '#2563eb' : '#334155',
+                                                borderRadius: 5, padding: '5px 8px', fontSize: 11, fontWeight: 500,
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left'
+                                            }}
+                                        >
+                                            <IconSection size={12} />
+                                            <span>Section View</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                if (twinRef.current) twinRef.current.setCameraPreset('3d');
+                                            }}
+                                            style={{
+                                                background: 'transparent', border: '1px solid transparent', color: '#334155',
+                                                borderRadius: 5, padding: '5px 8px', fontSize: 11, fontWeight: 500,
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left'
+                                            }}
+                                        >
+                                            <IconReset size={12} />
+                                            <span>Reset View</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 4. Floating 3D Viewport Controls & Overlays */}
+                            {/* View Mode Switcher Pills (Top-Left of 3D Canvas) */}
+                            <div style={{
+                                position: 'absolute', top: 104, left: 312, zIndex: 60,
+                                display: 'flex', gap: 6, pointerEvents: 'auto'
+                            }}>
+                                {[
+                                    { id: '3d', label: '3D' },
+                                    { id: 'plan', label: 'Floor Plan' },
+                                    { id: 'exploded', label: 'Exploded View' }
+                                ].map(m => {
+                                    const isActive = (twinViewMode === m.id);
+                                    return (
+                                        <button
+                                            key={m.id}
+                                            onClick={() => {
+                                                setTwinViewMode(m.id);
+                                                if (twinRef.current) twinRef.current.setCameraPreset(m.id);
+                                                if (m.id === 'exploded') handleExplodeChange(0.8);
+                                            }}
+                                            style={{
+                                                background: isActive ? '#ffffff' : 'rgba(15, 23, 42, 0.75)',
+                                                color: isActive ? '#0f172a' : '#cbd5e1',
+                                                border: isActive ? 'none' : '1px solid rgba(255,255,255,0.12)',
+                                                borderRadius: 5, padding: '5px 12px', fontSize: 11, fontWeight: 600,
+                                                cursor: 'pointer', boxShadow: isActive ? '0 2px 6px rgba(0,0,0,0.2)' : 'none',
+                                                transition: 'all 0.15s'
+                                            }}
+                                        >
+                                            {m.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Left Floating CAD Tools */}
+                            <div style={{
+                                position: 'absolute', top: 148, left: 312, zIndex: 60,
+                                display: 'flex', flexDirection: 'column', gap: 4,
+                                background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.14)',
+                                borderRadius: 6, padding: 4, pointerEvents: 'auto', backdropFilter: 'blur(4px)'
+                            }}>
+                                <button
+                                    onClick={() => setActiveTool('select')}
+                                    style={{
+                                        background: activeTool === 'select' ? 'rgba(59,130,246,0.3)' : 'transparent',
+                                        border: 'none', color: activeTool === 'select' ? '#60a5fa' : '#cbd5e1',
+                                        borderRadius: 4, padding: 6, cursor: 'pointer', display: 'flex'
+                                    }}
+                                    title="Select"
+                                >
+                                    <IconSelect size={14} />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (twinRef.current) twinRef.current.alignNorth();
+                                    }}
+                                    style={{
+                                        background: 'transparent', border: 'none', color: '#cbd5e1',
+                                        borderRadius: 4, padding: 6, cursor: 'pointer', display: 'flex'
+                                    }}
+                                    title="360° Orbit Rotate"
+                                >
+                                    <IconOrbit size={14} />
+                                </button>
+                                <button
+                                    onClick={() => setActiveTool('measure')}
+                                    style={{
+                                        background: activeTool === 'measure' ? 'rgba(59,130,246,0.3)' : 'transparent',
+                                        border: 'none', color: activeTool === 'measure' ? '#60a5fa' : '#cbd5e1',
+                                        borderRadius: 4, padding: 6, cursor: 'pointer', display: 'flex'
+                                    }}
+                                    title="Measure"
+                                >
+                                    <IconMeasure size={14} />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (twinRef.current) twinRef.current.setCameraPreset('3d');
+                                    }}
+                                    style={{
+                                        background: 'transparent', border: 'none', color: '#cbd5e1',
+                                        borderRadius: 4, padding: 6, cursor: 'pointer', display: 'flex'
+                                    }}
+                                    title="Frame Extents"
+                                >
+                                    <IconSection size={14} />
+                                </button>
+                            </div>
+
+                            {/* Right Floating Navigation Controls */}
+                            <div style={{
+                                position: 'absolute', top: 104, right: 382, zIndex: 60,
+                                display: 'flex', flexDirection: 'column', gap: 6,
+                                alignItems: 'center', pointerEvents: 'auto'
+                            }}>
+                                <button
+                                    onClick={() => {
+                                        if (twinRef.current) twinRef.current.alignNorth();
+                                    }}
+                                    style={{
+                                        width: 32, height: 32, borderRadius: '50%',
+                                        background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+                                    }}
+                                    title="Align North"
+                                >
+                                    <IconCompassRose size={16} />
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (twinRef.current) twinRef.current.zoom(0.85);
+                                    }}
+                                    style={{
+                                        width: 28, height: 28, borderRadius: 5,
+                                        background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)',
+                                        color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Zoom In"
+                                >
+                                    +
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (twinRef.current) twinRef.current.zoom(1.15);
+                                    }}
+                                    style={{
+                                        width: 28, height: 28, borderRadius: 5,
+                                        background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)',
+                                        color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Zoom Out"
+                                >
+                                    -
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (twinRef.current) twinRef.current.setCameraPreset('plan');
+                                    }}
+                                    style={{
+                                        width: 28, height: 28, borderRadius: 5,
+                                        background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)',
+                                        color: '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Toggle 2D/3D"
+                                >
+                                    <IconPerspective size={14} />
+                                </button>
+                            </div>
+
+                            {/* Floating Bottom HUD Inside Viewport */}
+                            <div style={{
+                                position: 'absolute', bottom: 84, left: 312, zIndex: 60,
+                                pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 10
+                            }}>
+                                <div style={{
+                                    background: 'rgba(15, 23, 42, 0.75)', border: '1px solid rgba(255,255,255,0.15)',
+                                    borderRadius: 4, padding: '3px 8px', display: 'flex', flexDirection: 'column', gap: 2
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: '#e2e8f0', width: 120 }}>
+                                        <span>0</span>
+                                        <span>10</span>
+                                        <span>20</span>
+                                        <span>30 m</span>
+                                    </div>
+                                    <div style={{ height: 3, width: 120, background: '#fff', borderRadius: 1 }} />
+                                </div>
+                            </div>
+
+                            <div style={{
+                                position: 'absolute', bottom: 84, right: 382, zIndex: 60,
+                                pointerEvents: 'none', display: 'flex', gap: 6
+                            }}>
+                                <div style={{
+                                    background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)',
+                                    borderRadius: 4, padding: '4px 8px', fontSize: 10, color: '#f1f5f9', fontWeight: 600
+                                }}>
+                                    Elevation: {selectedFlat ? `+${selectedFlat.elevation_base_m} m` : `+${(cadastre.height_m * 0.5).toFixed(1)} m`}
+                                </div>
+                                <div style={{
+                                    background: 'rgba(15, 23, 42, 0.8)', border: '1px solid rgba(255,255,255,0.15)',
+                                    borderRadius: 4, padding: '4px 8px', fontSize: 10, color: '#f1f5f9', fontWeight: 600
+                                }}>
+                                    18.9256° N, 72.8247° E
+                                </div>
+                            </div>
+
+                            {/* Floating Bottom Toolbar Underneath 3D Viewport */}
+                            <div style={{
+                                position: 'absolute', bottom: 34, left: 312, right: 382, height: 44,
+                                background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center',
+                                justifyContent: 'space-between', padding: '0 16px', zIndex: 60, pointerEvents: 'auto'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, maxWidth: 360 }}>
+                                    <span style={{ fontSize: 11.5, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
+                                        Explode Floors
+                                    </span>
+                                    <span style={{ fontSize: 10, color: '#64748b' }}>0%</span>
                                     <input
                                         type="range"
                                         min="0"
@@ -3279,6 +4367,7 @@ def serve_dashboard():
                                         value={explodeRatio}
                                         onChange={(e) => handleExplodeChange(e.target.value)}
                                         style={{ width: '100%', marginBottom: 10 }}
+                                        style={{ flex: 1 }}
                                     />
                                     <div style={{ display: 'flex', gap: 6 }}>
                                         {[
@@ -3304,20 +4393,30 @@ def serve_dashboard():
                                             );
                                         })}
                                     </div>
+                                    <span style={{ fontSize: 10, color: '#64748b' }}>100%</span>
                                 </div>
 
                                 {/* Wing Selector Segmented Control */}
                                 <div style={{ display: 'flex', background: '#131b2e', borderRadius: 6, padding: 3, border: '1px solid var(--border-subtle)', marginBottom: 12 }}>
+                                <div style={{ display: 'flex', gap: 8, marginLeft: 16 }}>
                                     <button
                                         onClick={() => setSelectedWing('all')}
+                                        onClick={() => handleExplodeChange(0)}
                                         style={{
                                             flex: 1, padding: '5px 0', borderRadius: 4, fontSize: 11, fontWeight: 600,
                                             background: selectedWing === 'all' ? '#2563eb' : 'transparent',
                                             color: selectedWing === 'all' ? '#fff' : 'var(--text-secondary)',
                                             border: 'none', cursor: 'pointer', transition: 'all 0.15s'
+                                            background: explodeRatio === 0 ? '#eff6ff' : '#ffffff',
+                                            border: explodeRatio === 0 ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                                            color: explodeRatio === 0 ? '#2563eb' : '#334155',
+                                            borderRadius: 5, padding: '5px 12px', fontSize: 11, fontWeight: 600,
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
                                         }}
                                     >
                                         All Wings
+                                        <IconLayers size={12} />
+                                        <span>Stack</span>
                                     </button>
                                     {cadastre.wings.map(w => (
                                         <button
@@ -3333,7 +4432,34 @@ def serve_dashboard():
                                             {w.wing_id}
                                         </button>
                                     ))}
+                                    <button
+                                        onClick={() => handleExplodeChange(0.5)}
+                                        style={{
+                                            background: Math.abs(explodeRatio - 0.5) < 0.08 ? '#eff6ff' : '#ffffff',
+                                            border: Math.abs(explodeRatio - 0.5) < 0.08 ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                                            color: Math.abs(explodeRatio - 0.5) < 0.08 ? '#2563eb' : '#334155',
+                                            borderRadius: 5, padding: '5px 12px', fontSize: 11, fontWeight: 600,
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                        }}
+                                    >
+                                        <IconOrbit size={12} />
+                                        <span>Inspect</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExplodeChange(1.0)}
+                                        style={{
+                                            background: explodeRatio >= 0.95 ? '#eff6ff' : '#ffffff',
+                                            border: explodeRatio >= 0.95 ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                                            color: explodeRatio >= 0.95 ? '#2563eb' : '#334155',
+                                            borderRadius: 5, padding: '5px 12px', fontSize: 11, fontWeight: 600,
+                                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                        }}
+                                    >
+                                        <IconExplode size={12} />
+                                        <span>Explode</span>
+                                    </button>
                                 </div>
+                            </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                                     <span style={{ fontSize: 10.5, fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -3347,19 +4473,78 @@ def serve_dashboard():
                                             Reset Isolation
                                         </button>
                                     )}
+                            {/* 5. Right Sidebar: Property Information Card, Tabs & Cadastre */}
+                            <div style={{
+                                position: 'absolute', top: 98, right: 16, bottom: 34, width: 355,
+                                background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column',
+                                zIndex: 60, pointerEvents: 'auto', overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    padding: '10px 14px', borderBottom: '1px solid #f1f5f9',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>
+                                        <IconDoc size={14} color="#2563eb" />
+                                        <span>Property Information</span>
+                                    </div>
+                                    <button style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>
+                                        <IconMore size={14} />
+                                    </button>
                                 </div>
 
                                 <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
                                     {cadastre.floors.slice().reverse().map(fl => {
                                         const isFlActive = (selectedFloor === fl.floor_index);
+                                <div style={{ padding: '12px 14px', display: 'flex', gap: 12, alignItems: 'center', borderBottom: '1px solid #f1f5f9' }}>
+                                    <div style={{
+                                        width: 48, height: 48, borderRadius: 6, background: '#1e293b',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0
+                                    }}>
+                                        <IconThumbnail />
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div style={{ fontSize: 9.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                                                ULPIN
+                                            </div>
+                                            <span style={{
+                                                fontSize: 9.5, fontWeight: 700, color: '#16a34a', background: '#dcfce7',
+                                                padding: '1px 7px', borderRadius: 4
+                                            }}>
+                                                Active
+                                            </span>
+                                        </div>
+                                        <div className="code-font" style={{ fontSize: 11.5, fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>
+                                            {selectedFlat ? selectedFlat.unit_ulpin : cadastre.land_ulpin}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', padding: '0 14px', background: '#fafbfc' }}>
+                                    {[
+                                        { id: 'overview', label: 'Overview' },
+                                        { id: 'floors', label: 'Floors' },
+                                        { id: 'infrastructure', label: 'Infrastructure' },
+                                        { id: 'documents', label: 'Documents' }
+                                    ].map(t => {
+                                        const isActive = (activeTab === t.id);
                                         return (
                                             <div
                                                 key={fl.floor_index}
+                                            <button
+                                                key={t.id}
+                                                onClick={() => setActiveTab(t.id)}
                                                 style={{
                                                     background: isFlActive ? '#1e293b' : '#131b2e',
                                                     border: isFlActive ? '1px solid #3b82f6' : '1px solid var(--border-subtle)',
                                                     borderLeft: isFlActive ? '3px solid #3b82f6' : '1px solid var(--border-subtle)',
                                                     borderRadius: 6, padding: '9px 12px', marginBottom: 6, transition: 'all 0.15s'
+                                                    background: 'none', border: 'none', padding: '8px 10px',
+                                                    fontSize: 11, fontWeight: isActive ? 700 : 500,
+                                                    color: isActive ? '#2563eb' : '#64748b',
+                                                    borderBottom: isActive ? '2px solid #2563eb' : '2px solid transparent',
+                                                    cursor: 'pointer', transition: 'all 0.12s'
                                                 }}
                                             >
                                                 <div
@@ -3407,6 +4592,8 @@ def serve_dashboard():
                                                     </div>
                                                 )}
                                             </div>
+                                                {t.label}
+                                            </button>
                                         );
                                     })}
                                 </div>
@@ -3432,6 +4619,36 @@ def serve_dashboard():
                                         <span className="pulsing-dot" style={{ width: 6, height: 6 }}></span> MahaBhumi Verified
                                     </span>
                                 </div>
+                                <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px' }}>
+                                    {activeTab === 'overview' && (
+                                        <React.Fragment>
+                                            <div style={{ marginBottom: 14 }}>
+                                                <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+                                                    Basic Details
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 10.5 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Property ID</span>
+                                                        <span className="code-font" style={{ color: '#0f172a', fontWeight: 600 }}>{cadastre.land_ulpin.slice(-14)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Parcel ID</span>
+                                                        <span className="code-font" style={{ color: '#0f172a', fontWeight: 600 }}>{cadastre.land_ulpin}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Building Name</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{cadastre.name || '-'}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Floor</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{selectedFlat ? selectedFlat.floor_number : (selectedFloor !== null ? selectedFloor + 1 : 'All')}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Unit / Flat</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{selectedFlat ? selectedFlat.unit_number : '-'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                 {selectedFlat ? (
                                     <React.Fragment>
@@ -3448,6 +4665,28 @@ def serve_dashboard():
                                         }}>
                                             <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                                 3D Vertical ULPIN (Bhu-Aadhaar)
+                                            <div style={{ marginBottom: 14 }}>
+                                                <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+                                                    Area Details
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 10.5 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Carpet Area</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{selectedFlat ? `${selectedFlat.carpet_area_sqm} m²` : `${cadastre.floor_plate_sqm} m²`}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Built-up Area</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{selectedFlat ? `${selectedFlat.built_up_area_sqm} m²` : `${(cadastre.floor_plate_sqm * 1.25).toFixed(2)} m²`}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Land Share</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{selectedFlat ? selectedFlat.uds_percentage : '3.57%'}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Elevation (MSL)</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{selectedFlat ? `+${selectedFlat.elevation_base_m} m` : `+${(cadastre.height_m * 0.5).toFixed(1)} m`}</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div className="code-font" style={{ fontSize: 12.5, fontWeight: 700, color: '#60a5fa', margin: '4px 0', letterSpacing: '0.02em' }}>
                                                 {selectedFlat.unit_ulpin}
@@ -3462,6 +4701,36 @@ def serve_dashboard():
                                                 <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>RERA Carpet Area</div>
                                                 <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', marginTop: 2 }}>{selectedFlat.carpet_area_sqm} m²</div>
                                                 <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>{selectedFlat.carpet_area_sqft} sq.ft</div>
+                                            <div style={{ marginBottom: 14 }}>
+                                                <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+                                                    Cadastral & Ownership
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 10.5 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Titleholder</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600, textAlign: 'right', maxWidth: 190 }}>
+                                                            {selectedFlat ? selectedFlat.owner_name : 'Smt. Sunita Kapoor & Shri Devendra Kapoor'}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>CTS Survey No.</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>CTS No. {cadastre.cts_no}, {cadastre.cadastral_division.replace(' Division', '')}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ color: '#64748b' }}>Title Status</span>
+                                                        <span style={{ fontSize: 9.5, fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '1px 6px', borderRadius: 4 }}>
+                                                            Freehold
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Clear Title</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>Yes</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                        <span style={{ color: '#64748b' }}>Registered</span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>Yes</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
                                                 <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>Built-Up Area</div>
@@ -3483,6 +4752,40 @@ def serve_dashboard():
                                         <div style={{ background: '#131b2e', borderRadius: 8, padding: 12, border: '1px solid var(--border-subtle)', marginBottom: 14 }}>
                                             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                                 Cadastral Ownership & Title
+                                            <div style={{ marginBottom: 14 }}>
+                                                <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+                                                    Infrastructure (Connected)
+                                                </div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 10.5 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569' }}>
+                                                            <IconWater size={12} color="#0ea5e9" />
+                                                            Water Supply
+                                                        </span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>Connected</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569' }}>
+                                                            <IconSewer size={12} color="#10b981" />
+                                                            Sewerage
+                                                        </span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>Connected</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569' }}>
+                                                            <IconPower size={12} color="#f59e0b" />
+                                                            Electricity
+                                                        </span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>Connected</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569' }}>
+                                                            <IconRain size={12} color="#6366f1" />
+                                                            Stormwater
+                                                        </span>
+                                                        <span style={{ color: '#0f172a', fontWeight: 600 }}>Connected</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: 11.5 }}>
                                                 <span style={{ color: 'var(--text-dim)' }}>Titleholder</span>
@@ -3532,6 +4835,27 @@ def serve_dashboard():
                                         <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginBottom: 14 }}>
                                             {cadastre.street} • {cadastre.cadastral_division}
                                         </div>
+                                            <button
+                                                onClick={() => {
+                                                    setCopiedCode(true);
+                                                    navigator.clipboard && navigator.clipboard.writeText(selectedFlat ? selectedFlat.unit_ulpin : cadastre.land_ulpin);
+                                                    setTimeout(() => setCopiedCode(false), 2200);
+                                                }}
+                                                style={{
+                                                    width: '100%', background: '#eff6ff', border: '1px solid #bfdbfe',
+                                                    color: '#2563eb', padding: '9px 12px', borderRadius: 6, fontWeight: 600,
+                                                    fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                                    justifyContent: 'space-between', transition: 'all 0.15s', marginTop: 8
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                                    {copiedCode ? <IconCheck /> : <IconDoc size={13} color="#2563eb" />}
+                                                    <span>{copiedCode ? "Copied 3D ULPIN to Clipboard" : "View Full Property Report"}</span>
+                                                </div>
+                                                <IconDownload size={13} color="#2563eb" />
+                                            </button>
+                                        </React.Fragment>
+                                    )}
 
                                         <div style={{
                                             background: '#131b2e', border: '1px solid var(--border-subtle)',
@@ -3539,6 +4863,10 @@ def serve_dashboard():
                                         }}>
                                             <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                                 Land Parcel ULPIN (Bhu-Aadhaar)
+                                    {activeTab === 'floors' && (
+                                        <div>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+                                                Storey Hierarchy ({cadastre.floors_count} Levels)
                                             </div>
                                             <div className="code-font" style={{ fontSize: 13, fontWeight: 700, color: '#60a5fa', margin: '4px 0' }}>
                                                 {cadastre.land_ulpin}
@@ -3546,13 +4874,33 @@ def serve_dashboard():
                                             <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
                                                 CTS Survey: <b>{cadastre.cts_no}</b>
                                             </div>
+                                            {cadastre.floors.slice().reverse().map(fl => (
+                                                <div
+                                                    key={fl.floor_index}
+                                                    onClick={() => handleTreeFloorClick(fl.floor_index)}
+                                                    style={{
+                                                        padding: '7px 9px', borderRadius: 5, marginBottom: 4, cursor: 'pointer',
+                                                        background: selectedFloor === fl.floor_index ? '#eff6ff' : '#f8fafc',
+                                                        border: selectedFloor === fl.floor_index ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: 11, fontWeight: 600, color: '#0f172a' }}>{fl.floor_label}</span>
+                                                    <span style={{ fontSize: 10, color: '#64748b' }}>+{fl.elevation_base_m}m • {fl.units_count} Units</span>
+                                                </div>
+                                            ))}
                                         </div>
+                                    )}
 
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
                                             <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
                                                 <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>TOTAL HEIGHT</div>
                                                 <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', marginTop: 2 }}>{cadastre.height_m} m</div>
                                                 <div style={{ fontSize: 9.5, color: 'var(--text-dim)', marginTop: 1 }}>{cadastre.floors_count} Storeys</div>
+                                    {activeTab === 'infrastructure' && (
+                                        <div>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+                                                Municipal Utility Subterranean Laterals
                                             </div>
                                             <div style={{ background: '#131b2e', padding: 10, borderRadius: 6, border: '1px solid var(--border-subtle)' }}>
                                                 <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>VERTICAL UNITS</div>
@@ -3567,7 +4915,19 @@ def serve_dashboard():
                                                 <div style={{ fontSize: 9.5, color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>TYPICAL FLOOR PLATE</div>
                                                 <div style={{ fontSize: 13.5, fontWeight: 700, color: '#38bdf8', marginTop: 2 }}>{cadastre.floor_plate_sqm} m²</div>
                                             </div>
+                                            {[
+                                                { name: 'Potable Water Main', dept: 'MCGM Hydraulic Dept', depth: '3.8m', dia: '1200mm' },
+                                                { name: 'Sewer Interceptor', dept: 'MCGM Sewerage Operations', depth: '5.5m', dia: '1500mm' },
+                                                { name: 'Electrical 11kV Feeder', dept: 'BEST Undertaking', depth: '1.8m', dia: 'Vault' },
+                                                { name: 'Optical Telecom Conduit', dept: 'MTNL / BMC Digital', depth: '1.2m', dia: 'Duct' }
+                                            ].map((it, idx) => (
+                                                <div key={idx} style={{ padding: '8px 10px', borderRadius: 5, marginBottom: 5, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                                                    <div style={{ fontSize: 11, fontWeight: 600, color: '#0f172a' }}>{it.name}</div>
+                                                    <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{it.dept} • Depth: {it.depth}</div>
+                                                </div>
+                                            ))}
                                         </div>
+                                    )}
 
                                         <div style={{
                                             background: '#131b2e', borderRadius: 7, padding: 12,
@@ -3575,13 +4935,48 @@ def serve_dashboard():
                                         }}>
                                             <div style={{ fontSize: 11.5, fontWeight: 600, color: '#94a3b8', marginBottom: 3 }}>
                                                 Inspect Vertical Property Units
+                                    {activeTab === 'documents' && (
+                                        <div>
+                                            <div style={{ fontSize: 11, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
+                                                Cadastral Registry Documents
                                             </div>
                                             <div style={{ fontSize: 10.5, color: 'var(--text-dim)', lineHeight: 1.4 }}>
                                                 Select any floor slab or residential unit in the 3D model to inspect its vertical boundary deed and titleholder registry.
                                             </div>
+                                            {[
+                                                { title: 'MahaBhumi 7/12 Extract', no: 'REV-MH-2024-8819', type: 'Verified Record of Rights' },
+                                                { title: 'CTS Property Card (PR Card)', no: `CTS-${cadastre.cts_no}`, type: 'Municipal Survey Cadastre' },
+                                                { title: 'Index II Registration Deed', no: 'DOC-REG-44910', type: 'Freehold Title Deed' },
+                                                { title: 'Building Completion Certificate', no: 'BCC-MCGM-A-2023', type: 'Municipal NOC' }
+                                            ].map((doc, idx) => (
+                                                <div key={idx} style={{ padding: '8px 10px', borderRadius: 5, marginBottom: 5, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <div>
+                                                        <div style={{ fontSize: 11, fontWeight: 600, color: '#0f172a' }}>{doc.title}</div>
+                                                        <div style={{ fontSize: 9.5, color: '#64748b', marginTop: 2 }}>{doc.no} • {doc.type}</div>
+                                                    </div>
+                                                    <IconDownload size={13} color="#2563eb" />
+                                                </div>
+                                            ))}
                                         </div>
                                     </React.Fragment>
                                 )}
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 6. Full-width Bottom Status Footer */}
+                            <div style={{
+                                position: 'absolute', bottom: 0, left: 0, right: 0, height: 26,
+                                background: '#f8fafc', borderTop: '1px solid #e2e8f0',
+                                padding: '0 18px', display: 'flex', alignItems: 'center',
+                                justifyContent: 'space-between', zIndex: 65, pointerEvents: 'auto'
+                            }}>
+                                <div style={{ fontSize: 10, color: '#64748b', fontWeight: 500 }}>
+                                    3D ULPIN v1.0 | Government of Maharashtra (Prototype)
+                                </div>
+                                <div style={{ fontSize: 10, color: '#64748b', fontWeight: 500 }}>
+                                    Data Source: Municipal Records | CRS: WGS-84 | Scale 1:500
+                                </div>
                             </div>
                         </React.Fragment>
                     )}
