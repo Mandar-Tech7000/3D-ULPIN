@@ -1632,13 +1632,10 @@ def serve_dashboard():
             const [gisLayers, setGisLayers] = useState({
                 parcels: true,
                 buildings: true,
-                roads: true,
                 metro: true,
                 utilities: false,
-                drainage: true,
                 coastalRoad: true,
-                satellite: true,
-                terrainDem: true
+                satellite: true
             });
             const [activeMapTool, setActiveMapTool] = useState('select');
             const [mapViewAngle, setMapViewAngle] = useState('iso');
@@ -3132,14 +3129,11 @@ def serve_dashboard():
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                         {[
                                             { key: 'parcels', label: 'Surface Parcels', desc: 'Cadastral Boundaries' },
-                                            { key: 'buildings', label: 'Buildings', desc: '3D Extrusions' },
-                                            { key: 'roads', label: 'Roads', desc: 'Street Network' },
+                                            { key: 'buildings', label: '3D Buildings', desc: 'Massing & Geometry' },
                                             { key: 'metro', label: 'Metro Corridors', desc: 'Aqua Line 3' },
-                                            { key: 'utilities', label: 'Underground Utilities', desc: 'Subsurface Conduits', isSpecial: true },
-                                            { key: 'drainage', label: 'Drainage Network', desc: 'Storm & Sewer' },
                                             { key: 'coastalRoad', label: 'Coastal Road', desc: 'Undersea Tunnel' },
-                                            { key: 'satellite', label: 'Satellite Imagery', desc: 'High-Res Ortho' },
-                                            { key: 'terrainDem', label: 'Terrain DEM', desc: 'Digital Elevation' }
+                                            { key: 'utilities', label: 'Underground Utilities', desc: 'Subsurface Network', isSpecial: true },
+                                            { key: 'satellite', label: 'Satellite Imagery', desc: 'High-Res Ortho' }
                                         ].map(l => {
                                             const isChecked = l.key === 'utilities' ? undergroundMode : gisLayers[l.key];
                                             return (
@@ -3214,33 +3208,28 @@ def serve_dashboard():
                                         GIS Survey Tools
                                     </div>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
-                                        {[
-                                            { id: 'select', label: 'Select Asset', icon: <IconSelect size={12} /> },
-                                            { id: 'measure', label: 'Measure Tool', icon: <IconMeasure size={12} /> },
-                                            { id: 'section', label: 'Cut Section', icon: <IconSection size={12} /> },
-                                            { id: 'reset', label: 'Reset View', icon: <IconReset size={12} />, isAction: true }
-                                        ].map(t => {
-                                            const isActive = (activeMapTool === t.id && !t.isAction);
-                                            return (
-                                                <button
-                                                    key={t.id}
-                                                    onClick={() => {
-                                                        if (t.isAction) handleResetMapView();
-                                                        else setActiveMapTool(t.id);
-                                                    }}
-                                                    style={{
-                                                        padding: '6px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: isActive ? 600 : 500,
-                                                        background: isActive ? '#E8F1FA' : '#FFFFFF',
-                                                        color: isActive ? '#2563A6' : '#263238',
-                                                        border: `1px solid ${isActive ? '#C4DCF2' : '#D5DCE3'}`,
-                                                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.12s'
-                                                    }}
-                                                >
-                                                    {t.icon}
-                                                    <span>{t.label}</span>
-                                                </button>
-                                            );
-                                        })}
+                                        <button
+                                            onClick={handleResetMapView}
+                                            style={{
+                                                padding: '6px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: 600,
+                                                background: '#FFFFFF', color: '#2563A6', border: '1px solid #C4DCF2',
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                            }}
+                                        >
+                                            <IconReset size={12} />
+                                            <span>Reset Extents</span>
+                                        </button>
+                                        <button
+                                            onClick={handleToggle2D3D}
+                                            style={{
+                                                padding: '6px 8px', borderRadius: 4, fontSize: 10.5, fontWeight: 500,
+                                                background: '#FFFFFF', color: '#263238', border: '1px solid #D5DCE3',
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6
+                                            }}
+                                        >
+                                            <IconPerspective size={12} />
+                                            <span>Toggle 2D/3D</span>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -3599,21 +3588,45 @@ def serve_dashboard():
                                 )}
 
                                 {propertyTab === 'documents' && (
-                                    <div style={{ fontSize: 11, color: '#263238', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                                        {[
-                                            { title: "CTS Cadastral Sanad Certificate", date: "Verified 2021" },
-                                            { title: "Commencement Certificate (CC)", date: "Approved 2016" },
-                                            { title: "Occupancy Certificate (OC)", date: "Issued 2018" },
-                                            { title: "3D Cadastral Digital Boundary", date: "GIS Verified" }
-                                        ].map((d, i) => (
-                                            <div key={i} style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 4, padding: '7px 9px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <div>
-                                                    <div style={{ fontWeight: 600, color: '#20364A' }}>{d.title}</div>
-                                                    <div style={{ fontSize: 9.5, color: '#66717A' }}>{d.date}</div>
-                                                </div>
-                                                <span style={{ color: '#2563A6', fontSize: 10, fontWeight: 600 }}>PDF</span>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                        <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 4, padding: '10px 12px' }}>
+                                            <div style={{ fontWeight: 600, color: '#20364A', fontSize: 12 }}>
+                                                Property Ownership Details (ULPIN Verified)
                                             </div>
-                                        ))}
+                                            <div style={{ fontSize: 10, color: '#66717A', marginTop: 2, marginBottom: 10 }}>
+                                                Ministry of Rural Development • Government of India Land Record
+                                            </div>
+                                            <div style={{ display: 'flex', gap: 6 }}>
+                                                <button
+                                                    onClick={() => {
+                                                        const spId = selectedBuilding && selectedBuilding.properties ? selectedBuilding.properties.spatial_id : '';
+                                                        if (spId) window.open(`/api/building/${encodeURIComponent(spId)}/document`, '_blank');
+                                                    }}
+                                                    style={{
+                                                        flex: 1, background: '#2563A6', color: '#fff', border: 'none',
+                                                        padding: '7px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+                                                    }}
+                                                >
+                                                    <IconDoc size={12} color="#ffffff" />
+                                                    <span>Preview PDF</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        const spId = selectedBuilding && selectedBuilding.properties ? selectedBuilding.properties.spatial_id : '';
+                                                        if (spId) window.open(`/api/building/${encodeURIComponent(spId)}/document/download`, '_blank');
+                                                    }}
+                                                    style={{
+                                                        background: '#FFFFFF', color: '#20364A', border: '1px solid #D5DCE3',
+                                                        padding: '7px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+                                                    }}
+                                                    title="Download PDF"
+                                                >
+                                                    <IconDownload size={12} color="#20364A" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -3749,13 +3762,14 @@ def serve_dashboard():
                                     />
                                 </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <button
                                         onClick={handleCloseTwin}
                                         style={{
                                             background: 'none', border: 'none', color: '#CAD5E0', padding: '5px 9px',
                                             borderRadius: 4, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5
                                         }}
+                                        title="Return to Map Explorer"
                                     >
                                         <IconMap size={13} />
                                         <span>Map</span>
@@ -3770,42 +3784,23 @@ def serve_dashboard():
                                         <IconProperty size={13} />
                                         <span>Property</span>
                                     </button>
-                                    <button
-                                        style={{
-                                            background: 'none', border: 'none', color: '#CAD5E0', padding: '5px 9px',
-                                            borderRadius: 4, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5
-                                        }}
-                                    >
-                                        <IconLayers size={13} />
-                                        <span>Layers</span>
-                                    </button>
-                                    <button
-                                        style={{
-                                            background: 'none', border: 'none', color: '#CAD5E0', padding: '5px 9px',
-                                            borderRadius: 4, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5
-                                        }}
-                                    >
-                                        <IconTools size={13} />
-                                        <span>Tools</span>
-                                    </button>
-                                    <button
-                                        style={{
-                                            background: 'none', border: 'none', color: '#CAD5E0', padding: '5px 9px',
-                                            borderRadius: 4, fontSize: 11.5, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5
-                                        }}
-                                    >
-                                        <IconReports size={13} />
-                                        <span>Reports</span>
-                                    </button>
 
-                                    <div style={{ height: 16, width: 1, background: 'rgba(255,255,255,0.2)', margin: '0 6px' }} />
+                                    <div style={{ width: 1, height: 16, background: 'rgba(255, 255, 255, 0.18)', margin: '0 4px' }} />
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-                                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#2563A6', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            N
-                                        </div>
-                                        <span style={{ fontSize: 11.5, color: '#f1f5f9', fontWeight: 600 }}>Nisarg</span>
-                                        <IconChevronDown size={9} />
+                                    <div style={{
+                                        display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px',
+                                        borderRadius: 4, background: 'rgba(255, 255, 255, 0.08)',
+                                        border: '1px solid rgba(255, 255, 255, 0.15)', color: '#CAD5E0', fontSize: 11
+                                    }}>
+                                        <span>📍 South Mumbai</span>
+                                    </div>
+
+                                    <div style={{
+                                        width: 26, height: 26, borderRadius: '50%', background: '#132130',
+                                        border: '1px solid rgba(255, 255, 255, 0.25)', color: '#CAD5E0',
+                                        fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 4
+                                    }} title="Government of Maharashtra Cadastral Officer">
+                                        MH
                                     </div>
                                 </div>
                             </div>
@@ -3891,9 +3886,6 @@ def serve_dashboard():
                                         <IconFolder size={13} color="#2563A6" />
                                         <span>Property Explorer</span>
                                     </div>
-                                    <button style={{ background: 'none', border: 'none', color: '#66717A', cursor: 'pointer', fontSize: 11 }}>
-                                        «
-                                    </button>
                                 </div>
 
                                 <div style={{ flex: 1, overflowY: 'auto', padding: '8px 6px' }}>
@@ -3925,12 +3917,6 @@ def serve_dashboard():
                                                 </div>
 
                                                 <div style={{ paddingLeft: 14 }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 6px', fontSize: 11, color: '#66717A' }}>
-                                                        <IconChevronRight size={8} />
-                                                        <IconFolder size={12} color="#8A96A3" />
-                                                        <span>Terrace</span>
-                                                    </div>
-
                                                     {cadastre.floors.slice().reverse().map(fl => {
                                                         const isExpanded = !!expandedFloors[fl.floor_index];
                                                         const isFloorSelected = (selectedFloor === fl.floor_index);
@@ -3995,32 +3981,6 @@ def serve_dashboard():
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                                         <button
-                                            onClick={() => setActiveTool('select')}
-                                            style={{
-                                                background: activeTool === 'select' ? '#E8F1FA' : 'transparent',
-                                                border: activeTool === 'select' ? '1px solid #C4DCF2' : '1px solid transparent',
-                                                color: activeTool === 'select' ? '#2563A6' : '#263238',
-                                                borderRadius: 4, padding: '4px 7px', fontSize: 11, fontWeight: activeTool === 'select' ? 600 : 500,
-                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, textAlign: 'left'
-                                            }}
-                                        >
-                                            <IconSelect size={12} />
-                                            <span>Select</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setActiveTool('measure')}
-                                            style={{
-                                                background: activeTool === 'measure' ? '#E8F1FA' : 'transparent',
-                                                border: activeTool === 'measure' ? '1px solid #C4DCF2' : '1px solid transparent',
-                                                color: activeTool === 'measure' ? '#2563A6' : '#263238',
-                                                borderRadius: 4, padding: '4px 7px', fontSize: 11, fontWeight: activeTool === 'measure' ? 600 : 500,
-                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, textAlign: 'left'
-                                            }}
-                                        >
-                                            <IconMeasure size={12} />
-                                            <span>Measure</span>
-                                        </button>
-                                        <button
                                             onClick={() => handleExplodeChange(explodeRatio > 0.1 ? 0 : 0.8)}
                                             style={{
                                                 background: explodeRatio > 0.1 ? '#E8F1FA' : 'transparent',
@@ -4031,20 +3991,33 @@ def serve_dashboard():
                                             }}
                                         >
                                             <IconExplode size={12} />
-                                            <span>Explode Floors</span>
+                                            <span>{explodeRatio > 0.1 ? "Stack Floors (0%)" : "Explode Floors (80%)"}</span>
                                         </button>
                                         <button
-                                            onClick={() => setActiveTool('section')}
+                                            onClick={() => {
+                                                if (twinRef.current) twinRef.current.setCameraPreset('plan');
+                                            }}
                                             style={{
-                                                background: activeTool === 'section' ? '#E8F1FA' : 'transparent',
-                                                border: activeTool === 'section' ? '1px solid #C4DCF2' : '1px solid transparent',
-                                                color: activeTool === 'section' ? '#2563A6' : '#263238',
-                                                borderRadius: 4, padding: '4px 7px', fontSize: 11, fontWeight: activeTool === 'section' ? 600 : 500,
+                                                background: 'transparent', border: '1px solid transparent', color: '#263238',
+                                                borderRadius: 4, padding: '4px 7px', fontSize: 11, fontWeight: 500,
                                                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, textAlign: 'left'
                                             }}
                                         >
-                                            <IconSection size={12} />
-                                            <span>Section View</span>
+                                            <IconPerspective size={12} />
+                                            <span>Top-Down Floor Plan</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                if (twinRef.current) twinRef.current.alignNorth();
+                                            }}
+                                            style={{
+                                                background: 'transparent', border: '1px solid transparent', color: '#263238',
+                                                borderRadius: 4, padding: '4px 7px', fontSize: 11, fontWeight: 500,
+                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, textAlign: 'left'
+                                            }}
+                                        >
+                                            <IconCompassRose size={12} />
+                                            <span>Align North View</span>
                                         </button>
                                         <button
                                             onClick={() => {
@@ -4057,7 +4030,7 @@ def serve_dashboard():
                                             }}
                                         >
                                             <IconReset size={12} />
-                                            <span>Reset View</span>
+                                            <span>Reset 3D Framing</span>
                                         </button>
                                     </div>
                                 </div>
@@ -4099,60 +4072,7 @@ def serve_dashboard():
                                 })}
                             </div>
 
-                            {/* Left Floating CAD Tools */}
-                            <div style={{
-                                position: 'absolute', top: 136, left: 298, zIndex: 60,
-                                display: 'flex', flexDirection: 'column', gap: 3,
-                                background: '#ffffff', border: '1px solid #D5DCE3',
-                                borderRadius: 4, padding: 3, pointerEvents: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-                            }}>
-                                <button
-                                    onClick={() => setActiveTool('select')}
-                                    style={{
-                                        background: activeTool === 'select' ? '#E8F1FA' : 'transparent',
-                                        border: 'none', color: activeTool === 'select' ? '#2563A6' : '#263238',
-                                        borderRadius: 3, padding: 6, cursor: 'pointer', display: 'flex'
-                                    }}
-                                    title="Select"
-                                >
-                                    <IconSelect size={14} />
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (twinRef.current) twinRef.current.alignNorth();
-                                    }}
-                                    style={{
-                                        background: 'transparent', border: 'none', color: '#263238',
-                                        borderRadius: 3, padding: 6, cursor: 'pointer', display: 'flex'
-                                    }}
-                                    title="360° Orbit Rotate"
-                                >
-                                    <IconOrbit size={14} />
-                                </button>
-                                <button
-                                    onClick={() => setActiveTool('measure')}
-                                    style={{
-                                        background: activeTool === 'measure' ? '#E8F1FA' : 'transparent',
-                                        border: 'none', color: activeTool === 'measure' ? '#2563A6' : '#263238',
-                                        borderRadius: 3, padding: 6, cursor: 'pointer', display: 'flex'
-                                    }}
-                                    title="Measure"
-                                >
-                                    <IconMeasure size={14} />
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (twinRef.current) twinRef.current.setCameraPreset('3d');
-                                    }}
-                                    style={{
-                                        background: 'transparent', border: 'none', color: '#263238',
-                                        borderRadius: 3, padding: 6, cursor: 'pointer', display: 'flex'
-                                    }}
-                                    title="Frame Extents"
-                                >
-                                    <IconSection size={14} />
-                                </button>
-                            </div>
+
 
                             {/* Right Floating Navigation Controls */}
                             <div style={{
@@ -4343,9 +4263,6 @@ def serve_dashboard():
                                         <IconDoc size={13} color="#2563A6" />
                                         <span>Property Information</span>
                                     </div>
-                                    <button style={{ background: 'none', border: 'none', color: '#66717A', cursor: 'pointer', fontSize: 13 }}>
-                                        <IconMore size={13} />
-                                    </button>
                                 </div>
 
                                 <div style={{ padding: '10px 12px', display: 'flex', gap: 10, alignItems: 'center', borderBottom: '1px solid #E8ECEF' }}>
@@ -4592,23 +4509,52 @@ def serve_dashboard():
 
                                     {activeTab === 'documents' && (
                                         <div>
-                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#263238', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 }}>
-                                                Cadastral Registry Documents
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#263238', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
+                                                Official Cadastral Documents
                                             </div>
-                                            {[
-                                                { title: 'MahaBhumi 7/12 Extract', no: 'REV-MH-2024-8819', type: 'Verified Record of Rights' },
-                                                { title: 'CTS Property Card (PR Card)', no: `CTS-${cadastre.cts_no}`, type: 'Municipal Survey Cadastre' },
-                                                { title: 'Index II Registration Deed', no: 'DOC-REG-44910', type: 'Freehold Title Deed' },
-                                                { title: 'Building Completion Certificate', no: 'BCC-MCGM-A-2023', type: 'Municipal NOC' }
-                                            ].map((doc, idx) => (
-                                                <div key={idx} style={{ padding: '6px 8px', borderRadius: 4, marginBottom: 4, background: '#F8FAFC', border: '1px solid #E8ECEF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <div>
-                                                        <div style={{ fontSize: 11, fontWeight: 600, color: '#263238' }}>{doc.title}</div>
-                                                        <div style={{ fontSize: 9.5, color: '#66717A', marginTop: 1 }}>{doc.no} • {doc.type}</div>
-                                                    </div>
-                                                    <IconDownload size={12} color="#2563A6" />
+                                            <div style={{ background: '#F8FAFC', border: '1px solid #E8ECEF', borderRadius: 4, padding: '10px 12px' }}>
+                                                <div style={{ fontSize: 12, fontWeight: 700, color: '#20364A' }}>
+                                                    Property Ownership Details Certificate
                                                 </div>
-                                            ))}
+                                                <div style={{ fontSize: 10, color: '#66717A', marginTop: 2 }}>
+                                                    Digital India Land Records • Ministry of Rural Development
+                                                </div>
+                                                <div style={{ fontSize: 9.5, color: '#2563A6', marginTop: 4, fontWeight: 600 }}>
+                                                    Vertical ULPIN: {selectedFlat ? selectedFlat.unit_ulpin : (cadastre.land_ulpin || '27019017369979')}
+                                                </div>
+                                                <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                                                    <button
+                                                        onClick={() => {
+                                                            const spId = selectedBuilding && selectedBuilding.properties ? selectedBuilding.properties.spatial_id : '';
+                                                            const unitId = selectedFlat ? selectedFlat.unit_id : '';
+                                                            if (spId) window.open(`/api/building/${encodeURIComponent(spId)}/document?unit_id=${encodeURIComponent(unitId)}`, '_blank');
+                                                        }}
+                                                        style={{
+                                                            flex: 1, background: '#2563A6', color: '#ffffff', border: 'none',
+                                                            padding: '7px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                                                        }}
+                                                    >
+                                                        <IconDoc size={12} color="#ffffff" />
+                                                        <span>Preview PDF</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            const spId = selectedBuilding && selectedBuilding.properties ? selectedBuilding.properties.spatial_id : '';
+                                                            const unitId = selectedFlat ? selectedFlat.unit_id : '';
+                                                            if (spId) window.open(`/api/building/${encodeURIComponent(spId)}/document/download?unit_id=${encodeURIComponent(unitId)}`, '_blank');
+                                                        }}
+                                                        style={{
+                                                            background: '#FFFFFF', color: '#20364A', border: '1px solid #D5DCE3',
+                                                            padding: '7px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5
+                                                        }}
+                                                        title="Download Official PDF Document"
+                                                    >
+                                                        <IconDownload size={12} color="#20364A" />
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
