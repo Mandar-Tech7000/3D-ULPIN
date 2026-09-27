@@ -23,6 +23,7 @@ load_dotenv(BASE_DIR / ".env", override=False)
 GOOGLE_3D_TILES_API_KEY = os.getenv("GOOGLE_3D_TILES_API_KEY", "").strip()
 
 from src.cadastre_service import generate_building_cadastre
+from src.encroachment_service import detect_building_encroachments, build_encroachment_notice_pdf
 
 app = FastAPI(title="South Mumbai 3D Urban Architecture Twin - Vertical ULPIN Cadastre")
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -88,7 +89,48 @@ def get_building_cadastre_endpoint(spatial_id: str):
     props = feat.get("properties", {})
     cadastre = generate_building_cadastre(props)
     cadastre["geometry"] = feat.get("geometry", {})
+    cadastre["encroachments"] = detect_building_encroachments(props, cadastre)
     return JSONResponse(content=cadastre)
+
+@app.get("/api/building/{spatial_id}/encroachments")
+def get_building_encroachments_endpoint(spatial_id: str):
+    feat = CACHED_BUILDINGS_INDEX.get(spatial_id)
+    if not feat:
+        with open(BUILDINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for item in data.get("features", []):
+                if item.get("properties", {}).get("spatial_id") == spatial_id:
+                    feat = item
+                    break
+    if not feat:
+        raise HTTPException(status_code=404, detail="Building not found in South Mumbai cadastral registry.")
+    props = feat.get("properties", {})
+    cadastre = generate_building_cadastre(props)
+    encroachments = detect_building_encroachments(props, cadastre)
+    return JSONResponse(content=encroachments)
+
+@app.get("/api/building/{spatial_id}/encroachment/{enc_id}/notice")
+def download_encroachment_notice_endpoint(spatial_id: str, enc_id: str):
+    feat = CACHED_BUILDINGS_INDEX.get(spatial_id)
+    if not feat:
+        with open(BUILDINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for item in data.get("features", []):
+                if item.get("properties", {}).get("spatial_id") == spatial_id:
+                    feat = item
+                    break
+    if not feat:
+        raise HTTPException(status_code=404, detail="Building not found in South Mumbai cadastral registry.")
+    props = feat.get("properties", {})
+    cadastre = generate_building_cadastre(props)
+    encroachments = detect_building_encroachments(props, cadastre)
+    enc_record = next((v for v in encroachments.get("violations", []) if v["encroachment_id"] == enc_id), None)
+    if not enc_record and encroachments.get("violations"):
+        enc_record = encroachments["violations"][0]
+    if not enc_record:
+        raise HTTPException(status_code=404, detail="Encroachment record not found for building.")
+    content, filename = build_encroachment_notice_pdf(cadastre, enc_record)
+    return Response(content=content, media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{filename}"'})
 
 def _find_cadastre_unit(cadastre, unit_id: Optional[str]):
     if not unit_id:
@@ -431,6 +473,15 @@ def serve_dashboard():
                 <div style="width: 1.5px; height: 16px; background: #20364A; margin: 0 auto;"></div>
                 <div style="width: 5px; height: 5px; background: #2563A6; border: 1.5px solid #ffffff; border-radius: 50%; margin: -3px auto 0; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
             </div>
+            <!-- 3D Real-time Projected Encroachment Callout Pin -->
+            <div id="encroachment-3d-pin" style="position: absolute; pointer-events: none; transform: translate(-50%, -100%); z-index: 56; display: none;">
+                <div style="background: #991b1b; color: #ffffff; border: 1.5px solid #f87171; border-radius: 4px; padding: 4px 8px; font-size: 10.5px; font-weight: 700; box-shadow: 0 3px 10px rgba(185,28,28,0.5); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 12px;">⚠️</span>
+                    <span id="enc-pin-text">Encroachment: +1.85m</span>
+                </div>
+                <div style="width: 1.5px; height: 18px; background: #991b1b; margin: 0 auto; border-left: 1px dashed #f87171;"></div>
+                <div style="width: 6px; height: 6px; background: #ef4444; border: 1.5px solid #ffffff; border-radius: 50%; margin: -3px auto 0; box-shadow: 0 0 6px #ef4444;"></div>
+            </div>
         </div>
     </div>
 
@@ -542,6 +593,21 @@ def serve_dashboard():
                     }),
                     ghostedMaterial: new THREE.MeshStandardMaterial({
                         color: 0x94a3b8, roughness: 0.3, transparent: true, opacity: 0.18
+                    }),
+                    encroachmentCrimson: new THREE.MeshStandardMaterial({
+                        color: 0xef4444, emissive: 0xdc2626, emissiveIntensity: 0.65,
+                        roughness: 0.2, metalness: 0.15, transparent: true, opacity: 0.78
+                    }),
+                    boundaryCurtainCyan: new THREE.MeshStandardMaterial({
+                        color: 0x06b6d4, emissive: 0x0891b2, emissiveIntensity: 0.25,
+                        roughness: 0.2, metalness: 0.1, transparent: true, opacity: 0.18, side: THREE.DoubleSide
+                    }),
+                    boundaryLineCyan: new THREE.LineBasicMaterial({
+                        color: 0x22d3ee, linewidth: 2
+                    }),
+                    demolitionWarningHatch: new THREE.MeshStandardMaterial({
+                        color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.45,
+                        roughness: 0.3, transparent: true, opacity: 0.85
                     })
                 };
             }
@@ -707,6 +773,13 @@ def serve_dashboard():
                     this.scene.remove(this.contextGroup);
                     this.contextGroup = null;
                 }
+                if (this.encroachmentGroup) {
+                    this.scene.remove(this.encroachmentGroup);
+                    this.encroachmentGroup = null;
+                }
+                this.encMesh = null;
+                this.encroachments = null;
+                this.demolitionIsolate = false;
                 this.floorGroups = [];
                 this.flatMeshes = [];
                 this.allInteractiveMeshes = [];
@@ -716,6 +789,8 @@ def serve_dashboard():
                 this.targetExplodeRatio = 0.0;
                 const pinEl = document.getElementById('unit-3d-pin');
                 if (pinEl) pinEl.style.display = 'none';
+                const encPinEl = document.getElementById('encroachment-3d-pin');
+                if (encPinEl) encPinEl.style.display = 'none';
             }
 
             loadBuilding(buildingFeature, cadastre) {
@@ -779,7 +854,12 @@ def serve_dashboard():
                 this.buildGroundEntrance(size, floorHeight);
                 this.buildRooftopCrown(centeredShape, floors * floorHeight, size);
 
-                // 2. Reset Camera to Isolated Building
+                // 2. Render 3D Encroachments & Cadastral Boundary Envelope
+                if (cadastre && cadastre.encroachments) {
+                    this.renderEncroachments(cadastre.encroachments, cadastre);
+                }
+
+                // 3. Reset Camera to Isolated Building
                 this.resetCameraToFraming(maxDim, p.height_m || 50);
             }
 
@@ -1058,6 +1138,99 @@ def serve_dashboard():
                 this.buildingGroup.add(crownGroup);
             }
 
+            renderEncroachments(encData, cadastre) {
+                if (this.encroachmentGroup) {
+                    this.scene.remove(this.encroachmentGroup);
+                    this.encroachmentGroup = null;
+                }
+                this.encroachments = encData;
+                if (!encData || !encData.has_encroachment || !encData.violations || encData.violations.length === 0) return;
+
+                this.encroachmentGroup = new THREE.Group();
+                const v = encData.violations[0];
+                const b3d = v.bounds_3d || {};
+
+                // 1. Legal Cadastral Boundary Envelope Curtain (Translucent Neon-Cyan Plane)
+                const buildingHeight = cadastre.height_m || 24;
+                const curtainDepth = Math.max(cadastre.breadth_m || 20, 20) * 1.25;
+                const curtainHeight = buildingHeight + 6;
+                const curtainGeo = new THREE.PlaneGeometry(curtainDepth, curtainHeight);
+                const curtainMesh = new THREE.Mesh(curtainGeo, this.materials.boundaryCurtainCyan);
+                curtainMesh.rotation.y = Math.PI / 2;
+                const planeX = b3d.plane_coord || ((cadastre.length_m || 30) / 2);
+                curtainMesh.position.set(planeX, curtainHeight / 2, 0);
+                this.encroachmentGroup.add(curtainMesh);
+
+                // Luminous Edge Wireframe for Legal Boundary Plane
+                const curtainEdges = new THREE.EdgesGeometry(curtainGeo);
+                const curtainLines = new THREE.LineSegments(curtainEdges, this.materials.boundaryLineCyan);
+                curtainLines.rotation.y = Math.PI / 2;
+                curtainLines.position.copy(curtainMesh.position);
+                this.encroachmentGroup.add(curtainLines);
+
+                // Ground Parcel Demarcation Line on Boundary Plane Base
+                const groundPts = [
+                    new THREE.Vector3(planeX, 0.05, -curtainDepth / 2),
+                    new THREE.Vector3(planeX, 0.05, curtainDepth / 2)
+                ];
+                const groundLineGeo = new THREE.BufferGeometry().setFromPoints(groundPts);
+                const groundLine = new THREE.Line(groundLineGeo, new THREE.LineBasicMaterial({ color: 0x06b6d4, linewidth: 2 }));
+                this.encroachmentGroup.add(groundLine);
+
+                // 2. Encroaching Volumetric Mesh (Crimson Red Pulsing Box)
+                const encW = b3d.size_x || 2.4;
+                const encH = b3d.size_y || 3.2;
+                const encD = b3d.size_z || 6.5;
+                const encGeo = new THREE.BoxGeometry(encW, encH, encD);
+                const encMesh = new THREE.Mesh(encGeo, this.materials.encroachmentCrimson);
+                encMesh.position.set(b3d.offset_x || 16.0, b3d.offset_y || 16.0, b3d.offset_z || 0);
+                encMesh.castShadow = true;
+                encMesh.userData = { isEncroachmentMesh: true, violation: v };
+                this.encroachmentGroup.add(encMesh);
+
+                // Warning Cage Wireframe around the Encroachment Volume
+                const encEdges = new THREE.EdgesGeometry(encGeo);
+                const encCage = new THREE.LineSegments(encEdges, new THREE.LineBasicMaterial({ color: 0xfecaca, linewidth: 2 }));
+                encCage.position.copy(encMesh.position);
+                this.encroachmentGroup.add(encCage);
+
+                this.encMesh = encMesh;
+                this.scene.add(this.encroachmentGroup);
+            }
+
+            setDemolitionIsolation(isolate) {
+                this.demolitionIsolate = isolate;
+                if (!this.flatMeshes) return;
+
+                this.flatMeshes.forEach(fg => {
+                    if (isolate) {
+                        fg.userData.wallMesh.material = this.materials.ghostedMaterial;
+                        fg.userData.plateMesh.material = this.materials.ghostedMaterial;
+                        fg.userData.outline.material.opacity = 0.15;
+                    } else {
+                        fg.userData.wallMesh.material = this.materials.windowGlass;
+                        fg.userData.plateMesh.material = this.materials.exteriorAccent;
+                        fg.userData.outline.material.opacity = 0.55;
+                    }
+                });
+
+                if (this.floorGroups) {
+                    this.floorGroups.forEach(fg => {
+                        if (fg.userData.slabMesh) {
+                            fg.userData.slabMesh.material = isolate ? this.materials.ghostedMaterial : this.materials.slabConcrete;
+                        }
+                    });
+                }
+
+                if (this.crownGroup) {
+                    this.crownGroup.traverse(child => {
+                        if (child.isMesh) {
+                            child.material = isolate ? this.materials.ghostedMaterial : (child === this.crownGroup.children[0] ? this.materials.roofSlate : child.material);
+                        }
+                    });
+                }
+            }
+
             setExplode(ratio) {
                 this.targetExplodeRatio = THREE.MathUtils.clamp(ratio, 0.0, 1.0);
             }
@@ -1278,34 +1451,64 @@ def serve_dashboard():
 
             updatePinPosition() {
                 const pinEl = document.getElementById('unit-3d-pin');
-                if (!pinEl) return;
-                if (!this.selectedFlatId) {
-                    pinEl.style.display = 'none';
-                    return;
-                }
-                const targetFlat = this.flatMeshes.find(f => f.userData.unitId === this.selectedFlatId);
-                if (!targetFlat) {
-                    pinEl.style.display = 'none';
-                    return;
-                }
-                const worldPos = new THREE.Vector3();
-                targetFlat.getWorldPosition(worldPos);
-                worldPos.y += 2.0;
-                const projected = worldPos.clone().project(this.camera);
-                if (projected.z < 1.0) {
-                    const w = this.container.clientWidth;
-                    const h = this.container.clientHeight;
-                    const screenX = (projected.x * 0.5 + 0.5) * w;
-                    const screenY = (-(projected.y * 0.5) + 0.5) * h;
-                    pinEl.style.display = 'block';
-                    pinEl.style.left = `${screenX}px`;
-                    pinEl.style.top = `${screenY}px`;
-                    const labelEl = document.getElementById('unit-3d-pin-label');
-                    if (labelEl && targetFlat.userData.unitData) {
-                        labelEl.textContent = `Flat ${targetFlat.userData.unitData.unit_number}`;
+                if (pinEl) {
+                    if (!this.selectedFlatId) {
+                        pinEl.style.display = 'none';
+                    } else {
+                        const targetFlat = this.flatMeshes.find(f => f.userData.unitId === this.selectedFlatId);
+                        if (!targetFlat) {
+                            pinEl.style.display = 'none';
+                        } else {
+                            const worldPos = new THREE.Vector3();
+                            targetFlat.getWorldPosition(worldPos);
+                            worldPos.y += 2.0;
+                            const projected = worldPos.clone().project(this.camera);
+                            if (projected.z < 1.0) {
+                                const w = this.container.clientWidth;
+                                const h = this.container.clientHeight;
+                                const screenX = (projected.x * 0.5 + 0.5) * w;
+                                const screenY = (-(projected.y * 0.5) + 0.5) * h;
+                                pinEl.style.display = 'block';
+                                pinEl.style.left = `${screenX}px`;
+                                pinEl.style.top = `${screenY}px`;
+                                const labelEl = document.getElementById('unit-3d-pin-label');
+                                if (labelEl && targetFlat.userData.unitData) {
+                                    labelEl.textContent = `Flat ${targetFlat.userData.unitData.unit_number}`;
+                                }
+                            } else {
+                                pinEl.style.display = 'none';
+                            }
+                        }
                     }
-                } else {
-                    pinEl.style.display = 'none';
+                }
+
+                // Update 3D Encroachment Callout Pin
+                const encPinEl = document.getElementById('encroachment-3d-pin');
+                if (encPinEl) {
+                    if (this.encMesh && this.encroachments && this.encroachments.has_encroachment && this.encroachments.violations && this.encroachments.violations.length > 0) {
+                        const encPos = new THREE.Vector3();
+                        this.encMesh.getWorldPosition(encPos);
+                        encPos.y += (this.encMesh.geometry.parameters.height / 2) + 0.6;
+                        const projectedEnc = encPos.clone().project(this.camera);
+                        if (projectedEnc.z < 1.0) {
+                            const w = this.container.clientWidth;
+                            const h = this.container.clientHeight;
+                            const screenX = (projectedEnc.x * 0.5 + 0.5) * w;
+                            const screenY = (-(projectedEnc.y * 0.5) + 0.5) * h;
+                            encPinEl.style.display = 'block';
+                            encPinEl.style.left = `${screenX}px`;
+                            encPinEl.style.top = `${screenY}px`;
+                            const v = this.encroachments.violations[0];
+                            const textEl = document.getElementById('enc-pin-text');
+                            if (textEl && v) {
+                                textEl.textContent = `Encroachment: +${v.overhang_m}m (${v.volume_m3}m³) Breached`;
+                            }
+                        } else {
+                            encPinEl.style.display = 'none';
+                        }
+                    } else {
+                        encPinEl.style.display = 'none';
+                    }
                 }
             }
 
@@ -1315,6 +1518,12 @@ def serve_dashboard():
                 this.updateExplodeAnimation();
                 this.updateCameraTween();
                 this.updatePinPosition();
+
+                // Gentle pulsing glow for active 3D encroachment mesh
+                if (this.materials && this.materials.encroachmentCrimson) {
+                    this.materials.encroachmentCrimson.emissiveIntensity = Math.sin(Date.now() * 0.005) * 0.28 + 0.62;
+                }
+
                 this.renderer.render(this.scene, this.camera);
             }
         }
@@ -1640,11 +1849,13 @@ def serve_dashboard():
             const [gisLayers, setGisLayers] = useState({
                 parcels: true,
                 buildings: true,
+                encroachments: true,
                 metro: true,
                 utilities: false,
                 coastalRoad: true,
                 satellite: true
             });
+            const [demolitionMode, setDemolitionMode] = useState(false);
             const [activeMapTool, setActiveMapTool] = useState('select');
             const [mapViewAngle, setMapViewAngle] = useState('iso');
             const [baseMapType, setBaseMapType] = useState('satellite');
@@ -1968,6 +2179,8 @@ def serve_dashboard():
                             ['utilities-coastal-inner', 'utilities-coastal-lighting'].forEach(id => {
                                 if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', vis);
                             });
+                        } else if (layerKey === 'encroachments' && m.getLayer('buildings-encroachments-pulse')) {
+                            m.setLayoutProperty('buildings-encroachments-pulse', 'visibility', nextVal ? 'visible' : 'none');
                         }
                     }
                     return next;
@@ -2691,6 +2904,23 @@ def serve_dashboard():
                         }
                     });
 
+                    // Cadastral 3D Encroachments Layer (Visualizes city structures with active boundary breaches)
+                    map.addLayer({
+                        id: 'buildings-encroachments-pulse',
+                        type: 'fill-extrusion',
+                        source: 'buildings-arch-src',
+                        filter: ['any',
+                            ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'],
+                            ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714']
+                        ],
+                        paint: {
+                            'fill-extrusion-base': ['get', 'base_m'],
+                            'fill-extrusion-height': ['+', ['get', 'height_m'], 3.0],
+                            'fill-extrusion-color': '#ef4444',
+                            'fill-extrusion-opacity': 0.65
+                        }
+                    });
+
                     // Live Bearing & Pitch Updates for 360° Compass HUD
                     map.on('rotate', () => {
                         setCurrentBearing(map.getBearing());
@@ -3137,6 +3367,7 @@ def serve_dashboard():
                                         {[
                                             { key: 'parcels', label: 'Surface Parcels', desc: 'Cadastral Boundaries' },
                                             { key: 'buildings', label: '3D Buildings', desc: 'Massing & Geometry' },
+                                            { key: 'encroachments', label: '3D Encroachments', desc: '24 Breaches Flagged', isAlert: true },
                                             { key: 'metro', label: 'Metro Corridors', desc: 'Aqua Line 3' },
                                             { key: 'coastalRoad', label: 'Coastal Road', desc: 'Undersea Tunnel' },
                                             { key: 'utilities', label: 'Underground Utilities', desc: 'Subsurface Network', isSpecial: true },
@@ -3149,8 +3380,8 @@ def serve_dashboard():
                                                     style={{
                                                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                                         padding: '4px 6px', borderRadius: 4, cursor: 'pointer',
-                                                        background: isChecked ? '#F4F7FA' : 'transparent',
-                                                        border: `1px solid ${isChecked ? '#E2E8F0' : 'transparent'}`,
+                                                        background: isChecked ? (l.isAlert ? '#FEF2F2' : '#F4F7FA') : 'transparent',
+                                                        border: `1px solid ${isChecked ? (l.isAlert ? '#FECACA' : '#E2E8F0') : 'transparent'}`,
                                                         transition: 'background 0.12s'
                                                     }}
                                                 >
@@ -3160,14 +3391,14 @@ def serve_dashboard():
                                                             checked={!!isChecked}
                                                             onChange={() => handleToggleGisLayer(l.key)}
                                                             style={{
-                                                                accentColor: '#2563A6', width: 13, height: 13, cursor: 'pointer', margin: 0
+                                                                accentColor: l.isAlert ? '#EF4444' : '#2563A6', width: 13, height: 13, cursor: 'pointer', margin: 0
                                                             }}
                                                         />
-                                                        <span style={{ fontSize: 11, color: isChecked ? '#20364A' : '#66717A', fontWeight: isChecked ? 600 : 400 }}>
+                                                        <span style={{ fontSize: 11, color: isChecked ? (l.isAlert ? '#DC2626' : '#20364A') : '#66717A', fontWeight: isChecked ? 600 : 400 }}>
                                                             {l.label}
                                                         </span>
                                                     </div>
-                                                    <span style={{ fontSize: 9.5, color: '#94A3B8' }}>
+                                                    <span style={{ fontSize: 9.5, color: l.isAlert ? '#EF4444' : '#94A3B8', fontWeight: l.isAlert ? 600 : 400 }}>
                                                         {l.desc}
                                                     </span>
                                                 </label>
@@ -3413,6 +3644,12 @@ def serve_dashboard():
                                 <div style={{ fontSize: 11, color: '#66717A', marginTop: 2 }}>
                                     {selectedBuilding.properties.street || "Colaba Ward, South Mumbai"}
                                 </div>
+                                {['MUM-BLD-E35A525A', 'MUM-BLD-211FC714'].includes(selectedBuilding.properties.spatial_id) && (
+                                    <div style={{ marginTop: 7, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 4, background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', fontSize: 10, fontWeight: 700 }}>
+                                        <span>⚠️</span>
+                                        <span>3D Encroachment Detected (+1.85m Airspace Overhang)</span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Tabs Row */}
@@ -4297,10 +4534,16 @@ def serve_dashboard():
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', borderBottom: '1px solid #D5DCE3', padding: '0 12px', background: '#F8FAFC' }}>
+                                <div style={{ display: 'flex', borderBottom: '1px solid #D5DCE3', padding: '0 8px', background: '#F8FAFC', overflowX: 'auto' }}>
                                     {[
                                         { id: 'overview', label: 'Overview' },
                                         { id: 'floors', label: 'Floors' },
+                                        {
+                                            id: 'encroachment',
+                                            label: 'Encroachment',
+                                            hasAlert: !!(cadastre && cadastre.encroachments && cadastre.encroachments.has_encroachment),
+                                            badge: (cadastre && cadastre.encroachments && cadastre.encroachments.total_violations) ? cadastre.encroachments.total_violations : null
+                                        },
                                         { id: 'infrastructure', label: 'Infrastructure' },
                                         { id: 'documents', label: 'Documents' }
                                     ].map(t => {
@@ -4308,16 +4551,29 @@ def serve_dashboard():
                                         return (
                                             <button
                                                 key={t.id}
-                                                onClick={() => setActiveTab(t.id)}
+                                                onClick={() => {
+                                                    setActiveTab(t.id);
+                                                    if (t.id === 'encroachment' && twinRef.current) {
+                                                        twinRef.current.setCameraPreset('iso');
+                                                    }
+                                                }}
                                                 style={{
-                                                    background: 'none', border: 'none', padding: '7px 8px',
-                                                    fontSize: 11, fontWeight: isActive ? 600 : 500,
-                                                    color: isActive ? '#2563A6' : '#66717A',
-                                                    borderBottom: isActive ? '2px solid #2563A6' : '2px solid transparent',
-                                                    cursor: 'pointer', transition: 'all 0.1s'
+                                                    background: 'none', border: 'none', padding: '7px 7px',
+                                                    fontSize: 10.5, fontWeight: isActive ? 700 : 500,
+                                                    color: isActive ? (t.hasAlert ? '#dc2626' : '#2563A6') : (t.hasAlert ? '#ef4444' : '#66717A'),
+                                                    borderBottom: isActive ? `2px solid ${t.hasAlert ? '#dc2626' : '#2563A6'}` : '2px solid transparent',
+                                                    cursor: 'pointer', transition: 'all 0.1s', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap'
                                                 }}
                                             >
-                                                {t.label}
+                                                <span>{t.label}</span>
+                                                {t.badge && (
+                                                    <span style={{
+                                                        background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700,
+                                                        padding: '1px 5px', borderRadius: 8, lineHeight: 1
+                                                    }}>
+                                                        {t.badge}
+                                                    </span>
+                                                )}
                                             </button>
                                         );
                                     })}
@@ -4470,6 +4726,118 @@ def serve_dashboard():
                                                 <IconDownload size={12} color="#ffffff" />
                                             </button>
                                         </React.Fragment>
+                                    )}
+
+                                    {activeTab === 'encroachment' && (
+                                        <div>
+                                            <div style={{ fontSize: 10, fontWeight: 700, color: '#263238', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <span>3D Cadastral Encroachment Analysis</span>
+                                                <span style={{
+                                                    fontSize: 9, fontWeight: 700,
+                                                    background: (cadastre.encroachments && cadastre.encroachments.has_encroachment) ? '#FEF2F2' : '#EBF7EE',
+                                                    color: (cadastre.encroachments && cadastre.encroachments.has_encroachment) ? '#DC2626' : '#1F8A4C',
+                                                    border: `1px solid ${(cadastre.encroachments && cadastre.encroachments.has_encroachment) ? '#FECACA' : '#C6E7D0'}`,
+                                                    padding: '1px 6px', borderRadius: 3
+                                                }}>
+                                                    {(cadastre.encroachments && cadastre.encroachments.has_encroachment) ? 'BREACH DETECTED' : 'CLEARED / COMPLIANT'}
+                                                </span>
+                                            </div>
+
+                                            {(!cadastre.encroachments || !cadastre.encroachments.has_encroachment || cadastre.encroachments.violations.length === 0) ? (
+                                                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 4, padding: '16px 12px', textAlign: 'center' }}>
+                                                    <div style={{ fontSize: 22, marginBottom: 4 }}>✅</div>
+                                                    <div style={{ fontSize: 12, fontWeight: 700, color: '#1F8A4C' }}>Zero Encroachments Detected</div>
+                                                    <div style={{ fontSize: 10.5, color: '#66717A', marginTop: 4 }}>
+                                                        All floor slabs, cantilevers, and rooftop structures reside strictly inside the sanctioned 3D cadastral parcel boundary ({cadastre.cts_no}).
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                cadastre.encroachments.violations.map((v, vIdx) => (
+                                                    <div key={v.encroachment_id || vIdx} style={{ background: '#FFF5F5', border: '1px solid #FED7D7', borderRadius: 5, padding: '10px 12px', marginBottom: 10 }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                                                            <span style={{ fontSize: 10, fontWeight: 700, color: '#991B1B' }}>
+                                                                {v.encroachment_id}
+                                                            </span>
+                                                            <span style={{
+                                                                fontSize: 9, fontWeight: 700,
+                                                                background: '#EF4444', color: '#FFFFFF', padding: '1px 6px', borderRadius: 3
+                                                            }}>
+                                                                {v.severity}
+                                                            </span>
+                                                        </div>
+                                                        <div style={{ fontSize: 12, fontWeight: 700, color: '#742A2A', lineHeight: 1.25 }}>
+                                                            {v.title}
+                                                        </div>
+                                                        <div style={{ fontSize: 10, color: '#9B2C2C', marginTop: 3 }}>
+                                                            Status: <strong>{v.status}</strong>
+                                                        </div>
+
+                                                        {/* Metrics Table */}
+                                                        <div style={{ marginTop: 8, background: '#FFFFFF', border: '1px solid #FED7D7', borderRadius: 4, padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 4, fontSize: 10.5 }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#718096' }}>Overhang Distance</span>
+                                                                <span className="code-font" style={{ color: '#C53030', fontWeight: 700 }}>+{v.overhang_m} meters</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#718096' }}>Volumetric Breach</span>
+                                                                <span className="code-font" style={{ color: '#2D3748', fontWeight: 600 }}>{v.volume_m3} m³ ({v.area_sqm} m²)</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#718096' }}>Infringing Entity</span>
+                                                                <span style={{ color: '#2D3748', fontWeight: 600 }}>{v.floor_label} (Flat {v.unit_number})</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#718096' }}>Breached Corridor</span>
+                                                                <span style={{ color: '#2D3748', fontWeight: 600, textAlign: 'right', maxWidth: 160 }}>{v.affected_zone}</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#718096' }}>Statutory Rule</span>
+                                                                <span style={{ color: '#D69E2E', fontWeight: 600, textAlign: 'right', maxWidth: 160 }}>{v.legal_act}</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                <span style={{ color: '#718096' }}>Penalty Estimate</span>
+                                                                <span className="code-font" style={{ color: '#9B2C2C', fontWeight: 700 }}>{v.penalty_formatted}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Interactive Action Buttons */}
+                                                        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const nextState = !demolitionMode;
+                                                                    setDemolitionMode(nextState);
+                                                                    if (twinRef.current) twinRef.current.setDemolitionIsolation(nextState);
+                                                                }}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    background: demolitionMode ? '#EF4444' : '#FFFFFF',
+                                                                    color: demolitionMode ? '#FFFFFF' : '#991B1B',
+                                                                    border: '1px solid #E53E3E',
+                                                                    padding: '6px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                                                                }}
+                                                            >
+                                                                <span>{demolitionMode ? '✖ Exit Demolition View' : '📐 Isolate Demolition Envelope'}</span>
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => {
+                                                                    const spId = cadastre.spatial_id || '';
+                                                                    if (spId) window.open(`/api/building/${encodeURIComponent(spId)}/encroachment/${encodeURIComponent(v.encroachment_id)}/notice`, '_blank');
+                                                                }}
+                                                                style={{
+                                                                    width: '100%', background: '#991B1B', color: '#FFFFFF', border: 'none',
+                                                                    padding: '7px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+                                                                }}
+                                                            >
+                                                                <span>📄 Download MCGM Section 53 Notice (PDF)</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
                                     )}
 
                                     {activeTab === 'floors' && (
