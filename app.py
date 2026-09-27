@@ -2179,8 +2179,6 @@ def serve_dashboard():
                             ['utilities-coastal-inner', 'utilities-coastal-lighting'].forEach(id => {
                                 if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', vis);
                             });
-                        } else if (layerKey === 'encroachments' && m.getLayer('buildings-encroachments-pulse')) {
-                            m.setLayoutProperty('buildings-encroachments-pulse', 'visibility', nextVal ? 'visible' : 'none');
                         }
                     }
                     return next;
@@ -2904,22 +2902,7 @@ def serve_dashboard():
                         }
                     });
 
-                    // Cadastral 3D Encroachments Layer (Visualizes city structures with active boundary breaches)
-                    map.addLayer({
-                        id: 'buildings-encroachments-pulse',
-                        type: 'fill-extrusion',
-                        source: 'buildings-arch-src',
-                        filter: ['any',
-                            ['==', ['get', 'spatial_id'], 'MUM-BLD-E35A525A'],
-                            ['==', ['get', 'spatial_id'], 'MUM-BLD-211FC714']
-                        ],
-                        paint: {
-                            'fill-extrusion-base': ['get', 'base_m'],
-                            'fill-extrusion-height': ['+', ['get', 'height_m'], 3.0],
-                            'fill-extrusion-color': '#ef4444',
-                            'fill-extrusion-opacity': 0.65
-                        }
-                    });
+
 
                     // Live Bearing & Pitch Updates for 360° Compass HUD
                     map.on('rotate', () => {
@@ -3361,13 +3344,12 @@ def serve_dashboard():
                                 <div style={{ padding: '12px 14px', borderBottom: '1px solid #E2E8F0' }}>
                                     <div style={{ fontSize: 9.5, fontWeight: 700, color: '#66717A', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <span>Cadastral Layers</span>
-                                        <span style={{ fontSize: 9, color: '#2563A6', fontWeight: 600 }}>Active (9)</span>
+                                        <span style={{ fontSize: 9, color: '#2563A6', fontWeight: 600 }}>Active (6)</span>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                         {[
                                             { key: 'parcels', label: 'Surface Parcels', desc: 'Cadastral Boundaries' },
                                             { key: 'buildings', label: '3D Buildings', desc: 'Massing & Geometry' },
-                                            { key: 'encroachments', label: '3D Encroachments', desc: '24 Breaches Flagged', isAlert: true },
                                             { key: 'metro', label: 'Metro Corridors', desc: 'Aqua Line 3' },
                                             { key: 'coastalRoad', label: 'Coastal Road', desc: 'Undersea Tunnel' },
                                             { key: 'utilities', label: 'Underground Utilities', desc: 'Subsurface Network', isSpecial: true },
