@@ -254,19 +254,16 @@ def serve_dashboard():
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- CesiumJS -->
-    <script src="https://cdn.jsdelivr.net/npm/cesium@1.124.0/Build/Cesium/Cesium.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/cesium@1.124.0/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
     <!-- MapLibre GL JS -->
-    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script defer src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     <!-- Three.js & OrbitControls -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <!-- React 18 & Babel -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script defer crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script defer crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script defer src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
         :root {
@@ -1669,13 +1666,12 @@ def serve_dashboard():
                 const ts = Date.now();
                 Promise.all([
                     fetch(`/api/buildings?t=${ts}`).then(r => r.json()),
-                    fetch(`/api/buildings/architectural?t=${ts}`).then(r => r.json()),
                     fetch(`/api/utilities?t=${ts}`).then(r => r.json())
-                ]).then(([bldData, archData, utilData]) => {
+                ]).then(([bldData, utilData]) => {
                     window.buildingsData = bldData;
                     setBuildingsData(bldData);
                     setUtilitiesData(utilData);
-                    initMapLibre(bldData, archData, utilData);
+                    initMapLibre(bldData, utilData);
                 }).catch(err => console.error("Buildings & 3D data fetch error:", err));
             }, []);
 
@@ -2243,7 +2239,7 @@ def serve_dashboard():
                 `;
             };
 
-            const initMapLibre = (bldGeo, archGeo, utilGeo) => {
+            const initMapLibre = (bldGeo, utilGeo) => {
                 const MANTRALAYA_COORD = [72.8270, 18.9276];
 
                 const map = new maplibregl.Map({
@@ -2617,7 +2613,7 @@ def serve_dashboard():
                     }
 
                     // 3. 3D Architectural Multi-Storey Strata Sources & Layers (Drawn ABOVE subterranean networks)
-                    map.addSource('buildings-arch-src', { type: 'geojson', data: archGeo });
+                    map.addSource('buildings-arch-src', { type: 'geojson', data: '/api/buildings/architectural' });
 
                     // Foundation Base Plinth (Protruding ground base)
                     map.addLayer({
